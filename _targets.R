@@ -187,26 +187,6 @@ reports <- tar_plan(
     output_dir = "outputs",
     knit_root_dir = here::here()
   )
-  #tar_target(
-  #  name = sampling_scenarios_report,
-  #  command = {
-  #    moz_provinces; sofala_province; sofala_district; sofala_settlements;
-  #    sofala_sp_12; sofala_grid_12; sofala_sample_12;
-  #    sofala_sp_13; sofala_grid_13; sofala_sample_13;
-  #    sofala_sp_14; sofala_grid_14; sofala_sample_14;
-  #    sofala_sp_15; sofala_grid_15; sofala_sample_15;
-  #    sofala_sp_16; sofala_grid_16; sofala_sample_16;
-  #    sofala_sp_17; sofala_grid_17; sofala_sample_17;
-  #    sofala_sp_18; sofala_grid_18; sofala_sample_18;
-  #    sofala_sp_19; sofala_grid_19; sofala_sample_19;
-  #    sofala_sp_20; sofala_grid_20; sofala_sample_20
-  #    rmarkdown::render(
-  #      input = "reports/sampling_scenarios_report.Rmd",
-  #      output_dir = "outputs",
-  #      knit_root_dir = here::here()
-  #    )
-  #  }
-  #)
 )
 
 ## Deploy targets
