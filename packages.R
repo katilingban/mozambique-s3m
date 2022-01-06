@@ -49,6 +49,7 @@ library(okapi)
 ################################################################################
 
 library(zscorer)
+library(car)
 library(nipnTK)
 library(nutricheckr)
 library(anthrocheckr)
