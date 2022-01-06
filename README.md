@@ -19,6 +19,10 @@ This repository is a
 data management, data analysis, and reporting of the implementation of
 Simple Spatial Surveys Method (S3M) survey in Mozambique.
 
+## Setup
+
+## Encryption
+
 ## Authors
 
 -   Mark Myatt
