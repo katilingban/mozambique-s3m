@@ -1,0 +1,279 @@
+---
+title: "Sample Scenarios for the Sofala Province Simple Spatial Survey Method (S3M)"
+author: "Mark Myatt and Ernest Guevarra"
+date: "30/12/2021"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 2
+    self_contained: true
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+suppressPackageStartupMessages(source("packages.R"))
+for (f in list.files(here::here("R"), full.names = TRUE)) source (f)
+
+targets::tar_load(
+  c(moz_provinces, sofala_province, sofala_district, sofala_settlements,
+    sofala_sp_12, sofala_grid_12, sofala_sample_12,
+    sofala_sp_13, sofala_grid_13, sofala_sample_13,
+    sofala_sp_14, sofala_grid_14, sofala_sample_14,
+    sofala_sp_15, sofala_grid_15, sofala_sample_15,
+    sofala_sp_16, sofala_grid_16, sofala_sample_16,
+    sofala_sp_17, sofala_grid_17, sofala_sample_17,
+    sofala_sp_18, sofala_grid_18, sofala_sample_18,
+    sofala_sp_19, sofala_grid_19, sofala_sample_19,
+    sofala_sp_20, sofala_grid_20, sofala_sample_20,)
+)
+```
+
+This document reports on various stage 1 sampling scenarios for the Sofala Simple Spatial Survey Method (S3M). These scenarios were developed using publicly available spatial data for administrative boundaries and village/communities location for Mozambique^[Data provided by UN OCHA via the Humanitarian Data Exchange platform (see https://data.humdata.org/dataset/mozambique-administrative-levels-0-3)].
+
+## Map of Sofala Province
+
+Following is a map of Sofala Province showing district subdivisions and locations of villages/communities.
+
+```{r moz1, echo = FALSE, eval = TRUE, fig.height = 10, fig.width = 10, fig.align = "center"}
+sofala_province |> sf::st_geometry() |> plot(lty = 0)
+sofala_district |> sf::st_geometry() |> plot(add = TRUE)
+moz_provinces |> sf::st_geometry() |> plot(add = TRUE)
+sofala_province |> sf::st_geometry() |> plot(lwd = 2, border = "blue", add = TRUE)
+sofala_settlements |> sf::st_geometry() |> plot(cex = 0.3, col = "darkgreen", pch = 20, add = TRUE) 
+```
+
+This map was the basis from which the various sampling scenarios below were developed.
+
+## Scenario 1: *`d = 12 kms`*
+
+Using ***`d = 12 kms`***, we get the following sample:
+
+```{r moz2, echo = FALSE, eval = TRUE, fig.height = 10, fig.width = 10, fig.align = "center"}
+sofala_province |> sf::st_geometry() |> plot(lty = 0)
+sofala_district |> sf::st_geometry() |> plot(add = TRUE)
+moz_provinces |> sf::st_geometry() |> plot(add = TRUE)
+sofala_province |> sf::st_geometry() |> plot(lwd = 2, border = "blue", add = TRUE)
+sofala_settlements |> sf::st_geometry() |> plot(cex = 0.3, col = "darkgreen", pch = 20, add = TRUE)
+sofala_sp_12 |> sp::plot(cex = 0.6, col = "orange", pch = 4, add = TRUE)
+points(sofala_sample_12[ , c("Longitude", "Latitude")], cex = 1, col = "red", pch = 1)
+```
+
+This gives a total of **`r nrow(sofala_sample_12)` sampling villages/communities** listed below:
+
+```{r moz3, echo = FALSE, eval = TRUE}
+sofala_sample_12 |>
+  subset(select = c(spid, Sett_Name, ADM1_Name, ADM2_Name, ADM3_Name, Latitude, Longitude, d)) |>
+  knitr::kable(row.names = FALSE) |>
+  kableExtra::kable_styling(
+    bootstrap_options = "striped", full_width = FALSE
+  ) 
+```
+
+## Scenario 2: *`d = 13 kms`*
+
+Using ***`d = 13 kms`***, we get the following sample:
+
+```{r moz4, echo = FALSE, eval = TRUE, fig.height = 10, fig.width = 10, fig.align = "center"}
+sofala_province |> sf::st_geometry() |> plot(lty = 0)
+sofala_district |> sf::st_geometry() |> plot(add = TRUE)
+moz_provinces |> sf::st_geometry() |> plot(add = TRUE)
+sofala_province |> sf::st_geometry() |> plot(lwd = 2, border = "blue", add = TRUE)
+sofala_settlements |> sf::st_geometry() |> plot(cex = 0.3, col = "darkgreen", pch = 20, add = TRUE)
+sofala_sp_13 |> sp::plot(cex = 0.6, col = "orange", pch = 4, add = TRUE)
+points(sofala_sample_13[ , c("Longitude", "Latitude")], cex = 1, col = "red", pch = 1)
+```
+
+This gives a total of **`r nrow(sofala_sample_13)` sampling villages/communities** listed below:
+
+```{r moz5, echo = FALSE, eval = TRUE}
+sofala_sample_13 |>
+  subset(select = c(spid, Sett_Name, ADM1_Name, ADM2_Name, ADM3_Name, Latitude, Longitude, d)) |>
+  knitr::kable(row.names = FALSE) |>
+  kableExtra::kable_styling(
+    bootstrap_options = "striped", full_width = FALSE
+  ) 
+```
+
+## Scenario 3: *`d = 14 kms`*
+
+Using ***`d = 14 kms`***, we get the following sample:
+
+```{r moz6, echo = FALSE, eval = TRUE, fig.height = 10, fig.width = 10, fig.align = "center"}
+sofala_province |> sf::st_geometry() |> plot(lty = 0)
+sofala_district |> sf::st_geometry() |> plot(add = TRUE)
+moz_provinces |> sf::st_geometry() |> plot(add = TRUE)
+sofala_province |> sf::st_geometry() |> plot(lwd = 2, border = "blue", add = TRUE)
+sofala_settlements |> sf::st_geometry() |> plot(cex = 0.3, col = "darkgreen", pch = 20, add = TRUE)
+sofala_sp_14 |> sp::plot(cex = 0.6, col = "orange", pch = 4, add = TRUE)
+points(sofala_sample_14[ , c("Longitude", "Latitude")], cex = 1, col = "red", pch = 1)
+```
+
+This gives a total of **`r nrow(sofala_sample_14)` sampling villages/communities** listed below:
+
+```{r moz7, echo = FALSE, eval = TRUE}
+sofala_sample_14 |>
+  subset(select = c(spid, Sett_Name, ADM1_Name, ADM2_Name, ADM3_Name, Latitude, Longitude, d)) |>
+  knitr::kable(row.names = FALSE) |>
+  kableExtra::kable_styling(
+    bootstrap_options = "striped", full_width = FALSE
+  ) 
+```
+
+## Scenario 4: *`d = 15 kms`*
+
+Using ***`d = 15 kms`***, we get the following sample:
+
+```{r moz8, echo = FALSE, eval = TRUE, fig.height = 10, fig.width = 10, fig.align = "center"}
+sofala_province |> sf::st_geometry() |> plot(lty = 0)
+sofala_district |> sf::st_geometry() |> plot(add = TRUE)
+moz_provinces |> sf::st_geometry() |> plot(add = TRUE)
+sofala_province |> sf::st_geometry() |> plot(lwd = 2, border = "blue", add = TRUE)
+sofala_settlements |> sf::st_geometry() |> plot(cex = 0.3, col = "darkgreen", pch = 20, add = TRUE)
+sofala_sp_15 |> sp::plot(cex = 0.6, col = "orange", pch = 4, add = TRUE)
+points(sofala_sample_15[ , c("Longitude", "Latitude")], cex = 1, col = "red", pch = 1)
+```
+
+This gives a total of **`r nrow(sofala_sample_15)` sampling villages/communities** listed below:
+
+```{r moz9, echo = FALSE, eval = TRUE}
+sofala_sample_15 |>
+  subset(select = c(spid, Sett_Name, ADM1_Name, ADM2_Name, ADM3_Name, Latitude, Longitude, d)) |>
+  knitr::kable(row.names = FALSE) |>
+  kableExtra::kable_styling(
+    bootstrap_options = "striped", full_width = FALSE
+  ) 
+```
+
+## Scenario 5: *`d = 16 kms`*
+
+Using ***`d = 16 kms`***, we get the following sample:
+
+```{r moz10, echo = FALSE, eval = TRUE, fig.height = 10, fig.width = 10, fig.align = "center"}
+sofala_province |> sf::st_geometry() |> plot(lty = 0)
+sofala_district |> sf::st_geometry() |> plot(add = TRUE)
+moz_provinces |> sf::st_geometry() |> plot(add = TRUE)
+sofala_province |> sf::st_geometry() |> plot(lwd = 2, border = "blue", add = TRUE)
+sofala_settlements |> sf::st_geometry() |> plot(cex = 0.3, col = "darkgreen", pch = 20, add = TRUE)
+sofala_sp_16 |> sp::plot(cex = 0.6, col = "orange", pch = 4, add = TRUE)
+points(sofala_sample_16[ , c("Longitude", "Latitude")], cex = 1, col = "red", pch = 1)
+```
+
+This gives a total of **`r nrow(sofala_sample_16)` sampling villages/communities** listed below:
+
+```{r moz11, echo = FALSE, eval = TRUE}
+sofala_sample_16 |>
+  subset(select = c(spid, Sett_Name, ADM1_Name, ADM2_Name, ADM3_Name, Latitude, Longitude, d)) |>
+  knitr::kable(row.names = FALSE) |>
+  kableExtra::kable_styling(
+    bootstrap_options = "striped", full_width = FALSE
+  ) 
+```
+
+## Scenario 6: *`d = 17 kms`*
+
+Using ***`d = 17 kms`***, we get the following sample:
+
+```{r moz12, echo = FALSE, eval = TRUE, fig.height = 10, fig.width = 10, fig.align = "center"}
+sofala_province |> sf::st_geometry() |> plot(lty = 0)
+sofala_district |> sf::st_geometry() |> plot(add = TRUE)
+moz_provinces |> sf::st_geometry() |> plot(add = TRUE)
+sofala_province |> sf::st_geometry() |> plot(lwd = 2, border = "blue", add = TRUE)
+sofala_settlements |> sf::st_geometry() |> plot(cex = 0.3, col = "darkgreen", pch = 20, add = TRUE)
+sofala_sp_17 |> sp::plot(cex = 0.6, col = "orange", pch = 4, add = TRUE)
+points(sofala_sample_17[ , c("Longitude", "Latitude")], cex = 1, col = "red", pch = 1)
+```
+
+This gives a total of **`r nrow(sofala_sample_17)` sampling villages/communities** listed below:
+
+```{r moz13, echo = FALSE, eval = TRUE}
+sofala_sample_17 |>
+  subset(select = c(spid, Sett_Name, ADM1_Name, ADM2_Name, ADM3_Name, Latitude, Longitude, d)) |>
+  knitr::kable(row.names = FALSE) |>
+  kableExtra::kable_styling(
+    bootstrap_options = "striped", full_width = FALSE
+  ) 
+```
+
+## Scenario 7: *`d = 18 kms`*
+
+Using ***`d = 18 kms`***, we get the following sample:
+
+```{r moz14, echo = FALSE, eval = TRUE, fig.height = 10, fig.width = 10, fig.align = "center"}
+sofala_province |> sf::st_geometry() |> plot(lty = 0)
+sofala_district |> sf::st_geometry() |> plot(add = TRUE)
+moz_provinces |> sf::st_geometry() |> plot(add = TRUE)
+sofala_province |> sf::st_geometry() |> plot(lwd = 2, border = "blue", add = TRUE)
+sofala_settlements |> sf::st_geometry() |> plot(cex = 0.3, col = "darkgreen", pch = 20, add = TRUE)
+sofala_sp_18 |> sp::plot(cex = 0.6, col = "orange", pch = 4, add = TRUE)
+points(sofala_sample_18[ , c("Longitude", "Latitude")], cex = 1, col = "red", pch = 1)
+```
+
+This gives a total of **`r nrow(sofala_sample_18)` sampling villages/communities** listed below:
+
+```{r moz15, echo = FALSE, eval = TRUE}
+sofala_sample_18 |>
+  subset(select = c(spid, Sett_Name, ADM1_Name, ADM2_Name, ADM3_Name, Latitude, Longitude, d)) |>
+  knitr::kable(row.names = FALSE) |>
+  kableExtra::kable_styling(
+    bootstrap_options = "striped", full_width = FALSE
+  ) 
+```
+
+## Scenario 8: *`d = 19 kms`*
+
+Using ***`d = 19 kms`***, we get the following sample:
+
+```{r moz16, echo = FALSE, eval = TRUE, fig.height = 10, fig.width = 10, fig.align = "center"}
+sofala_province |> sf::st_geometry() |> plot(lty = 0)
+sofala_district |> sf::st_geometry() |> plot(add = TRUE)
+moz_provinces |> sf::st_geometry() |> plot(add = TRUE)
+sofala_province |> sf::st_geometry() |> plot(lwd = 2, border = "blue", add = TRUE)
+sofala_settlements |> sf::st_geometry() |> plot(cex = 0.3, col = "darkgreen", pch = 20, add = TRUE)
+sofala_sp_19 |> sp::plot(cex = 0.6, col = "orange", pch = 4, add = TRUE)
+points(sofala_sample_19[ , c("Longitude", "Latitude")], cex = 1, col = "red", pch = 1)
+```
+
+This gives a total of **`r nrow(sofala_sample_19)` sampling villages/communities** listed below:
+
+```{r moz17, echo = FALSE, eval = TRUE}
+sofala_sample_19 |>
+  subset(select = c(spid, Sett_Name, ADM1_Name, ADM2_Name, ADM3_Name, Latitude, Longitude, d)) |>
+  knitr::kable(row.names = FALSE) |>
+  kableExtra::kable_styling(
+    bootstrap_options = "striped", full_width = FALSE
+  ) 
+```
+
+## Scenario 9: *`d = 20 kms`*
+
+Using ***`d = 20 kms`***, we get the following sample:
+
+```{r moz18, echo = FALSE, eval = TRUE, fig.height = 10, fig.width = 10, fig.align = "center"}
+sofala_province |> sf::st_geometry() |> plot(lty = 0)
+sofala_district |> sf::st_geometry() |> plot(add = TRUE)
+moz_provinces |> sf::st_geometry() |> plot(add = TRUE)
+sofala_province |> sf::st_geometry() |> plot(lwd = 2, border = "blue", add = TRUE)
+sofala_settlements |> sf::st_geometry() |> plot(cex = 0.3, col = "darkgreen", pch = 20, add = TRUE)
+sofala_sp_20 |> sp::plot(cex = 0.6, col = "orange", pch = 4, add = TRUE)
+points(sofala_sample_20[ , c("Longitude", "Latitude")], cex = 1, col = "red", pch = 1)
+```
+
+This gives a total of **`r nrow(sofala_sample_20)` sampling villages/communities** listed below:
+
+```{r moz19, echo = FALSE, eval = TRUE}
+sofala_sample_20 |>
+  subset(select = c(spid, Sett_Name, ADM1_Name, ADM2_Name, ADM3_Name, Latitude, Longitude, d)) |>
+  knitr::kable(row.names = FALSE) |>
+  kableExtra::kable_styling(
+    bootstrap_options = "striped", full_width = FALSE
+  ) 
+```
+
+
+## Points to note
+
+* The sampling scenarios above assume that the UN OCHA geospatial data are acceptable to UNICEF Mozambique. If not, then UNICEF Mozambique will have to secure geospatial data that it would like to use for this survey.
+
+* The sampling scenarios above do not include urban areas. It will be important for UNICEF Mozambique to provide list and addiitonal information on urban areas within Sofala that they want to include in the sample. Rule of thumb is that for every urban area included in the survey, an additional 20-30 sampling points will be needed.

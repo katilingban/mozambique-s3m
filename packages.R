@@ -22,9 +22,10 @@ library(kableExtra)
 #
 ################################################################################
 
-library(sf)
+library(mozambique)
 library(spatialsampler)
 library(mapboxapi)
+
 
 
 ################################################################################
@@ -47,9 +48,10 @@ library(okapi)
 #
 ################################################################################
 
-#library(zscorer)
-#library(nutricheckr)
-#library(anthrocheckr)
+library(zscorer)
+library(nipnTK)
+library(nutricheckr)
+library(anthrocheckr)
 
 
 ################################################################################
@@ -60,6 +62,6 @@ library(okapi)
 #
 ################################################################################
 
-#library(ppitables)
+library(ppitables)
 
 
