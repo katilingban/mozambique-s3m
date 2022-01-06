@@ -1,13 +1,15 @@
 ---
 title: "Sample Scenarios for the Sofala Province Simple Spatial Survey Method (S3M)"
-author: "Mark Myatt and Ernest Guevarra"
-date: "30/12/2021"
+author: 
+    - name: Mark Myatt
+    - name: Ernest Guevarra
+date: "06/01/2022"
 output: 
   html_document:
     toc: true
     toc_depth: 2
     self_contained: true
-
+    code_download: true
 ---
 
 ```{r setup, include=FALSE}

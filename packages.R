@@ -49,7 +49,7 @@ library(okapi)
 ################################################################################
 
 library(zscorer)
-#library(nipnTK)
+library(nipnTK)
 #library(nutricheckr)
 library(anthrocheckr)
 
