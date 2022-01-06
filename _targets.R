@@ -187,11 +187,6 @@ reports <- tar_plan(
     output_dir = "outputs",
     knit_root_dir = here::here()
   )
-  #sampling_scenarios_report = rmarkdown::render(
-  #  input = "reports/sampling_scenarios_report.Rmd",
-  #  output_dir = "outputs",
-  #  knit_root_dir = here::here()
-  #)
   #tar_target(
   #  name = sampling_scenarios_report,
   #  command = {
