@@ -15,7 +15,7 @@ for (f in list.files(here::here("R"), full.names = TRUE)) source (f)
 
 # Groups of targets ------------------------------------------------------------
 
-## Sampling
+## Sampling design
 spatial_sample <- tar_plan(
   moz_country = get_country(),
   moz_provinces = get_provinces(),
@@ -111,6 +111,12 @@ spatial_sample <- tar_plan(
     )
 )
 
+
+## Form/questionnaire development
+questionnaire <- tar_plan(
+  ##
+)
+
 ## Read raw data
 raw_data <- tar_plan(
   ##
@@ -200,6 +206,7 @@ set.seed(1977)
 # Concatenate targets ----------------------------------------------------------
 list(
   spatial_sample,
+  questionnaire,
   raw_data,
   processed_data,
   analysis,
