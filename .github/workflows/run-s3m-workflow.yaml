@@ -42,6 +42,6 @@ jobs:
         
       - name: Run workflow
         run: |
-          targets::tar_make(sample_scenarios_report)
+          targets::tar_make(c(sample_scenarios_report, sample_cidade_da_beira))
         shell: Rscript {0}
           

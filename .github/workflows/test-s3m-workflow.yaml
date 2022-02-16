@@ -43,5 +43,6 @@ jobs:
       - name: Run workflow
         run: |
           targets::tar_make(dplyr::starts_with("sofala_"))
+          targets::tar_make(dplyr::starts_with("cidade"))
         shell: Rscript {0}
           
