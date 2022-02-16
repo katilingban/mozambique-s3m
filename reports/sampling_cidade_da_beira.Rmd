@@ -1,0 +1,53 @@
+---
+title: "Sample for Cidade De Beira for the Simple Spatial Survey Method (S3M)"
+author: 
+    - name: Mark Myatt
+    - name: Ernest Guevarra
+date: "015/02/2022"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 2
+    self_contained: true
+    code_download: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+suppressPackageStartupMessages(source("packages.R"))
+for (f in list.files(here::here("R"), full.names = TRUE)) source (f)
+
+targets::tar_load(
+  c(moz_provinces, sofala_province, sofala_district, sofala_settlements,
+    cidade_da_beira, cidade_da_beira_osm, cidade_da_beira_sp, 
+    cidade_da_beira_grid, cidade_da_beira_sample_csv)
+)
+```
+
+
+```{r, echo = FALSE, eval = TRUE, fig.align = "center", fig.width = 10, fig.height = 10, fig.cap = "Cidade Da Beira S3M sample"}
+plot(sf::st_geometry(cidade_da_beira), lty = 0)
+plot(sf::st_geometry(sofala_district), lwd = 3, add = TRUE)
+plot(sf::st_geometry(cidade_da_beira_osm$osm_lines), col = "gray70", add = TRUE)
+sp::plot(cidade_da_beira_sp, pch = 20, cex = 2, col = "red", add = TRUE)
+sp::plot(cidade_da_beira_grid, lwd = 2, border = "blue", add = TRUE)
+```
+
+```{r, echo = FALSE, eval = TRUE}
+data.frame(
+  spid = seq_len(length(cidade_da_beira_sp)),
+  longitude = cidade_da_beira_sp@coords[ , 1],
+  latitude = cidade_da_beira_sp@coords[ , 2]
+) |>
+  knitr::kable(
+    row.names = FALSE,
+    caption = "List of sampling points for Cidade Da Beira S3M sample"
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = "striped",
+    full_width = FALSE,
+    position = "center"
+  )
+```
+
