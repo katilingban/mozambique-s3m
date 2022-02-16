@@ -37,7 +37,7 @@ spatial_sample <- tar_plan(
   cidade_da_beira_grid = sp::HexPoints2SpatialPolygons(cidade_da_beira_sp),
   sofala_sp_12 = sofala_province |> 
     sf::as_Spatial() |>
-    spatialsampler::create_sp_grid(d = 12, country = "Mozambique", n = 20),
+    spatialsampler::create_sp_grid(d = 12, country = "Mozambique"),
   sofala_grid_12 = sp::HexPoints2SpatialPolygons(sofala_sp_12),
   sofala_sample_12 = sofala_settlements |>
     data.frame() |>
