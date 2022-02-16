@@ -28,6 +28,13 @@ spatial_sample <- tar_plan(
     subset(ADM1_PT == "Sofala"),
   sofala_settlements = moz_settlements |>
     subset(ADM1_Name == "Sofala"),
+  cidade_da_beira = sofala_district |>
+    subset(ADM2_PT == "Cidade Da Beira"),
+  cidade_da_beira_osm = get_osm_features(area = cidade_da_beira),
+  cidade_da_beira_sp = cidade_da_beira |>
+    sf::as_Spatial() |>
+    spatialsampler::create_sp_grid(country = "Mozambique", n = 25, buffer = 1),
+  cidade_da_beira_grid = sp::HexPoints2SpatialPolygons(cidade_da_beira_sp),
   sofala_sp_12 = sofala_province |> 
     sf::as_Spatial() |>
     spatialsampler::create_sp_grid(d = 12, country = "Mozambique"),
@@ -137,6 +144,15 @@ analysis <- tar_plan(
 
 ## Outputs
 outputs <- tar_plan(
+  cidade_da_beira_sample_csv = write.csv(
+    x = data.frame(
+      spid = seq_len(length(cidade_da_beira_sp)),
+      longitude = cidade_da_beira_sp@coords[ , 1],
+      latitude = cidade_da_beira_sp@coords[ , 2]
+    ),
+    file = "outputs/cidade_da_beira_sample.csv",
+    row.names = FALSE
+  ),
   sofala_sample_12_csv = write.csv(
     x = sofala_sample_12, 
     file = "outputs/sofala_sample_12.csv", 
@@ -190,6 +206,12 @@ reports <- tar_plan(
   tar_render(
     name = sample_scenarios_report,
     path = "reports/sampling_scenarios_report.Rmd",
+    output_dir = "outputs",
+    knit_root_dir = here::here()
+  ),
+  tar_render(
+    name = sample_cidade_da_beira,
+    path = "reports/sampling_cidade_da_beira.Rmd",
     output_dir = "outputs",
     knit_root_dir = here::here()
   )
