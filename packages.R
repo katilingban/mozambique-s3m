@@ -25,6 +25,7 @@ library(kableExtra)
 library(mozambique)
 library(spatialsampler)
 library(mapboxapi)
+library(osmdata)
 
 
 
@@ -49,8 +50,8 @@ library(okapi)
 ################################################################################
 
 library(zscorer)
-#library(nipnTK)
-#library(nutricheckr)
+library(nipnTK)
+library(nutricheckr)
 library(anthrocheckr)
 
 
