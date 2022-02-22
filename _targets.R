@@ -115,7 +115,23 @@ spatial_sample <- tar_plan(
     data.frame() |>
     spatialsampler::get_nearest_point(
       data.x = "Longitude", data.y = "Latitude", query = sofala_sp_20
-    )
+    ),
+  selected_ea_file = download_googledrive(
+    filename = "S3M_Selected_EAs_UNICEF.xlsx", overwrite = TRUE
+  ),
+  selected_ea = readxl::read_xlsx(
+    path = selected_ea_file$local_path, sheet = 1
+  ),
+  selected_ea_sqlite = download_googledrive(
+    filename = "S3M_EA maps_UNICEF.sqlite", overwrite = TRUE
+  ),
+  selected_ea_sf = sf::st_read(dsn = selected_ea_sqlite$local_path),
+  training_areas = moz_districts |>
+    subset(ADM2_PT %in% c("Cidade De Quelimane", "Nicoadala", "Inhassunge", "Maquival")),
+  training_areas_sp = training_areas |>
+    sf::as_Spatial() |>
+    spatialsampler::create_sp_grid(country = "Mozambique", n = 15, buffer = 1),
+  training_areas_grid = sp::HexPoints2SpatialPolygons(training_areas_sp)
 )
 
 
@@ -151,6 +167,15 @@ outputs <- tar_plan(
       latitude = cidade_da_beira_sp@coords[ , 2]
     ),
     file = "outputs/cidade_da_beira_sample.csv",
+    row.names = FALSE
+  ),
+  training_areas_sample_csv = write.csv(
+    x = data.frame(
+      spid = seq_len(length(training_areas_sp)),
+      longitude = training_areas_sp@coords[ , 1],
+      latitude = training_areas_sp@coords[ , 2]
+    ),
+    file = "outputs/training_area_sample.csv",
     row.names = FALSE
   ),
   sofala_sample_12_csv = write.csv(
@@ -212,6 +237,18 @@ reports <- tar_plan(
   tar_render(
     name = sample_cidade_da_beira,
     path = "reports/sampling_cidade_da_beira.Rmd",
+    output_dir = "outputs",
+    knit_root_dir = here::here()
+  ),
+  tar_render(
+    name = selected_ea_review,
+    path = "reports/selected_ea_review.Rmd",
+    output_dir = "outputs",
+    knit_root_dir = here::here()
+  ),
+  tar_render(
+    name = sample_training_area,
+    path = "reports/training_area_sample.Rmd",
     output_dir = "outputs",
     knit_root_dir = here::here()
   )

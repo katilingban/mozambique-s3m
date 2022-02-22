@@ -1,0 +1,52 @@
+---
+title: "Quelimane Sample for Training and Testing"
+author: 
+    - name: Mark Myatt
+    - name: Ernest Guevarra
+date: "21/02/2022"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 2
+    self_contained: true
+    code_download: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+suppressPackageStartupMessages(source("packages.R"))
+for (f in list.files(here::here("R"), full.names = TRUE)) source (f)
+
+targets::tar_load(
+  c(moz_districts, training_areas, training_areas_sp, training_areas_grid)
+)
+```
+
+
+```{r, echo = FALSE, eval = TRUE, fig.align = "center", fig.width = 10, fig.height = 10, fig.cap = "Sampling areas for training"}
+plot(sf::st_geometry(training_areas), lty = 0)
+plot(sf::st_geometry(moz_districts), lwd = 2, add = TRUE)
+text(
+  x = sp::coordinates(sf::as_Spatial(training_areas)), 
+  labels = training_areas$ADM2_PT, 
+  cex = 1, col = "gray50"
+)
+sp::plot(training_areas_sp, pch = 20, cex = 1, col = "red", add = TRUE)
+sp::plot(training_areas_grid, cex = 2, border = "blue", add = TRUE)
+```
+
+
+```{r, echo = FALSE, eval = TRUE}
+data.frame(
+  spid = seq_len(length(training_areas_sp)),
+  longitude = training_areas_sp@coords[ , 1],
+  latitude = training_areas_sp@coords[ , 2]
+) |>
+  knitr::kable(row.names = FALSE) |>
+  kableExtra::kable_styling(
+    bootstrap_options = "striped",
+    position = "center",
+    full_width = FALSE
+  )
+```
