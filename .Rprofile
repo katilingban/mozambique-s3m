@@ -1,3 +1,8 @@
+## Load .env if present
+if (file.exists(".env")) {
+  try(readRenviron(".env"), silent = TRUE)
+}
+
 if (Sys.info()[['sysname']] %in% c('Linux', 'Windows')) {
   options(
     repos = c(RSPM = "https://packagemanager.rstudio.com/all/latest")

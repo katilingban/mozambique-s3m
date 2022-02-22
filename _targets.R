@@ -115,7 +115,17 @@ spatial_sample <- tar_plan(
     data.frame() |>
     spatialsampler::get_nearest_point(
       data.x = "Longitude", data.y = "Latitude", query = sofala_sp_20
-    )
+    ),
+  selected_ea_file = download_googledrive(
+    filename = "S3M_Selected_EAs_UNICEF.xlsx", overwrite = TRUE
+  ),
+  selected_ea = readxl::read_xlsx(
+    path = selected_ea_file$local_path, sheet = 1
+  ),
+  selected_ea_sqlite = download_googledrive(
+    filename = "S3M_EA maps_UNICEF.sqlite", overwrite = TRUE
+  ),
+  selected_ea_sf = sf::st_read(dsn = selected_ea_sqlite$local_path)
 )
 
 
@@ -212,6 +222,12 @@ reports <- tar_plan(
   tar_render(
     name = sample_cidade_da_beira,
     path = "reports/sampling_cidade_da_beira.Rmd",
+    output_dir = "outputs",
+    knit_root_dir = here::here()
+  ),
+  tar_render(
+    name = selected_ea_review,
+    path = "reports/selected_ea_review.Rmd",
     output_dir = "outputs",
     knit_root_dir = here::here()
   )

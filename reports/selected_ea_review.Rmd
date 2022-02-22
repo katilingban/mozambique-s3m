@@ -1,0 +1,99 @@
+---
+title: "Selected Enumeration Areas for the Simple Spatial Survey Method (S3M)"
+author: 
+    - name: Mark Myatt
+    - name: Ernest Guevarra
+date: "21/02/2022"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 2
+    self_contained: true
+    code_download: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+suppressPackageStartupMessages(source("packages.R"))
+for (f in list.files(here::here("R"), full.names = TRUE)) source (f)
+
+targets::tar_load(
+  c(moz_provinces, sofala_province, sofala_district, sofala_settlements,
+    sofala_sp_12, sofala_grid_12, sofala_sample_12,
+    cidade_da_beira, cidade_da_beira_osm, cidade_da_beira_sp, 
+    cidade_da_beira_grid, cidade_da_beira_sample_csv, 
+    selected_ea, selected_ea_sf)
+)
+```
+
+In this document, we review the list of selected enumeration areas provided by INE Mozambique based on a list of sampling points with geographic coordinates drawn spatially using the S3M approach.
+
+For this review, we looked at both the list of selected enumeration areas provided in `.XLSX` format and the maps of selected enumeration areas provided in `.SQLIte` format which was meant for use in locating the enumerations areas.
+
+```{r, echo = TRUE, eval = FALSE}
+selected_ea       ## list of selected enumeration areas in table format
+selected_ea_sf    ## list of selected enumeration areas in geospatial format (includes geometry)
+sofala_sample_12  ## list of sampling points identified in preliminary design
+```
+
+Following are the expectations/assumptions that we checked and verified in reviewing the enumeration area list.
+
+## Enumeration area list has equal number of clusters as sampling points list
+
+```{r, echo = TRUE, eval = TRUE}
+testthat::test_that("Selected EAs have equal number as sampling points list",{
+  testthat::expect_true(nrow(selected_ea) == nrow(sofala_sample_12))
+})
+```
+
+But when comparing the list of enumeration areas in geospatial format, we note that:
+
+```{r, echo = TRUE, eval = TRUE}
+nrow(selected_ea_sf) == nrow(sofala_sample_12)
+```
+
+There are `r nrow(selected_ea_sf)` enumeration areas in the geospatial list. Would be good to understand why this is the case.
+
+```{r, echo = FALSE, eval = TRUE, fig.align = "center", fig.width = 10, fig.height = 10, fig.cap = "Map of selected enumeration areas overlaid with the original list of sampling points"}
+plot(sf::st_geometry(selected_ea_sf), col = "gray90", border = "gray70")
+plot(sf::st_geometry(sofala_district), lwd = 2, add = TRUE)
+text(
+  x = sp::coordinates(sf::as_Spatial(sofala_district)), 
+  labels = sofala_district$ADM2_PT, 
+  cex = 1.5, col = "gray50"
+)
+points(sofala_sample_12[ , c("Longitude", "Latitude")], pch = 20, cex = 1, col = "red")
+```
+
+There are enumeration areas (polygons in gray) in Cheringoma, Muanza, and Marromeu that seem to not be corresponding to a specific sampling point (red dot). It would be good to be able to match the corresponding sampling point (red dot) to the enumeration area (gray polygon) - see last point below. If we can accurately match the sampling point to the enumeration area, we can move the red sampling points to the centroid of the corresponding enumeration area and re-triangulate the network of sampling points.
+
+## Check whether there are duplicated enumeration areas
+
+```{r, echo = TRUE, eval = TRUE}
+testthat::test_that("There are duplicated enumeration areas", {
+  testthat::expect_true(any(duplicated(selected_ea$AES)))
+})
+```
+
+There are `r ceiling(nrow(selected_ea[duplicated(selected_ea$AES), ]) / 2)` duplicated enumeration areas in the list. These are:
+
+```{r, echo = FALSE, eval = TRUE}
+selected_ea |> 
+  subset(AES %in% selected_ea[duplicated(selected_ea$AES), ]$AES) |>
+  knitr::kable() |>
+  kableExtra::kable_styling(
+    bootstrap_options = "striped",
+    position = "center",
+    full_width = TRUE
+  )
+```
+
+The most likely reason for this is that these enumerations areas are relatively larger hence more than one sampling point gets included within them. The usual approach we will do with this will be to select the next nearest EA but this will depend on where they are on the map. We would recommend performing the replacements based on where these points are located on the enumeration area maps.
+
+## Check whether the selected enumeration areas can be matched with the original sampling points list
+
+We are unable to match the selected enumeration areas with the original sampling points list on a row-per-row basis. It would be good if the selected enumeration list can be identified also with the corresponding `spid` variable in the original sampling points list. This can help in tracing back what the original sampling point was and possibly help in addressing the duplicated enumeration area issue mentioned above.
+
+See map above and the suggestion with regard to moving the sampling points to the centroid of the corresponding enumeration area.
+
