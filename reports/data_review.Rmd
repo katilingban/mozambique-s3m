@@ -1,0 +1,1278 @@
+---
+title: "Improving nutrition status for under 5 children in Zambezia and Nampula"
+subtitle: "Endline Survey Progress and Data Quality Review"
+author: 
+    - name: Mark Myatt
+    - name: Ernest Guevarra
+date: '`r Sys.time()`'
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+    self_contained: true
+    code_download: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  warning = FALSE,
+  error = FALSE,
+  message = FALSE,
+  echo = FALSE
+)
+
+suppressPackageStartupMessages(source("packages.R"))
+for (f in list.files(here::here("R"), full.names = TRUE)) source (f)
+
+targets::tar_load(
+  c(raw_data, respondent_data, respondent_data_clean, child_data, child_data_clean,
+    outlier_weight_mother, outlier_height_mother, outlier_muac_mother,
+    outlier_muac_mother_cm, outlier_muac_mother_mm, outlier_weight_height_mother, 
+    outlier_height_muac_mother, outlier_weight_muac_mother, outlier_weight,
+    outlier_height, outlier_muac, outlier_weight_height, outlier_weight_muac, 
+    outlier_height_muac, outlier_weight_age, outlier_height_age, 
+    outlier_muac_age, outlier_weight_adj, outlier_height_adj, outlier_muac_adj, 
+    child_data_zscore, child_data_zscore_adj, skewKurt_wfaz, skewKurt_hfaz, 
+    skewKurt_wfhz, dp_weight, dp_height, dp_muac, age_heaping, sex_ratio, 
+    age_ratio, table_sp_total, table_sp_children_total, table_sp_date_total,
+    endline_sample_list, outlier_summary_univariate_mother, outlier_table_univariate_mother,
+    outlier_unique_univariate_mother_total, outlier_summary_bivariate_mother,
+    outlier_table_bivariate_mother, outlier_unique_bivariate_mother_total,
+    outlier_unique_mother_total, outlier_summary_univariate, 
+    outlier_table_univariate, outlier_unique_univariate_total, 
+    outlier_summary_univariate_adj, outlier_table_univariate_adj, 
+    outlier_unique_univariate_total_adj, outlier_summary_bivariate,
+    outlier_table_bivariate, outlier_unique_bivariate_total,
+    outlier_unique_total, flag_zscore_total, flag_zscore_prop,
+    flag_zscore_adj_total, flag_zscore_adj_prop, whz_mad, age_heaping_class,
+    shapiro_wfaz, shapiro_hfaz, shapiro_wfhz
+  )
+)
+```
+
+<style type="text/css">
+  body{
+  font-size: 14pt;
+}
+</style>
+
+<br/>
+
+# Summary: The Data Quality Scorecard (DQS)
+
+Following is today's data quality scorecard (DQS) for the endline survey anthropometric dataset.
+
+**Criteria** | **Fail Standard** | **Observed** | **Details**
+:--- | :--- |:--- | :---
+Outliers | > 1% | Mother data - `r outlier_unique_mother_total$p`; Child data - `r outlier_unique_total$p` | see [2.1. Mother anthropometry] and [2.2. Child anthropometry]
+Illegal values | > 1% | Mother data - `r outlier_unique_mother_total$p`; Child data - `r outlier_unique_total$p` | see [2.1. Mother anthropometry] and [2.2. Child anthropometry]
+Flagged records | > 5% | `r flag_zscore_prop` | see [2.2.2. Flagged records]
+Weight-for-age z-score | Markedly non-normal | Check WAZ Q-Q plot | see [2.2.3. Distribution of anthropometric z-scores and MUAC]
+Height-for-age z-score | Markedly non-normal | Check HAZ Q-Q plot | see [2.2.3. Distribution of anthropometric z-scores and MUAC]
+Weight-for-height z-score | Markedly non-normal; MAD > 1.2 and MAD < 0.8 | MAD = `r round(whz_mad, 2)` | see [2.2.3. Distribution of anthropometric z-scores and MUAC]; [2.2.4. Median absolute deviation of weight-for-height z-score]
+Digit preference - weight | DPS > 12 | `r paste0("DPS = ", dp_weight$dps)` | see [2.2.5. Digit preference]
+Digit preference - height | DPS > 12 | `r paste0("DPS = ", dp_height$dps)` | see [2.2.5. Digit preference]
+Digit preference - MUAC | DPS > 12 | `r paste0("DPS = ", dp_muac$dps)` | see [2.2.5. Digit preference]
+Age heaping | Marked age heaping | `r age_heaping_class` | see [2.2.6. Age heaping]
+Sex ratio | p < 0.05 | `r paste0("p = ", round(sex_ratio$p, 4))` | see [2.2.7. Sex ratio]
+Age ratio | p < 0.05 | `r paste0("p = ", round(age_ratio$p, 4))` | see [2.2.8. Age ratio]
+Age structure | Marked deviation from expected | Check age pyramid and age ratio test | See [2.2.8. Age ratio] and [2.2.9. Age structure]
+
+<br/>
+<br/>
+
+# 1. Survey progress
+
+&nbsp;
+
+## 1.1. Cumulative
+
+&nbsp;
+
+### 1.1.1. Number of households surveyed per sampling point identifier as of `r Sys.time()`
+
+```{r, echo = FALSE}
+table_sp_total |>
+  knitr::kable(
+    row.names = FALSE,
+    col.names = c("Sampling point identifier", "Number of records"),
+    caption = "Number of households interviewed by sampling point ID"
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = "striped",
+    full_width = FALSE,
+    position = "center",
+    font_size = 20
+  ) |>
+  kableExtra::row_spec(
+    row = nrow(table_sp_total) - 1 , bold = TRUE, font_size = 28
+  ) |>
+  kableExtra::row_spec(
+    row = nrow(table_sp_total), bold = TRUE, color = "red", font_size = 28
+  ) |>
+  kableExtra::row_spec(
+    row = (1:nrow(table_sp_total))[!as.integer(table_sp_total$Var1) %in% 30000:60000],
+    bold = TRUE,
+    color = "red"
+  ) |>
+  kableExtra::row_spec(
+    row = (1:nrow(table_sp_total))[as.integer(table_sp_total$Var1) %in% 30000:60000 & table_sp_total$Freq < 12],
+    bold = TRUE,
+    color = "blue"
+  ) |>
+  kableExtra::row_spec(row = 0, bold = TRUE, align = "center")
+```
+
+Sampling point identifiers in <strong><span style="color: red;" >BOLD RED are unrecognised/illegal values</span></strong> for this variable.
+
+Sampling point identifiers in <strong><span style="color: blue;" >BOLD BLUE are sampling point identifiers with less than 12 records</span></strong>.
+
+&nbsp;
+
+### 1.1.2. Number of children surveyed per sampling point identifier at `r Sys.time()`
+
+```{r, echo = FALSE}
+table_sp_children_total |>
+  knitr::kable(
+    row.names = FALSE,
+    col.names = c("Sampling point identifier", "Number of records"),
+    caption = "Number of children surveyed by sampling point ID"
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = "striped",
+    full_width = FALSE,
+    position = "center",
+    font_size = 20
+  ) |>
+  kableExtra::row_spec(
+    row = nrow(table_sp_children_total) - 1, bold = TRUE, font_size = 28
+  ) |>
+    kableExtra::row_spec(
+    row = nrow(table_sp_children_total), bold = TRUE, color = "red", font_size = 28
+  ) |>
+  kableExtra::row_spec(
+    row = (1:nrow(table_sp_children_total))[!as.integer(table_sp_children_total$Var1) %in% endline_sample_list$FGH_ID],
+    bold = TRUE,
+    color = "red"
+  ) |>
+    kableExtra::row_spec(
+    row = (1:nrow(table_sp_children_total))[as.integer(table_sp_children_total$Var1) %in% endline_sample_list$FGH_ID & table_sp_children_total$Freq < 12],
+    bold = TRUE,
+    color = "blue"
+  ) |>
+  kableExtra::row_spec(row = 0, bold = TRUE, align = "center")
+```
+
+Sampling point identifiers in <strong><span style="color: red;" >BOLD RED are unrecognised/illegal values</span></strong> for this variable.
+
+Sampling point identifiers in <strong><span style="color: blue;" >BOLD BLUE are sampling point identifiers with less than 12 records</span></strong>.
+
+<br/>
+
+## 1.2. By date
+
+```{r, echo = FALSE}
+table_sp_date_total |>
+  knitr::kable(
+    row.names = FALSE,
+    caption = "Number of households surveys by sampling point identifier per day"
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = "striped",
+    full_width = FALSE,
+    font_size = 20,
+    position = "center"
+  ) |>
+  kableExtra::row_spec(row = nrow(table_sp_date_total) - 1, bold = TRUE, font_size = 28) |>
+  kableExtra::row_spec(row = nrow(table_sp_date_total), bold = TRUE, color = "red", font_size = 28) |>
+  kableExtra::row_spec(
+    row = (1:nrow(table_sp_date_total))[!as.integer(row.names(table_sp_date_total)) %in% endline_sample_list$FGH_ID],
+    bold = TRUE,
+    color = "red"
+  ) |>
+  kableExtra::row_spec(
+    row = (1:nrow(table_sp_date_total))[as.integer(row.names(table_sp_date_total)) %in% endline_sample_list$FGH_ID & table_sp_date_total$`Total records by sampling point identifier per day` < 12],
+    bold = TRUE,
+    color = "blue"
+  ) |>
+  kableExtra::row_spec(row = 0, bold = TRUE, align = "center")
+```
+
+Sampling point identifiers in <strong><span style="color: red;" >BOLD RED are unrecognised/illegal values</span></strong> for this variable.
+
+Sampling point identifiers in <strong><span style="color: blue;" >BOLD BLUE are sampling point identifiers with less than 12 records</span></strong>.
+
+<br/>
+
+## 1.3. Enumerators recording incorrect sampling point identifier
+
+```{r, echo = FALSE}
+x <- data.frame(
+  table(
+    respondent_data_clean$enumname[!respondent_data_clean$fgh_id %in% endline_sample_list$FGH_ID]
+  )
+) |>
+  (\(x) x[order(x$Freq), ])() |>
+  (\(x) rbind(x, data.frame(Var1 = "Total", Freq = sum(x$Freq))))() 
+
+x |>
+  knitr::kable(
+    row.names = FALSE,
+    col.names = c("Enumerator ID", "Number of records with incorrect sampling point identifier")
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = "striped",
+    position = "center",
+    full_width = FALSE,
+    font_size = 20
+  ) |>
+  kableExtra::row_spec(row = nrow(x), bold = TRUE, font_size = 28)
+```
+
+<br/>
+<br/>
+
+# 2. Anthropometric data checks
+
+&nbsp;
+
+## 2.1. Mother anthropometry
+
+&nbsp;
+
+### 2.1.1. Check range and legal values
+
+&nbsp;
+
+#### Univariate outliers
+
+```{r, echo = FALSE, fig.align = "center", fig.width = 12, fig.height = 7}
+par(mfrow = c(1, 3))
+respondent_data_clean |>
+  (\(x) boxplot(x$mheight, width = 3, ylab = "cms", main = "Height", cex.main = 2, cex.lab = 1.5))()
+
+respondent_data_clean |>
+  (\(x) boxplot(x$mweight, width = 3, ylab = "kgs", main = "Weight", cex.main = 2, cex.lab = 1.5))()
+    
+respondent_data_clean |>
+  (\(x) boxplot(x$mmuac, width = 3, ylab = "cms", main = "MUAC", cex.main = 2, cex.lab = 1.5))()
+```
+
+```{r, echo = FALSE}
+# n_outlier_weight <- nrow(outlier_weight_mother)
+# n_outlier_height <- nrow(outlier_height_mother)
+# n_outlier_muac <- nrow(outlier_muac_mother)
+# 
+# total_unique_univariate <- outlier_weight_mother |>
+#   (\(x) rbind(x, outlier_height_mother[!outlier_height_mother$id %in% x$id, ]))() |>
+#   (\(x) rbind(x, outlier_muac_mother[!outlier_muac_mother$id %in% x$id, ]))()
+# 
+# x <- outlier_weight_mother |>
+#   (\(x) x[ , c("today", "id", "enumid", "mweight", "mheight", "mmuac")])()
+# 
+# y <- outlier_height_mother |>
+#   (\(x) x[ , c("today", "id", "enumid", "mweight", "mheight", "mmuac")])()
+# 
+# z <- outlier_muac_mother |>
+#   (\(x) x[ , c("today", "id", "enumid", "mweight", "mheight", "mmuac")])()
+  
+# xyz <- rbind(x, y, z) |>
+#   dplyr::mutate(
+#     outlier_type = ifelse(id %in% x$id, " weight outlier", ""),
+#     outlier_type = ifelse(
+#       id %in% y$id, paste0(outlier_type, " height outlier"), outlier_type
+#     ),
+#     outlier_type = ifelse(
+#       id %in% z$id, paste0(outlier_type, " muac outlier"), outlier_type
+#     )
+#   ) |>
+#   (\(x) x[!duplicated(x), ])()
+
+# xyz <- rbind(x, y, z) |>
+#   dplyr::mutate(
+#     weight_outlier = ifelse(id %in% x$id, "red", "black"),
+#     height_outlier = ifelse(id %in% y$id, "red", "black"),
+#     muac_outlier = ifelse(id %in% z$id, "red", "black")
+#   ) |>
+#   (\(x) x[!duplicated(x), ])()
+
+#total_unique_outliers <- nrow(total_unique_univariate)
+# total_unique_outliers <- nrow(xyz)
+# total_unique_univariate_mother <- nrow(xyz)
+# 
+# prop_outliers <- total_unique_outliers |>
+#   (\(x) x / nrow(respondent_data_clean))() |>
+#   scales::percent(accuracy = 0.1)
+# 
+# x <- c("Weight outlier", "Height outlier", "MUAC outlier") |>
+#   data.frame(
+#     c(n_outlier_weight, n_outlier_height, n_outlier_muac)
+#   )
+```
+
+```{r, echo = FALSE}
+outlier_summary_univariate_mother |>
+  knitr::kable(
+    col.names = c("Outlier type", "Number of records"),
+    row.names = FALSE,
+    caption = "Number of outliers per measurement type"
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = "striped",
+    full_width = FALSE,
+    position = "center",
+    font_size = 20
+  ) |>
+  kableExtra::row_spec(row = 0, bold = TRUE, align = "center")
+```
+
+#### A total of **`r outlier_unique_univariate_mother_total$n`** unique univariate outliers were found and are listed below. Potential outlier anthropometric measurements are in <strong><span style="color: red;">BOLD RED</span></strong>.
+
+```{r, echo = FALSE}
+outlier_table_univariate_mother |>
+  dplyr::mutate(
+    mweight = kableExtra::text_spec(
+      x = mweight,
+      format = "html",
+      color = weight_outlier,
+      bold = ifelse(weight_outlier == "red", TRUE, FALSE)
+    ),
+    mheight = kableExtra::text_spec(
+      x = mheight,
+      format = "html",
+      color = height_outlier,
+      bold = ifelse(height_outlier == "red", TRUE, FALSE)
+    ),
+    mmuac = kableExtra::text_spec(
+      x = mmuac,
+      format = "html",
+      color = muac_outlier,
+      bold = ifelse(muac_outlier == "red", TRUE, FALSE)
+    )
+  ) |>
+  subset(select = c(today, id, enumid, enumname, mweight, mheight, mmuac)) |>
+  knitr::kable(
+    row.names = FALSE,
+    col.names = c(
+      "Survey Date", "Household ID", "Enum ID/Team ID", 
+      "Enum Name/Enum ID", "Weight (kgs)", 
+      "Height (cms)", "MUAC (cms)"
+    ),
+    align = "r",
+    caption = "Outlier measurements - Mother",
+    escape = FALSE
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = "striped",
+    position = "center",
+    full_width = TRUE,
+    font_size = 20
+  ) |>
+  kableExtra::row_spec(row = 0, align = "center", bold = TRUE)
+```
+
+&nbsp;
+
+#### Bivariate outliers
+
+```{r, echo = FALSE, fig.align = "center", fig.width = 12, fig.height = 7}
+par(mfrow = c(1, 3))
+with(respondent_data, {
+  plot(
+    mpeso, maltura,
+    pch = ifelse(id %in% outlier_weight_height_mother$id, 20, 1), 
+    col = ifelse(id %in% outlier_weight_height_mother$id, "red", "black"),
+    xlab = "Weight (kgs)",
+    ylab = "Height (cms)",
+    main = "Weight (kgs) by Height (cms)", 
+    cex.main = 2, cex.lab = 1.5
+  )
+  plot(
+    mpeso, mbraco,
+    pch = ifelse(id %in% outlier_weight_muac_mother$id, 20, 1), 
+    col = ifelse(id %in% outlier_weight_muac_mother$id, "red", "black"),
+    xlab = "Weight (kgs)",
+    ylab = "MUAC (cms)",
+    main = "Weight (kgs) by MUAC (cms)", 
+    cex.main = 2, cex.lab = 1.5
+  )
+  plot(
+    maltura, mbraco,
+    pch = ifelse(id %in% outlier_height_muac_mother$id, 20, 1), 
+    col = ifelse(id %in% outlier_height_muac_mother$id, "red", "black"),
+    xlab = "Height (cms)",
+    ylab = "MUAC (cms)",
+    main = "Height (cms) by MUAC (cms)", 
+    cex.main = 2, cex.lab = 1.5
+  )
+})
+```
+
+```{r, echo = FALSE, eval = TRUE}
+# n_outlier_weight_height <- nrow(outlier_weight_height_mother[!is.na(outlier_weight_height_mother$id), ])
+# n_outlier_weight_muac <- nrow(outlier_weight_muac_mother[!is.na(outlier_weight_muac_mother$id), ])
+# n_outlier_height_muac <- nrow(outlier_height_muac_mother[!is.na(outlier_height_muac_mother$id), ])
+
+# total_unique_bivariate <- outlier_weight_height_mother |>
+#   (\(x) rbind(x, outlier_weight_muac_mother[!outlier_weight_muac_mother$id %in% x$id, ]))() |>
+#   (\(x) rbind(x, outlier_height_muac_mother[!outlier_height_muac_mother$id %in% x$id, ]))()
+# 
+# total_unique_outliers <- nrow(total_unique_bivariate[!is.na(total_unique_bivariate$id), ])
+
+# x <- outlier_weight_height_mother |>
+#   (\(x) x[ , c("today", "id", "enumid", "mweight", "mheight", "mmuac")])()
+# 
+# y <- outlier_weight_muac_mother |>
+#   (\(x) x[ , c("today", "id", "enumid", "mweight", "mheight", "mmuac")])()
+# 
+# z <- outlier_height_muac_mother |>
+#   (\(x) x[ , c("today", "id", "enumid", "mweight", "mheight", "mmuac")])()
+  
+# xyz <- rbind(x, y, z) |>
+#   dplyr::mutate(
+#     outlier_type = ifelse(id %in% x$id, " weight and/or height", ""),
+#     outlier_type = ifelse(
+#       id %in% y$id, paste0(outlier_type, " weight and/or MUAC"), outlier_type
+#     ),
+#     outlier_type = ifelse(
+#       id %in% z$id, paste0(outlier_type, " height and/or MUAC"), outlier_type
+#     )
+#   ) |>
+#   (\(x) x[!duplicated(x), ])()
+
+# xyz <- rbind(x, y, z) |>
+#   dplyr::mutate(
+#     weight_outlier = ifelse(id %in% c(x$id, y$id), "red", "black"),
+#     height_outlier = ifelse(id %in% c(x$id, z$id), "red", "black"),
+#     muac_outlier = ifelse(id %in% c(y$id, z$id), "red", "black")
+#   ) |>
+#   (\(x) x[!duplicated(x), ])()
+
+# total_unique_outliers <- nrow(xyz)
+# total_unique_bivariate_mother <- nrow(xyz)
+```
+
+
+```{r, echo = FALSE}
+outlier_summary_bivariate_mother |>
+  knitr::kable(
+    col.names = c("Outlier type", "Number of records"),
+    row.names = FALSE,
+    caption = "Number of outliers per bivariate comparison"
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = "striped",
+    full_width = FALSE,
+    position = "center",
+    font_size = 20
+  ) |>
+  kableExtra::row_spec(row = 0, bold = TRUE, align = "center")
+```
+
+#### A total of **`r outlier_unique_bivariate_mother_total$n`** unique bivariate outliers were found and listed below. Potential outlier anthropometic measurements are in <strong><span style="color: red;" >BOLD RED</span></strong>.
+
+```{r, echo = FALSE, eval = TRUE}
+outlier_table_bivariate_mother |>
+  dplyr::mutate(
+    mweight = kableExtra::text_spec(
+      x = mweight,
+      format = "html",
+      color = weight_outlier,
+      bold = ifelse(weight_outlier == "red", TRUE, FALSE)
+    ),
+    mheight = kableExtra::text_spec(
+      x = mheight,
+      format = "html",
+      color = height_outlier,
+      bold = ifelse(height_outlier == "red", TRUE, FALSE)
+    ),
+    mmuac = kableExtra::text_spec(
+      x = mmuac,
+      format = "html",
+      color = muac_outlier,
+      bold = ifelse(muac_outlier == "red", TRUE, FALSE)
+    )
+  ) |>
+  subset(select = c(today, id, enumid, enumname, mweight, mheight, mmuac)) |>
+  knitr::kable(
+    row.names = FALSE,
+    col.names = c("Survey Date", "Household ID", "Enum ID/Team ID", "Enum Name/Enum ID", 
+                  "Weight (kgs)", "Height (cms)", "MUAC (cms)"),
+    align = "r",
+    caption = "Outliers based on statistical distance",
+    escape = FALSE
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = "striped", 
+    full_width = FALSE, 
+    position = "center",
+    font_size = 20
+  ) |>
+  kableExtra::row_spec(row = 0, align = "center", bold = TRUE)
+```
+
+#### A total of **`r outlier_unique_mother_total$n`** unique outliers for mother anthropometric data were found. This is **`r outlier_unique_mother_total$p`** of the total dataset.
+
+<br/>
+
+## 2.2. Child anthropometry
+
+&nbsp;
+
+### 2.2.1. Check range and legal values
+
+&nbsp;
+
+#### Univariate
+
+The boxplots below show the identified outliers for weight, height, and MUAC measurements.
+
+```{r, echo = FALSE, eval = TRUE, fig.align = "center", fig.width = 12, fig.height = 5, fig.cap = "Outlier values for weight, height, and MUAC"}
+plot_anthro_outliers(.data = child_data_clean)
+```
+
+The number of outliers for each measurement are:
+
+```{r, echo = FALSE, eval = TRUE}
+# n_outlier_weight <- nrow(outlier_weight)
+# n_outlier_height <- nrow(outlier_height)
+# n_outlier_muac <- nrow(outlier_muac)
+# 
+# total_unique_univariate <- outlier_weight |>
+#   (\(x) rbind(x, outlier_height[!outlier_height$id %in% x$id, ]))() |>
+#   (\(x) rbind(x, outlier_muac[!outlier_muac$id %in% x$id, ]))()
+# 
+# x <- outlier_weight |>
+#   (\(x) x[ , c("today", "id", "enumid", "cweight", "cheight", "cmuac", "flag")])()
+# 
+# y <- outlier_height |>
+#   (\(x) x[ , c("today", "id", "enumid", "cweight", "cheight", "cmuac", "flag")])()
+# 
+# z <- outlier_muac |>
+#   (\(x) x[ , c("today", "id", "enumid", "cweight", "cheight", "cmuac", "flag")])()
+  
+# xyz <- rbind(x, y, z) |>
+#   dplyr::mutate(
+#     outlier_type = ifelse(id %in% x$id, " weight outlier", ""),
+#     outlier_type = ifelse(
+#       id %in% y$id, paste0(outlier_type, " height outlier"), outlier_type
+#     ),
+#     outlier_type = ifelse(
+#       id %in% z$id, paste0(outlier_type, " muac outlier"), outlier_type
+#     )
+#   ) |>
+#   (\(x) x[!duplicated(x), ])()
+
+# xyz <- rbind(x, y, z) |>
+#   dplyr::mutate(
+#     weight_outlier = ifelse(id %in% x$id, "red", "black"),
+#     height_outlier = ifelse(id %in% y$id, "red", "black"),
+#     muac_outlier = ifelse(id %in% z$id, "red", "black")
+#   ) |>
+#   (\(x) x[!duplicated(x), ])()
+
+
+#total_unique_outliers <- nrow(total_unique_univariate)
+#total_unique_outliers <- nrow(xyz)
+```
+
+
+```{r, echo = FALSE}
+outlier_summary_univariate |>
+  knitr::kable(
+    col.names = c("Outlier type", "Number of records"),
+    row.names = FALSE,
+    caption = "Number of outliers per measurement type"
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = "striped",
+    full_width = FALSE,
+    position = "center",
+    font_size = 20
+  ) |>
+  kableExtra::row_spec(row = 0, bold = TRUE, align = "center")
+```
+
+#### A total of **`r outlier_unique_univariate_total$n`** unique univariate outliers were found and listed below. Potential outlier anthropometric measurements are in <strong><span style="color: red;">BOLD RED</span></strong>.
+
+```{r, echo = FALSE, eval = TRUE}
+outlier_table_univariate |>
+  dplyr::mutate(
+    cweight = kableExtra::text_spec(
+      x = cweight,
+      format = "html",
+      color = weight_outlier,
+      bold = ifelse(weight_outlier == "red", TRUE, FALSE)
+    ),
+    cheight = kableExtra::text_spec(
+      x = cheight,
+      format = "html",
+      color = height_outlier,
+      bold = ifelse(height_outlier == "red", TRUE, FALSE)
+    ),
+    cmuac = kableExtra::text_spec(
+      x = cmuac,
+      format = "html",
+      color = muac_outlier,
+      bold = ifelse(muac_outlier == "red", TRUE, FALSE)
+    ),
+    flag = ifelse(flag == 1, "YES", "NO")
+  ) |>
+  subset(select = c(today, id, enumid, enumname, cweight, cheight, cmuac, age_months, flag)) |>
+  knitr::kable(
+    row.names = FALSE,
+    col.names = c("Survey Date", "Household ID", "Enum ID/Team ID", "Enum Name/Enum ID", 
+                  "Weight (kgs)", "Height (cms)", "MUAC (cms)", "Age (months)", "Flagged in ODK"),
+    align = "r",
+    caption = "Outlier measurements - children",
+    escape = FALSE
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = "striped", 
+    full_width = FALSE, 
+    position = "center",
+    font_size = 20
+  ) |>
+  kableExtra::row_spec(row = 0, align = "center", bold = TRUE)
+```
+
+When measurements are adjusted using the re-measured values, we get:
+
+```{r, echo = FALSE, eval = TRUE}
+# n_outlier_weight <- nrow(outlier_weight_adj)
+# n_outlier_height <- nrow(outlier_height_adj)
+# n_outlier_muac <- nrow(outlier_muac_adj)
+# 
+# x <- outlier_weight_adj |>
+#   (\(x) x[ , c("today", "id", "enumid", "cweight1", "cheight1", "cmuac1", "flag")])()
+# 
+# y <- outlier_height_adj |>
+#   (\(x) x[ , c("today", "id", "enumid", "cweight1", "cheight1", "cmuac1", "flag")])()
+# 
+# z <- outlier_muac_adj |>
+#   (\(x) x[ , c("today", "id", "enumid", "cweight1", "cheight1", "cmuac1", "flag")])()
+  
+# xyz <- rbind(x, y, z) |>
+#   dplyr::mutate(
+#     outlier_type = ifelse(id %in% x$id, " weight outlier", ""),
+#     outlier_type = ifelse(
+#       id %in% y$id, paste0(outlier_type, " height outlier"), outlier_type
+#     ),
+#     outlier_type = ifelse(
+#       id %in% z$id, paste0(outlier_type, " muac outlier"), outlier_type
+#     )
+#   ) |>
+#   (\(x) x[!duplicated(x), ])()
+
+# xyz <- rbind(x, y, z) |>
+#   dplyr::mutate(
+#     weight_outlier = ifelse(id %in% x$id, "red", "black"),
+#     height_outlier = ifelse(id %in% y$id, "red", "black"),
+#     muac_outlier = ifelse(id %in% z$id, "red", "black")
+#   ) |>
+#   (\(x) x[!duplicated(x), ])()
+
+#total_unique_outliers <- nrow(total_unique_univariate)
+# total_unique_univariate <- outlier_weight_adj |>
+#   (\(x) rbind(x, outlier_height_adj[!outlier_height_adj$id %in% x$id, ]))() |>
+#   (\(x) rbind(x, outlier_muac_adj[!outlier_muac_adj$id %in% x$id, ]))()
+#total_unique_univariate <- nrow(xyz)
+#total_unique_outliers <- nrow(xyz)
+```
+
+```{r, echo = FALSE}
+outlier_summary_univariate_adj |>
+  knitr::kable(
+    col.names = c("Outlier type", "Number of records"),
+    row.names = FALSE,
+    caption = "Number of outliers per measurement type"
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = "striped",
+    full_width = FALSE,
+    position = "center",
+    font_size = 20
+  ) |>
+  kableExtra::row_spec(row = 0, align = "center", bold = TRUE)
+```
+
+#### A total of **`r outlier_unique_univariate_total_adj$n`** unique outliers were found and listed below. Potential outlier anthropometric measurements are in <strong><span style="color: red;" >BOLD RED</span></strong>.
+
+```{r, echo = FALSE, eval = TRUE}
+# xyz |>
+outlier_table_univariate_adj |>
+  dplyr::mutate(
+    cweight1 = kableExtra::text_spec(
+      x = cweight1,
+      format = "html",
+      color = weight_outlier,
+      bold = ifelse(weight_outlier == "red", TRUE, FALSE)
+    ),
+    cheight1 = kableExtra::text_spec(
+      x = cheight1,
+      format = "html",
+      color = height_outlier,
+      bold = ifelse(height_outlier == "red", TRUE, FALSE)
+    ),
+    cmuac1 = kableExtra::text_spec(
+      x = cmuac1,
+      format = "html",
+      color = muac_outlier,
+      bold = ifelse(muac_outlier == "red", TRUE, FALSE)
+    ),
+    flag = ifelse(flag == 1, "YES", "NO")
+  ) |>
+  subset(select = c(today, id, enumid, enumname, cweight1, cheight1, cmuac1, age_months, flag)) |>
+  knitr::kable(
+    row.names = FALSE,
+    col.names = c("Survey Date", "Household ID", "Enum ID/Team ID", "Enum Name/Enum ID", 
+                  "Weight (kgs)", "Height (cms)", "MUAC (cms)", "Age (months)", "Flagged in ODK"),
+    align = "r",
+    caption = "Outlier measurements (adjusted) - children",
+    escape = FALSE
+  )|>
+  kableExtra::kable_styling(
+    bootstrap_options = "striped", 
+    full_width = TRUE, 
+    position = "center",
+    font_size = 20
+  ) |>
+  kableExtra::row_spec(row = 0, align = "center", bold = TRUE)
+```
+
+&nbsp;
+
+#### Bivariate outliers
+
+The scatterplots below identify various bivariate outliers.
+
+```{r, echo = FALSE, eval = TRUE, fig.align = "center", fig.width = 12, fig.height = 5, fig.cap = "Bivariate outliers based on statistical distance"}
+child_data_clean |>
+plot_anthro_bivariate(
+  outlier_weight_height, 
+  outlier_weight_muac, 
+  outlier_height_muac, 
+  outlier_weight_age, 
+  outlier_height_age, 
+  outlier_muac_age
+)
+```
+
+Following are the number of outliers identified per bivariate comparison.
+
+```{r, echo = FALSE, eval = TRUE}
+# n_outlier_weight_height <- nrow(outlier_weight_height)
+# n_outlier_weight_muac <- nrow(outlier_weight_muac)
+# n_outlier_height_muac <- nrow(outlier_height_muac)
+# n_outlier_weight_age <- nrow(outlier_weight_age)
+# n_outlier_height_age <- nrow(outlier_height_age)
+# n_outlier_muac_age <- nrow(outlier_muac_age)
+# 
+# x <- outlier_weight_height |>
+#   (\(x) x[ , c("today", "id", "enumid", "cweight", "cheight", "cmuac", "age_months", "flag")])()
+# 
+# y <- outlier_weight_muac |>
+#   (\(x) x[ , c("today", "id", "enumid", "cweight", "cheight", "cmuac", "age_months", "flag")])()
+# 
+# z <- outlier_height_muac |>
+#   (\(x) x[ , c("today", "id", "enumid", "cweight", "cheight", "cmuac", "age_months", "flag")])()
+# 
+# a <- outlier_weight_age |>
+#   (\(x) x[ , c("today", "id", "enumid", "cweight", "cheight", "cmuac", "age_months", "flag")])()
+# 
+# b <- outlier_height_age |>
+#   (\(x) x[ , c("today", "id", "enumid", "cweight", "cheight", "cmuac", "age_months", "flag")])()
+#   
+# c <- outlier_muac_age |>
+#   (\(x) x[ , c("today", "id", "enumid", "cweight", "cheight", "cmuac", "age_months", "flag")])()
+
+# xyzabc <- rbind(x, y, z, a, b, c) |>
+#   dplyr::mutate(
+#     outlier_type = ifelse(id %in% x$id, " weight and/or height", ""),
+#     outlier_type = ifelse(
+#       id %in% y$id, paste0(outlier_type, " weight and/or MUAC"), outlier_type
+#     ),
+#     outlier_type = ifelse(
+#       id %in% z$id, paste0(outlier_type, " height and/or MUAC"), outlier_type
+#     ),
+#     outlier_type = ifelse(
+#       id %in% a$id, paste0(outlier_type, " weight and/or age"), outlier_type
+#     ),
+#     outlier_type = ifelse(
+#       id %in% b$id, paste0(outlier_type, " height and/or age"), outlier_type
+#     ),
+#     outlier_type = ifelse(
+#       id %in% c$id, paste0(outlier_type, " muac and/or age"), outlier_type
+#     ),
+#   ) |>
+#   (\(x) x[!duplicated(x), ])()
+
+# xyzabc <- rbind(x, y, z, a, b, c) |>
+#   dplyr::mutate(
+#     weight_outlier = ifelse(id %in% c(x$id, y$id, a$id), "red", "black"),
+#     height_outlier = ifelse(id %in% c(x$id, z$id, b$id), "red", "black"),
+#     muac_outlier = ifelse(id %in% c(y$id, z$id, c$id), "red", "black"),
+#     age_outlier = ifelse(id %in% c(a$id, b$id, c$id), "red", "black")
+#   ) |>
+#   (\(x) x[!duplicated(x), ])()
+
+#total_unique_outliers <- nrow(total_unique_bivariate)
+# total_unique_bivariate <- outlier_weight_height |>
+#   (\(x) rbind(x, outlier_weight_muac[!outlier_weight_muac$id %in% x$id, ]))() |>
+#   (\(x) rbind(x, outlier_height_muac[!outlier_height_muac$id %in% x$id, ]))() |>
+#   (\(x) rbind(x, outlier_weight_age[!outlier_weight_age$id %in% x$id, ]))() |>
+#   (\(x) rbind(x, outlier_height_age[!outlier_height_age$id %in% x$id, ]))() |>
+#   (\(x) rbind(x, outlier_muac_age[!outlier_muac_age$id %in% x$id, ]))()
+#total_unique_bivariate <- nrow(xyzabc)
+#total_unique_outliers <- nrow(xyzabc)
+```
+
+```{r, echo = FALSE}
+outlier_summary_bivariate |>
+  knitr::kable(
+    col.names = c("Outlier type", "Number of records"),
+    row.names = FALSE,
+    caption = "Number of outliers per bivariate comparison"
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = "striped",
+    full_width = FALSE,
+    position = "center",
+    font_size = 20
+  ) |>
+  kableExtra::row_spec(row = 0, align = "center", bold = TRUE)
+```
+
+#### A total of **`r outlier_unique_bivariate_total$n`** unique bivariate outliers are found and listed below. Potential outlier anthropometric measurements are in <strong><span style="color: red;">BOLD RED</span></strong>.
+
+```{r, echo = FALSE, eval = TRUE}
+# xyzabc |>
+#   #subset(select = c(id, enumid, cweight, cheight, cmuac, age_months)) |>
+#   knitr::kable(
+#     row.names = FALSE,
+#     col.names = c("Survey Date", "Household ID", "Enumerator ID", "Weight (kgs)", "Height (cms)", "MUAC (cms)", "Age (months)", "Flagged in Survey", "Outlier Type"),
+#     caption = "Bivariate outliers based on statistical distance"
+#   ) |>
+#   kableExtra::kable_styling(
+#     bootstrap_options = "striped", 
+#     full_width = TRUE, 
+#     position = "center",
+#     font_size = 20
+#   ) |>
+#   kableExtra::row_spec(row = 0, align = "center")
+
+outlier_table_bivariate |>
+  dplyr::mutate(
+    cweight = kableExtra::text_spec(
+      x = cweight,
+      format = "html",
+      color = weight_outlier,
+      bold = ifelse(weight_outlier == "red", TRUE, FALSE)
+    ),
+    cheight = kableExtra::text_spec(
+      x = cheight,
+      format = "html",
+      color = height_outlier,
+      bold = ifelse(height_outlier == "red", TRUE, FALSE)
+    ),
+    cmuac = kableExtra::text_spec(
+      x = cmuac,
+      format = "html",
+      color = muac_outlier,
+      bold = ifelse(muac_outlier == "red", TRUE, FALSE)
+    ),
+    flag = ifelse(flag == 1, "YES", "NO")
+  )|>
+  subset(select = c(today, id, enumid, enumname, cweight, cheight, cmuac, age_months, flag)) |>
+  knitr::kable(
+    row.names = FALSE,
+    col.names = c("Survey Date", "Household ID", "Enum ID/Team ID", "Enum Name/Enum ID", "Weight (kgs)", "Height (cms)", "MUAC (cms)", "Age (months)", "Flagged in ODK"),
+    align = "r",
+    caption = "Bivariate outliers based on statistical distance",
+    escape = FALSE
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = "striped", 
+    full_width = TRUE, 
+    position = "center",
+    font_size = 20
+  ) |>
+  kableExtra::row_spec(row = 0, align = "center")
+```
+
+#### A total of **`r outlier_unique_total$n` outliers** were found. This is **`r outlier_unique_total$p`** of the full child anthropometric dataset.
+
+&nbsp;
+
+### 2.2.2. Flagged records
+
+The anthropometric z-scores are calculated using the [`{zscorer}`](https://nutriverse.io/zscorer). Values are then assessed based on the WHO flagging criteria and problematic values are flagged. For this, we only use the data from children 6-59 months old and we first calculate z-score using the first measurements.
+
+This produces an updated anthropometric dataset that now includes calculated anthropometric z-scores (weight-for-age, height-for-age, and weight-for-height) and identifies flagged values based on WHO flagging criteria and indicates which anthropometric measurement is potentially problematic.
+
+Following are the flagged records in the anthropometric dataset. Anthropometric measurements with potential issues are in <strong><span style="color: red;" >BOLD RED</span></strong>.
+
+```{r, eval = TRUE}
+child_data_zscore |>
+  dplyr::filter(
+    flag_zscore != 0
+    #flag_description != "No flagged measurements"#,
+    #(cpeso != 0 | caltura != 0 | cbraco != 0)
+  ) |>
+  dplyr::mutate(
+    weight_flag = ifelse(flag_zscore %in% c(2, 4, 6, 7), "red", "black"),
+    height_flag = ifelse(flag_zscore %in% c(1, 2, 3, 7), "red", "black"),
+    age_flag = ifelse(flag_zscore %in% c(1, 4, 5, 7), "red", "black"),
+    cweight = kableExtra::text_spec(
+      x = cweight,
+      format = "html",
+      color = weight_flag,
+      bold = ifelse(weight_flag == "red", TRUE, FALSE)
+    ),
+    cheight = kableExtra::text_spec(
+      x = cheight,
+      format = "html",
+      color = height_flag,
+      bold = ifelse(height_flag == "red", TRUE, FALSE)
+    ),
+    age_months = kableExtra::text_spec(
+      x = floor(age_months),
+      format = "html",
+      color = age_flag,
+      bold = ifelse(age_flag == "red", TRUE, FALSE)
+    ),
+    flag = ifelse(flag == 1, "YES", "NO")
+  ) |>
+  subset(select = c(today, id, enumid, flag_description, flag, cweight, cheight, age_months)) |>
+  #(\(x) x[ , c("today", "id", "enumid", "flag_description", "flag", "cweight", "cheight", "age_months")])()|>
+  knitr::kable(
+    row.names = FALSE,
+    col.names = c(
+      "Survey Date", "Household ID", "Enumerator ID", "Flag Description", "Flagged in ODK", "Weight (kgs)", "Height (cms)", "Age (months)"
+    ),
+    caption = "Records with flagged anthropometric measurements based on WHO flagging criteria",
+    escape = FALSE
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = "striped",
+    full_width = TRUE,
+    position = "center",
+    font_size = 20
+  ) |>
+  kableExtra::row_spec(row = 0, align = "center")
+```
+
+A total of **`r flag_zscore_total`** records are identified. This is **`r flag_zscore_prop`** of the total records in the child anthropometric dataset.
+
+Following are the flagged records in the anthropometric dataset after adjusting the measurements. Anthropometric measurements with potential issues are in <strong><span style="color: red;" >BOLD RED</span></strong>.
+
+```{r, eval = TRUE}
+child_data_zscore_adj |>
+  dplyr::filter(
+    flag_zscore != 0,
+    #flag_description != "No flagged measurements",
+    #(cpeso != 0 | caltura != 0 | cbraco != 0)
+  ) |>
+  dplyr::mutate(
+    weight_flag = ifelse(flag_zscore %in% c(2, 4, 6, 7), "red", "black"),
+    height_flag = ifelse(flag_zscore %in% c(1, 2, 3, 7), "red", "black"),
+    age_flag = ifelse(flag_zscore %in% c(1, 4, 5, 7), "red", "black"),
+    cweight = kableExtra::text_spec(
+      x = cweight,
+      format = "html",
+      color = weight_flag,
+      bold = ifelse(weight_flag == "red", TRUE, FALSE)
+    ),
+    cheight = kableExtra::text_spec(
+      x = cheight,
+      format = "html",
+      color = height_flag,
+      bold = ifelse(height_flag == "red", TRUE, FALSE)
+    ),
+    age_months = kableExtra::text_spec(
+      x = round(age_months),
+      format = "html",
+      color = age_flag,
+      bold = ifelse(age_flag == "red", TRUE, FALSE)
+    ),
+    flag = ifelse(flag == 1, "YES", "NO")
+  ) |>
+  subset(select = c(today, id, enumid, flag_description, flag, cweight, cheight, age_months)) |>  
+  #(\(x) x[ , c("id", "enumid", "flag_description", "flag", "cweight1", "cheight1", "age_months")])()|>
+  knitr::kable(
+    row.names = FALSE,
+    col.names = c("Survey Date", "Household ID", "Enumerator ID", "Flag Description", "Flagged in ODK", "Weight (kgs)", "Height (cms)", "Age (months)"
+    ),
+    caption = "Records with flagged anthropometric measurements based on WHO flagging criteria after measurement adjustment",
+    escape = FALSE
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = "striped",
+    full_width = TRUE,
+    position = "center",
+    font_size = 20
+  ) |>
+  kableExtra::row_spec(row = 0, align = "center")
+```
+
+A total of **`r flag_zscore_adj_total` child records** were flagged. This is **`r flag_zscore_adj_prop`** of the total records in the child anthropometric dataset.
+
+&nbsp;
+
+### 2.2.3. Distribution of anthropometric z-scores and MUAC
+
+Removing outliers and flagged anthropometric measurements, we observe the distribution of the anthropometric z-scores and MUAC as follows:
+
+```{r, echo = FALSE, eval = TRUE, fig.align = "center", fig.width = 12, fig.height = 5, fig.cap = "Distribution of anthropometric z-score values and MUAC"}
+withr::with_par(
+  new = list(par(mfrow = c(1, 4))),
+  {
+    with(
+      child_data_zscore |>
+        dplyr::filter(!id %in% c(outlier_table_univariate$id, outlier_table_bivariate$id) | flag_zscore == 0),
+      {
+        histNormal(wfaz, main = "Weight-for-age z-score", xlab = "z-score")
+        histNormal(hfaz, main = "Height-for-age z-score", xlab = "z-score")
+        histNormal(wfhz, main = "Weight-for-height z-score", xlab = "z-score")
+        histNormal(cmuac, main = "MUAC", xlab = "cms")
+      }
+    )
+  }
+)
+```
+
+```{r, echo = FALSE, eval = TRUE, fig.align = "center", fig.width = 12, fig.height = 5, fig.cap = "Quantile-quantile plots of anthropometric z-score values and MUAC"}
+withr::with_par(
+  new = list(par(mfrow = c(1, 4))),
+  {
+    with(
+      child_data_zscore |>
+        dplyr::filter(!id %in% c(outlier_table_univariate$id, outlier_table_bivariate$id) | flag_zscore == 0),
+      {
+        qqNormalPlot(wfaz)
+        qqNormalPlot(hfaz)
+        qqNormalPlot(wfhz)
+        qqNormalPlot(cmuac)
+      }
+    )
+  }
+)
+```
+
+&nbsp;
+
+#### **Skewness and Kurtosis**
+
+Checking for skewness and kurtosis on child anthropometric data, the following are observed:
+
+**Skewness and kurtosis of weight-for-age z-score**
+
+```{r, echo = FALSE, eval = TRUE}
+skewKurt_wfaz
+```
+
+**Skewness and kurtosis of height-for-age z-score**
+
+```{r, echo = FALSE, eval = TRUE}
+skewKurt_hfaz
+```
+
+**Skewness and kurtosis of weight-for-height z-score**
+
+```{r, echo = FALSE, eval = TRUE}
+skewKurt_wfhz
+```
+
+Checking for skewness and kurtosis on child anthropometric data where outliers and flagged values have been removed, the following are observed:
+
+**Skewness and kurtosis of weight-for-age z-score - without outliers and flagged values**
+
+```{r, echo = FALSE, eval = TRUE}
+skewKurt_wfaz_adj <- child_data_zscore |>
+    dplyr::filter(!id %in% c(outlier_table_univariate$id, outlier_table_bivariate$id) | flag_zscore == 0) |>
+    (\(x) skewKurt(x$wfaz))()
+
+skewKurt_wfaz_adj
+```
+
+**Skewness and kurtosis of height-for-age z-score - without outliers and flagged values**
+
+```{r, echo = FALSE, eval = TRUE}
+skewKurt_hfaz_adj <- child_data_zscore |>
+    dplyr::filter(!id %in% c(outlier_table_univariate$id, outlier_table_bivariate$id) | flag_zscore == 0) |>
+    (\(x) skewKurt(x$hfaz))()
+
+skewKurt_hfaz_adj
+```
+
+**Skewness and kurtosis of weight-for-height z-score - without outliers and flagged values**
+
+```{r, echo = FALSE, eval = TRUE}
+skewKurt_wfhz_adj <- child_data_zscore |>
+    dplyr::filter(!id %in% c(outlier_table_univariate$id, outlier_table_bivariate$id) | flag_zscore == 0) |>
+    (\(x) skewKurt(x$wfhz))()
+
+skewKurt_wfhz_adj
+```
+
+&nbsp;
+
+### 2.2.4. Median absolute deviation of weight-for-height z-score
+
+```{r, echo = FALSE, eval = TRUE}
+if (whz_mad >= 0.8 & whz_mad <= 1.2) {
+ mad_result <- "within the 0.8 to 1.2 range recommended."
+} else {
+  mad_result <- "NOT within the 0.8 to 1.2 range recommended."
+}
+```
+
+The median absolute deviation (MAD) for weight-for-height z-score is **`r whz_mad`**. This is **`r mad_result`**.
+
+&nbsp;
+
+### 2.2.5. Digit preference
+
+```{r, echo = FALSE, eval = TRUE, fig.align = "center", fig.width = 12, fig.height = 5, fig.cap = "Digit preference scores and plots for weight, height and MUAC"}
+withr::with_par(
+  new = list(par(mfrow = c(1, 3))),
+  {
+    with(child_data_zscore,
+      {
+        plot(dp_weight, cex.main = 2, cex.lab = 1.5)
+        plot(dp_height, cex.main = 2, cex.lab = 1.5)
+        plot(dp_muac, cex.main = 2, cex.lab = 1.5)
+      }     
+    )
+  }
+)
+```
+
+The **digit preference score for weight** is **`r dp_weight$dps`**. This digit preference score is **`r dp_weight$dpsClass`**.
+
+The **digit preference score for height** is **`r dp_height$dps`**. This digit preference score is **`r dp_height$dpsClass`**.
+
+The **digit preference score for MUAC** is **`r dp_muac$dps`**. This digit preference score is **`r dp_muac$dpsClass`**.
+
+&nbsp;
+
+### 2.2.6. Age heaping
+
+```{r, echo = FALSE, eval = TRUE, fig.align = "center", fig.width = 8, fig.cap = "Plot assessing age heaping in the anthropometric dataset"}
+plot(age_heaping)
+```
+
+```{r, echo = FALSE, eval = TRUE}
+age_heaping
+
+if (age_heaping$p < 0.05) {
+  age_heaping_result <- "significant age heaping at whole years"
+} else {
+  age_heaping_result <- "no significant age heaping at whole years"
+}
+```
+
+There is **`r age_heaping_result`** in the child anthropometric dataset.
+
+&nbsp;
+
+### 2.2.7. Sex ratio
+
+The sex ratio in the anthropometric dataset is compared against the expected sex ratio of children under 5 years old in Mozambique which is 1.03 males for every female (from the [United States Census Bureau’s International Data Base](https://www.census.gov/data-tools/demo/idb/#/pop?COUNTRY_YEAR=2018&COUNTRY_YR_ANIM=2018&FIPS_SINGLE=MZ&menu=popViz&POP_YEARS=2018&quickReports=OVW&popPages=BYAGE&FIPS=MZ&ageGroup=5Y)).
+
+```{r, echo = FALSE, eval = TRUE}
+sex_ratio
+```
+
+```{r, echo = FALSE}
+if (sex_ratio$p < 0.05) {
+  sex_ratio_result <- "significantly different from the ratio of boys and girls in the general population"
+} else {
+  sex_ratio_result <- "not significantly different from the ratio of boys and girls in the general population"
+}
+```
+
+The ratio of boys and girls in the data is **`r sex_ratio_result`** in Mozambique.
+
+&nbsp;
+
+### 2.2.8. Age ratio
+
+```{r, echo = FALSE, eval = TRUE}
+age_ratio
+#age_ratio_by_sex
+```
+
+```{r, echo = FALSE}
+if (age_ratio$p < 0.05) {
+  age_ratio_result <- "significantly different from the expected age ratio of 0.85"
+} else {
+  age_ratio_result <- "not significantly different from the expected age ratio of 0.85"
+}
+```
+
+The age ratio in the child anthropometric dataset is **`r age_ratio_result`**.
+
+&nbsp;
+
+### 2.2.9. Age structure
+
+```{r, echo = FALSE, eval = TRUE, fig.align = "center", fig.width = 8, fig.height = 10, fig.cap = "Age structure of the under 5 sample"}
+plot_age_structure(.data = child_data)
+```
+
+<br/>
+<br/>
+
+<!---
+
+# 3. Summary: The Data Quality Scorecard (DQS)
+
+Following is today's data quality scorecard (DQS) for the endline survey anthropometric dataset.
+
+```{r, echo = FALSE, eval = TRUE}
+criteria <- c("Outliers", "Illegal values", "Flagged records", "Weight-for-age z-score", "Height-for-age z-score", "Weight-for-age z-score", "Digit preference - weight", "Digit preference - height", "Digit preference - MUAC", "Age heaping", "Sex ratio", "Age ratio", "Age structure")
+
+fail_standard <- c("> 1%", "> 1%", "> 5%", "Markedly non-normal", "Markedly non-normal", "Markedly non-normal; MAD > 1.2 and MAD < 0.8", "DPS > 12", "DPS > 12", "DPS > 12", "Marked age heaping", "p < 0.05", "p < 0.05", "Marked deviation from expected")
+
+observed <- c(
+  paste0("Mother data - ", outlier_unique_mother_total$p, "; Child data - ", outlier_unique_total$p), 
+  paste0("Mother data - ", outlier_unique_mother_total$p, "; Child data - ", outlier_unique_total$p), 
+  flag_zscore_prop, 
+  "See WAZ Q-Q plot", 
+  "See HAZ Q-Q plot", 
+  paste0("See WHZ Q-Q plot; MAD = ", whz_mad), 
+  paste0("DPS = ", dp_weight$dps), 
+  paste0("DPS = ", dp_height$dps), 
+  paste0("DPS = ", dp_muac$dps), 
+  ifelse(
+    age_heaping$p < 0.05, 
+    paste0("Marked age heaping at whole years (p = ", round(age_heaping$p, 4), ")"),
+    paste0("No marked age heaping at whole years (p = ", round(age_heaping$p, 4), ")")
+  ),
+  paste0("p = ", round(sex_ratio$p, 4)), 
+  paste0("p = ", round(age_ratio$p, 4)), 
+  "See age pyramid and age ratio test")
+
+classification <- c("Fail", "Pass", "Pass", "Pass", "Fail", "Pass", "Pass", "Pass", "Pass", "Fail", "Pass", "Fail", "Pass")
+
+#dqs <- data.frame(criteria, fail_standard, observed, classification) 
+dqs <- data.frame(criteria, fail_standard, observed) 
+
+dqs |>
+  knitr::kable(
+    caption = "Data Quality Scorecard",
+    col.names = c("Criteria", "Fail Standard", "Observed"),
+    row.names = FALSE
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = "striped",
+    full_width = TRUE,
+    position = "center",
+    font_size = 16
+  )
+```
+--->
+
+<br/>
+<br/>
