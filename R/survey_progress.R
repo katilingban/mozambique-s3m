@@ -197,7 +197,7 @@ check_ea_geo <- function(ea, raw_data, complete_ea_sf) {
   geo_sf <- raw_data |>
     subset(!is.na(spid)) |>
     (\(x) data.frame(x[ , c("ad2", "ea_code")], do.call(rbind, x$geolocation)))() |>
-    (\(x) { names(x) <- c("ad2", "ea_code", "longitude", "latitude"); x })() |>
+    (\(x) { names(x) <- c("ad2", "ea_code", "latitude", "longitude"); x })() |>
     sf::st_as_sf(
       coords = c("longitude", "latitude"),
       crs = 4326
@@ -211,14 +211,14 @@ check_ea_geo <- function(ea, raw_data, complete_ea_sf) {
     sf::st_geometry(geo_sf),
     pch = "x",
     col = "darkgreen",
-    cex = 1,
+    cex = 2,
     main = unique(geo_sf$ea_code),
     cex.main = 2
   )
   
   plot(
     sf::st_geometry(ea_sf),
-    lwd = 1.5,
+    lwd = 2,
     border = "blue",
     add = TRUE
   )
@@ -229,7 +229,7 @@ check_ea <- function(ea, raw_data, complete_ea_sf) {
   geo_sf <- raw_data |>
     subset(!is.na(spid)) |>
     (\(x) data.frame(x[ , c("id", "ad2", "ea_code")], do.call(rbind, x$geolocation)))() |>
-    (\(x) { names(x) <- c("id", "ad2", "ea_code", "longitude", "latitude"); x })() |>
+    (\(x) { names(x) <- c("id", "ad2", "ea_code", "latitude", "longitude"); x })() |>
     sf::st_as_sf(
       coords = c("longitude", "latitude"),
       crs = 4326
@@ -267,7 +267,7 @@ check_ea_table <- function(ea, raw_data, complete_ea_sf, check = c("in", "out"))
   geo_sf <- raw_data |>
     subset(!is.na(spid)) |>
     (\(x) data.frame(x[ , c("id", "ad2", "ad3", "ea_code")], do.call(rbind, x$geolocation)))() |>
-    (\(x) { names(x) <- c("id", "ad2", "ad3", "ea_code", "longitude", "latitude"); x })() |>
+    (\(x) { names(x) <- c("id", "ad2", "ad3", "ea_code", "latitude", "longitude"); x })() |>
     sf::st_as_sf(
       coords = c("longitude", "latitude"),
       crs = 4326
