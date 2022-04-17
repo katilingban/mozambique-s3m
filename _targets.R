@@ -585,9 +585,13 @@ reports <- tar_plan(
   data_quality_report_archive = archive_quality_report(
     from = data_quality_report[1]
   ),
-  ## Email message for sending survey progress and data quality report
-  email_report_message = blastula::render_email(
-    input = "reports/email_report.Rmd"
+  ## Email message for sending survey progress report
+  email_progress_message = blastula::render_email(
+    input = "reports/email_progress_report.Rmd"
+  ),
+  ## Email message for sending survey data quality report
+  email_quality_message = blastula::render_email(
+    input = "reports/email_quality_report.Rmd"
   )
 )
 
@@ -613,10 +617,17 @@ deploy <- tar_plan(
     from = data_quality_deployed, 
     to = paste0("docs/", Sys.Date(), "/quality/index.html") 
   ),
-  ## Email daily report to recipients
-  daily_report_emailed = email_daily_report(
-    message = email_report_message,
-    attachment = c(survey_progress_report[1], data_quality_report[1]),
+  ## Email daily progress report to recipients
+  progress_report_emailed = email_progress_report(
+    message = email_progress_message,
+    attachment = survey_progress_report[1],
+    sender = Sys.getenv("GMAIL_USERNAME"),
+    recipient = eval(parse(text = Sys.getenv("REPORT_RECIPIENTS")))
+  ),
+  ## Email daily quality report to recipients
+  quality_report_emailed = email_quality_report(
+    message = email_quality_message,
+    attachment = data_quality_report[1],
     sender = Sys.getenv("GMAIL_USERNAME"),
     recipient = eval(parse(text = Sys.getenv("REPORT_RECIPIENTS")))
   )

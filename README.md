@@ -9,6 +9,8 @@
 workflow](https://github.com/katilingban/mozambique_s3m/actions/workflows/test-s3m-workflow.yaml/badge.svg)](https://github.com/katilingban/mozambique_s3m/actions/workflows/test-s3m-workflow.yaml)
 [![run S3M
 workflow](https://github.com/katilingban/mozambique_s3m/actions/workflows/run-s3m-workflow.yaml/badge.svg)](https://github.com/katilingban/mozambique_s3m/actions/workflows/run-s3m-workflow.yaml)
+[![check endline
+data](https://github.com/katilingban/mozambique-s3m/actions/workflows/check-s3m-data.yaml/badge.svg)](https://github.com/katilingban/mozambique-s3m/actions/workflows/check-s3m-data.yaml)
 <!-- badges: end -->
 
 This repository is a
