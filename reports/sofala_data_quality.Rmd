@@ -280,7 +280,7 @@ outlier_table_bivariate_mother |>
 The boxplots below show the identified outliers for weight, height, and MUAC measurements.
 
 ```{r, echo = FALSE, eval = TRUE, fig.align = "center", fig.width = 12, fig.height = 5, fig.cap = "Outlier values for weight, height, and MUAC"}
-plot_anthro_outliers(.data = raw_data_clean)
+plot_anthro_outliers(.data = raw_data_clean |> subset(age_months >= 6 & age_months < 60))
 ```
 
 The number of outliers for each measurement are:
@@ -414,14 +414,15 @@ The scatterplots below identify various bivariate outliers.
 
 ```{r, echo = FALSE, eval = TRUE, fig.align = "center", fig.width = 12, fig.height = 5, fig.cap = "Bivariate outliers based on statistical distance"}
 raw_data_clean |>
-plot_anthro_bivariate(
-  outlier_weight_height, 
-  outlier_weight_muac, 
-  outlier_height_muac, 
-  outlier_weight_age, 
-  outlier_height_age, 
-  outlier_muac_age
-)
+  subset(age_months >= 6 & age_months < 60) |>
+  plot_anthro_bivariate(
+    outlier_weight_height, 
+    outlier_weight_muac, 
+    outlier_height_muac, 
+    outlier_weight_age, 
+    outlier_height_age, 
+    outlier_muac_age
+  )
 ```
 
 Following are the number of outliers identified per bivariate comparison.

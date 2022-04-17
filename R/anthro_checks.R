@@ -466,7 +466,7 @@ tally_total_unique_outliers <- function(outlier_table_univariate,
 #
 ################################################################################
 
-plot_anthro_outliers <- function(.data = child_data) {
+plot_anthro_outliers <- function(.data = raw_data_clean) {
   withr::with_par(
     new = list(par(mfrow = c(1, 3))),
     {
