@@ -52,7 +52,7 @@ jobs:
           
       - name: Email report
         run: |
-          targets::tar_make(daily_report_emailed)
+          targets::tar_make(dplyr::contains("emailed"))
         shell: Rscript {0}
           
       - name: Commit and push files

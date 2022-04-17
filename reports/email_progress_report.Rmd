@@ -1,0 +1,13 @@
+---
+title: Sofala S3M Survey Progress Report
+output: blastula::blastula_email
+---
+
+Please find attached the daily survey progress report for the **Sofala S3M for `r Sys.Date()`**.
+
+The attached report is in HTML format and can be viewed/opened on any browser installed on your computer (with no need for internet access).
+
+```
+
+Best,    
+Ernest
