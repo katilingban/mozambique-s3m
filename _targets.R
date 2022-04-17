@@ -562,17 +562,53 @@ reports <- tar_plan(
     output_dir = "outputs",
     knit_root_dir = here::here()
   ),
+  ## Render survey progress report
   tar_render(
     name = survey_progress_report,
     path = "reports/sofala_survey_progress.Rmd",
     output_dir = "outputs",
     knit_root_dir = here::here()
+  ),
+  ## Archive survey progress report
+  survey_progress_report_archive = archive_progress_report(
+    from = survey_progress_report[1]
+  ),
+  ## Render data quality report
+  # tar_render(
+  #   name = data_quality_report,
+  #   path = "reports/sofala_data_quality.Rmd",
+  #   output_dir = "outputs",
+  #   knit_root_dir = here::here()
+  # ),
+  ## Archive data quality report
+  # data_quality_report_archive = archive_progress_report(
+  #   from = data_quality_report[1]
+  # ),
+  ## Email message for sending survey progress and data quality report
+  email_report_message = blastula::render_email(
+    input = "reports/email_report.Rmd"
   )
 )
 
 ## Deploy targets
 deploy <- tar_plan(
-  ##
+  ## Deploy daily progress report
+  survey_progress_deployed = deploy_progress_report(
+    from = survey_progress_report[1],
+    to = "docs/survey_progress_report.html"
+  ),
+  ## Deploy daily report archive
+  survey_progress_archive_deployed = archive_progress_report(
+    from = daily_progress_deployed, 
+    to = paste0("docs/", Sys.Date(), "/progress/index.html") 
+  ),
+  ## Email daily report to recipients
+  daily_report_emailed = email_daily_report(
+    message = email_report_message,
+    attachment = c(survey_progress_report[1], data_quality_report[1]),
+    sender = Sys.getenv("GMAIL_USERNAME"),
+    recipient = eval(parse(text = Sys.getenv("REPORT_RECIPIENTS")))
+  )
 )
 
 ## Set seed
