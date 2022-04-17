@@ -1,0 +1,317 @@
+---
+title: "Sofala Simple Spatial Survey Method (S3M)"
+subtitle: "Survey Progress"
+author: 
+    - name: Mark Myatt
+    - name: Ernest Guevarra
+date: '`r Sys.time()`'
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+    self_contained: true
+    code_download: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  warning = FALSE,
+  error = FALSE,
+  message = FALSE,
+  echo = FALSE
+)
+
+suppressPackageStartupMessages(source("packages.R"))
+for (f in list.files(here::here("R"), full.names = TRUE)) source (f)
+
+# targets::tar_load(
+#   c(raw_data, respondent_data, respondent_data_clean, child_data, child_data_clean,
+#     outlier_weight_mother, outlier_height_mother, outlier_muac_mother,
+#     outlier_muac_mother_cm, outlier_muac_mother_mm, outlier_weight_height_mother, 
+#     outlier_height_muac_mother, outlier_weight_muac_mother, outlier_weight,
+#     outlier_height, outlier_muac, outlier_weight_height, outlier_weight_muac, 
+#     outlier_height_muac, outlier_weight_age, outlier_height_age, 
+#     outlier_muac_age, outlier_weight_adj, outlier_height_adj, outlier_muac_adj, 
+#     child_data_zscore, child_data_zscore_adj, skewKurt_wfaz, skewKurt_hfaz, 
+#     skewKurt_wfhz, dp_weight, dp_height, dp_muac, age_heaping, sex_ratio, 
+#     age_ratio, table_sp_total, table_sp_children_total, table_sp_date_total,
+#     endline_sample_list, outlier_summary_univariate_mother, outlier_table_univariate_mother,
+#     outlier_unique_univariate_mother_total, outlier_summary_bivariate_mother,
+#     outlier_table_bivariate_mother, outlier_unique_bivariate_mother_total,
+#     outlier_unique_mother_total, outlier_summary_univariate, 
+#     outlier_table_univariate, outlier_unique_univariate_total, 
+#     outlier_summary_univariate_adj, outlier_table_univariate_adj, 
+#     outlier_unique_univariate_total_adj, outlier_summary_bivariate,
+#     outlier_table_bivariate, outlier_unique_bivariate_total,
+#     outlier_unique_total, flag_zscore_total, flag_zscore_prop,
+#     flag_zscore_adj_total, flag_zscore_adj_prop, whz_mad, age_heaping_class,
+#     shapiro_wfaz, shapiro_hfaz, shapiro_wfhz
+#   )
+# )
+targets::tar_load(
+  c(raw_data, selected_ea_complete, complete_ea_sf,
+    table_sp_total, table_sp_date_total, 
+    table_team_total, table_team_date_total, check_ea_map, table_check_ea_map, 
+    table_check_ea_out
+  )
+)
+```
+
+<style type="text/css">
+  body{
+  font-size: 14pt;
+}
+</style>
+
+<br/>
+
+# 1. Records by sampling point
+
+&nbsp;
+
+## 1.1. Number of records per sampling point as of `r Sys.time()`
+
+```{r, echo = FALSE}
+table_sp_total |>
+  knitr::kable(
+    row.names = FALSE,
+    col.names = c("SP ID", "Number of records"),
+    caption = "Number of records per SP ID"
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = "striped",
+    full_width = FALSE,
+    position = "center",
+    font_size = 20
+  ) |>
+  kableExtra::row_spec(row = 0, bold = TRUE, align = "center") |>
+  kableExtra::row_spec(
+    row = nrow(table_sp_total) - 1, bold = TRUE, font_size = 28
+  ) |>
+  kableExtra::row_spec(
+    row = nrow(table_sp_total), bold = TRUE, color = "red", font_size = 28
+  ) |>
+  kableExtra::row_spec(
+    row = table_sp_total |> 
+      head(nrow(table_sp_total) - 2) |> 
+      (\(x) row.names(x)[!as.integer(x$Var1) %in% selected_ea_complete$spid])() |>
+      as.integer(),
+    bold = TRUE,
+    color = "red"
+  ) |>
+  kableExtra::row_spec(
+    row = table_sp_total |> 
+      head(nrow(table_sp_total) - 2) |> 
+      (\(x) x[as.integer(x$Var1) %in% selected_ea_complete$spid, ])() |> 
+      (\(x) row.names(x)[x$Freq < 20])() |> 
+      as.integer(),
+    bold = TRUE,
+    color = "blue"
+  )
+```
+
+Sampling point identifiers in <strong><span style="color: red;" >BOLD RED are unrecognised/illegal values</span></strong> for this variable.
+
+Sampling point identifiers in <strong><span style="color: blue;" >BOLD BLUE are sampling points with less than 20 records</span></strong>.
+
+&nbsp;
+
+## 1.2. Number of records by sampling point and by date
+
+```{r, echo = FALSE}
+table_sp_date_total |>
+  knitr::kable(
+    row.names = FALSE,
+    caption = "Number of records by SP ID per day"
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = "striped",
+    full_width = FALSE,
+    font_size = 20,
+    position = "center"
+  ) |>
+  kableExtra::row_spec(row = nrow(table_sp_date_total) - 1, bold = TRUE, font_size = 28) |>
+  kableExtra::row_spec(row = nrow(table_sp_date_total), bold = TRUE, color = "red", font_size = 28) |>
+  kableExtra::row_spec(
+    row = table_sp_date_total |> 
+      head(nrow(table_sp_date_total) - 2) |> 
+      (\(x) (1:nrow(x))[!as.integer(x$`SP ID`) %in% selected_ea_complete$spid])(),
+    bold = TRUE,
+    color = "red"
+  ) |>
+  kableExtra::row_spec(
+    row = table_sp_date_total |> 
+      head(nrow(table_sp_date_total) - 2) |> 
+      (\(x) x[as.integer(x$`SP ID`) %in% selected_ea_complete$spid, ])() |> 
+      (\(x) (1:nrow(x))[x$`Total records by SP ID per day` < 20])(),
+    bold = TRUE,
+    color = "blue"
+  ) |>
+  kableExtra::row_spec(row = 0, bold = TRUE, align = "center")
+```
+
+Sampling point identiferis in <strong><span style="color: red;" >BOLD RED are unrecognised/illegal values</span></strong> for this variable.
+
+Sampling point identifiers in <strong><span style="color: blue;" >BOLD BLUE are sampling points with less than 20 records</span></strong>.
+
+&nbsp;
+
+## 1.3. Survey teams recording incorrect sampling point identifiers
+
+```{r, echo = FALSE}
+x <- data.frame(
+  table(
+    raw_data$ad2[!raw_data$spid %in% selected_ea_complete$spid]
+  )
+) 
+
+if (nrow(x) == 0) {
+  cat("No survey teams have been recording incorrect sampling point identifiers")
+} else {
+  x |>
+    (\(x) x[order(x$Freq), ])() |>
+    (\(x) rbind(x, data.frame(Var1 = "Total", Freq = sum(x$Freq))))() 
+
+  x |>
+    knitr::kable(
+      row.names = FALSE,
+      col.names = c("Survey Team", "Number of records with incorrect SP ID")
+    ) |>
+    kableExtra::kable_styling(
+      bootstrap_options = "striped",
+      position = "center",
+      full_width = FALSE,
+      font_size = 20
+    ) |>
+    kableExtra::row_spec(row = nrow(x), bold = TRUE, font_size = 28)
+}
+```
+
+&nbsp;
+
+## 1.4. Map of records collected by enumeration area
+
+```{r, echo = FALSE, eval = TRUE, fig.cap = "Map of records collected by enumeration area", fig.align = "center", out.width = "33%", fig.show = "hold"}
+check_ea_map <- raw_data |>
+  subset(!is.na(spid)) |>
+  (\(x) x$ea_code)() |>
+  unique() |>
+  lapply(FUN = check_ea_geo, raw_data, complete_ea_sf)
+```
+
+We expect that the <strong><span style="color: darkgreen;">location of records (points in green)</span></strong> are within the <strong><span style="color: blue;">boundaries of the enumeration area</span></strong> in which they were reported to have been collected. If record locations are outside of these boundaries, there may be issues with the GPS recorded or the enumeration area selected.
+
+```{r, echo = FALSE}
+table_check_ea_map |>
+  knitr::kable(
+    row.names = FALSE,
+    col.names = c(
+      "Enumeration Area", "Records collected within EA", 
+      "Records collected oustide EA", "Total Records"
+    ),
+    caption = "Number of records collected within appropriate enumeration area"
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = "striped",
+    full_width = FALSE,
+    font_size = 20,
+    position = "center"
+  ) |>
+  kableExtra::row_spec(row = 0, bold = TRUE, align = "center") |>
+  kableExtra::row_spec(
+    row = table_check_ea_map |>
+      (\(x) head(x, nrow(x) - 1))() |>
+      (\(x) (1:nrow(x))[x$n_out > 0])(),
+    bold = TRUE,
+    color = "red"
+  ) |>
+  kableExtra::row_spec(
+    row = nrow(table_check_ea_map), bold = TRUE, font_size = 28
+  )
+```
+
+Enumeration areas in <strong><span style="color: red;" >BOLD RED are areas having records collected outside of the enumeration area</span></strong>.
+
+A total of **`r table_check_ea_map$n_out[nrow(table_check_ea_map)]`** records were collected outside of the appropriate enumeration area.
+
+Following are the records that have been collected outside of the appropriate enumeration areas.
+
+```{r, echo = FALSE}
+if (nrow(table_check_ea_out) == 0) {
+  cat("No records have been recorded outside appropriate enumeration areas")
+} else {
+  table_check_ea_out |>
+    knitr::kable(
+      row.names = FALSE,
+      col.names = c(
+        "Record Identifier", "Survey Team", 
+        "Enumerator Code", "Survey Date", "Enumeration Area"
+      )
+    ) |>
+    kableExtra::kable_styling(
+      bootstrap_options = "striped",
+      position = "center",
+      full_width = FALSE,
+      font_size = 20
+    ) |>
+    kableExtra::row_spec(row = 0, bold = TRUE, align = "center")
+}
+```
+
+<br/>
+
+# 2. Records by survey team
+
+&nbsp;
+
+## 2.1. Number of records per survey team as of `r Sys.time()`
+
+```{r, echo = FALSE}
+table_team_total |>
+  knitr::kable(
+    row.names = FALSE,
+    col.names = c("Survey Team", "Number of records"),
+    caption = "Number of records per survey team"
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = "striped",
+    full_width = FALSE,
+    position = "center",
+    font_size = 20
+  ) |>
+  kableExtra::row_spec(
+    row = nrow(table_team_total), bold = TRUE, font_size = 28
+  ) |>
+  kableExtra::row_spec(row = 0, bold = TRUE, align = "center")
+```
+
+&nbsp;
+
+## 2.2. Number of records per survey team per day as of `r Sys.time()`
+
+```{r, echo = FALSE}
+table_team_date_total |>
+  knitr::kable(
+    row.names = FALSE,
+    caption = "Number of records per survey team per day"
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = "striped",
+    full_width = FALSE,
+    position = "center",
+    font_size = 20
+  ) |>
+  kableExtra::row_spec(
+    row = nrow(table_team_date_total), bold = TRUE, font_size = 28
+  ) |>
+  kableExtra::column_spec(
+    column = ncol(table_team_date_total), bold = TRUE
+  ) |>
+  kableExtra::row_spec(row = 0, bold = TRUE, align = "center")
+```
+
+<br/>
+<br/>
+
+
+

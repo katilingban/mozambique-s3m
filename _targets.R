@@ -130,6 +130,7 @@ spatial_sample <- tar_plan(
     filename = "EAs_Cidade_da_Beira.sqlite", overwrite = TRUE
   ),
   urban_ea_sf = sf::st_read(dsn = urban_ea_sqlite$local_path),
+  complete_ea_sf = rbind(selected_ea_sf, urban_ea_sf),
   training_areas = moz_districts |>
     subset(ADM2_PT %in% c("Cidade De Quelimane", "Nicoadala", "Inhassunge", "Maquival")),
   training_areas_sp = training_areas |>
@@ -209,24 +210,233 @@ survey_plan <- tar_plan(
 
 
 ## Read raw data
-data_targets <- tar_plan(
+data_raw <- tar_plan(
   tar_target(
     name = raw_data,
-    command = get_data(),
+    command = get_data(form_name = "sofala_s3m", survey_questions),
     cue = tar_cue(mode = "always")
-  ),
-  respondent_data = process_respondent_data(df = raw_data),
-  child_data = process_child_data(df = respondent_data),
-  respondent_data_clean = clean_respondent_data(respondent_data),
-  child_data_clean = clean_child_data(child_data),
-  fgh_id_clean = clean_fgh_id(
-    respondent_data_clean, endline_sample_list, moz_country
   )
 )
 
 
+## Data quality checks
+data_checks <- tar_plan(
+  ## Tallies for survey progress
+  table_sp_total = tally_sp_total(raw_data, selected_ea_complete),
+  table_sp_date_total = tally_sp_date_total(
+    raw_data, selected_ea_complete
+  ),
+  table_team_total = tally_team_total(raw_data),
+  table_team_date_total = tally_team_date_total(raw_data),
+  check_ea_map = raw_data |>
+    subset(!is.na(spid)) |>
+    (\(x) x$ea_code)() |>
+    unique() |>
+    lapply(FUN = check_ea_geo, raw_data, complete_ea_sf),
+  table_check_ea_map = raw_data |>
+    subset(!is.na(spid)) |>
+    (\(x) x$ea_code)() |>
+    unique() |>
+    lapply(FUN = check_ea, raw_data, complete_ea_sf) |>
+    dplyr::bind_rows() |>
+    (\(x) rbind(
+      x, 
+      data.frame(
+        ea = "Total", 
+        n_in = sum(x[ , 2]),
+        n_out = sum(x[ , 3]),
+        total = sum(x[ , 4])
+      )
+    ))(),
+  table_check_ea_out = raw_data |>
+    subset(!is.na(spid)) |>
+    (\(x) x$ea_code)() |>
+    unique() |>
+    lapply(FUN = check_ea_table, raw_data, complete_ea_sf, check = "out") |>
+    dplyr::bind_rows(), 
+  ## Detect univariate outliers for mother anthropometric data
+  outlier_weight_mother = respondent_data_clean |>
+    (\(x) x[outliersUV(x$mweight), ])(),
+  outlier_height_mother = respondent_data_clean |>
+    (\(x) x[outliersUV(x$mheight), ])(),
+  outlier_muac_mother = respondent_data_clean |>
+    (\(x) x[outliersUV(x$mmuac), ])(),
+  outlier_summary_univariate_mother = summarise_univariate_outliers_mother(
+    outlier_weight_mother, outlier_height_mother, outlier_muac_mother
+  ),
+  outlier_table_univariate_mother = tally_univariate_outliers_mother(
+    outlier_weight_mother, outlier_height_mother, outlier_muac_mother
+  ),
+  outlier_unique_univariate_mother_total = tally_unique_univariate_outliers_mother(
+    outlier_table_univariate_mother, respondent_data_clean
+  ),
+  outlier_muac_mother_cm = respondent_data_clean |>
+    subset(mmuac > 0 & mmuac < 100) |>
+    (\(x) x[outliersUV(x$mmuac), ])(),
+  outlier_muac_mother_mm = respondent_data_clean |>
+    subset(mmuac >= 100) |>
+    (\(x) x[outliersUV(x$mmuac), ])(),
+  ## Detect bivariate outliers for mother anthropometric data
+  outlier_weight_height_mother = respondent_data_clean |>
+    (\(x) x[with(x, outliersMD(mweight, mheight)), ])() |>
+    (\(x) x[!is.na(x$id), ])(),
+  outlier_weight_muac_mother = respondent_data_clean |>
+    (\(x) x[with(x, outliersMD(mweight, mmuac)), ])() |>
+    (\(x) x[!is.na(x$id), ])(),
+  outlier_height_muac_mother = respondent_data_clean |>
+    (\(x) x[with(x, outliersMD(mheight, mmuac)), ])() |>
+    (\(x) x[!is.na(x$id), ])(),
+  outlier_summary_bivariate_mother = summarise_bivariate_outliers_mother(
+    outlier_weight_height_mother, 
+    outlier_weight_muac_mother, 
+    outlier_height_muac_mother
+  ),
+  outlier_table_bivariate_mother = tally_bivariate_outliers_mother(
+    outlier_weight_height_mother, 
+    outlier_weight_muac_mother, 
+    outlier_height_muac_mother
+  ),
+  outlier_unique_bivariate_mother_total = tally_unique_bivariate_outliers_mother(
+    outlier_table_bivariate_mother, respondent_data_clean
+  ),
+  outlier_unique_mother_total = tally_total_unique_outliers_mother(
+    outlier_table_univariate_mother,
+    outlier_table_bivariate_mother,
+    respondent_data_clean
+  ),
+  ## Detect univariate outliers for child anthropometric data
+  outlier_weight = child_data_clean|>
+    subset(age_months >= 6 & age < 60) |>
+    (\(x) x[outliersUV(x$cweight), ])(),
+  outlier_height = child_data_clean |>
+    subset(age_months >= 6 & age_months < 60) |>
+    (\(x) x[outliersUV(x$cheight), ])(),
+  outlier_muac = child_data_clean |>
+    subset(age_months >= 6 & age_months < 60) |>
+    (\(x) x[outliersUV(x$cmuac), ])(),
+  outlier_weight_adj = child_data_clean |>
+    subset(age_months >= 6 & age_months < 60) |>
+    (\(x) x[outliersUV(x$cweight1), ])(),
+  outlier_height_adj = child_data_clean |>
+    subset(age_months >= 6 & age_months < 60) |>
+    (\(x) x[outliersUV(x$cheight1), ])(),
+  outlier_muac_adj = child_data_clean |>
+    subset(age_months >= 6 & age_months < 60) |>
+    (\(x) x[outliersUV(x$cmuac1), ])(),
+  outlier_summary_univariate = summarise_univariate_outliers(
+    outlier_weight, outlier_height, outlier_muac
+  ),
+  outlier_table_univariate = tally_univariate_outliers(
+    outlier_weight, outlier_height, outlier_muac
+  ),
+  outlier_unique_univariate_total = tally_unique_univariate_outliers(
+    outlier_table_univariate, child_data_clean
+  ),
+  outlier_summary_univariate_adj = summarise_univariate_outliers(
+    outlier_weight_adj, outlier_height_adj, outlier_muac_adj
+  ),
+  outlier_table_univariate_adj = tally_univariate_outliers_adj(
+    outlier_weight_adj, outlier_height_adj, outlier_muac_adj
+  ),
+  outlier_unique_univariate_total_adj = tally_unique_univariate_outliers(
+    outlier_table_univariate_adj, child_data_clean
+  ),
+  ## Detect bivariate outliers for child anthropometric data
+  outlier_weight_height = child_data_clean |>
+    subset(age_months >= 6 & age_months < 60) |>
+    (\(x) x[with(x, outliersMD(cweight, cheight)), ])() |>
+    (\(x) x[!is.na(x$id), ])(),
+  outlier_weight_muac = child_data_clean |>
+    subset(age_months >= 6 & age_months < 60) |>
+    (\(x) x[with(x, outliersMD(cweight, cmuac)), ])() |>
+    (\(x) x[!is.na(x$id), ])(),
+  outlier_height_muac = child_data_clean |>
+    subset(age_months >= 6 & age_months < 60) |> 
+    (\(x) x[with(x, outliersMD(cheight, cmuac)), ])() |>
+    (\(x) x[!is.na(x$id), ])(),
+  outlier_weight_age = child_data_clean |>
+    subset(age_months >= 6 & age_months < 60) |>
+    (\(x) x[with(x, outliersMD(cweight, age_months)), ])() |>
+    (\(x) x[!is.na(x$id), ])(),
+  outlier_height_age = child_data_clean |>
+    subset(age_months >= 6 & age_months < 60) |>
+    (\(x) x[with(x, outliersMD(cheight, age_months)), ])() |>
+    (\(x) x[!is.na(x$id), ])(),
+  outlier_muac_age = child_data_clean |>
+    subset(age_months >= 6 & age_months < 60) |>
+    (\(x) x[with(x, outliersMD(cmuac, age_months)), ])() |>
+    (\(x) x[!is.na(x$id), ])(),
+  outlier_summary_bivariate = summarise_bivariate_outliers(
+    outlier_weight_height, outlier_weight_muac, outlier_height_muac,
+    outlier_weight_age, outlier_height_age, outlier_muac_age
+  ),
+  outlier_table_bivariate = tally_bivariate_outliers(
+    outlier_weight_height, outlier_weight_muac, outlier_height_muac,
+    outlier_weight_age, outlier_height_age, outlier_muac_age
+  ),
+  outlier_unique_bivariate_total = tally_unique_bivariate_outliers(
+    outlier_table_bivariate, child_data_clean
+  ),  
+  outlier_unique_total = tally_total_unique_outliers(
+    outlier_table_bivariate,
+    outlier_table_bivariate,
+    child_data_clean
+  ),
+  ## Flag child anthropometric zscores
+  child_data_zscore = child_data_clean |>
+    subset(age_months < 60 & age_months >= 6) |>
+    calculate_zscore(),
+  child_data_zscore_adj = child_data_clean |>
+    subset(age_months < 60 & age_months >= 6) |>
+    calculate_zscore_adj(),
+  flag_zscore_total = child_data_zscore |>
+    dplyr::filter(flag_zscore != 0) |>
+    nrow(),
+  flag_zscore_prop = (flag_zscore_total / nrow(child_data_zscore)) |>
+    scales::percent(accuracy = 0.1),
+  flag_zscore_adj_total = child_data_zscore_adj |>
+    dplyr::filter(flag_zscore != 0) |>
+    nrow(),
+  flag_zscore_adj_prop = (flag_zscore_adj_total / nrow(child_data_zscore_adj)) |>
+    scales::percent(accuracy = 0.1),
+  ## Test for normality
+  shapiro_wfaz = shapiro.test(x = child_data_zscore$wfaz),
+  shapiro_hfaz = shapiro.test(x = child_data_zscore$hfaz),
+  shapiro_wfhz = shapiro.test(x = child_data_zscore$wfhz),
+  ## Test skewness and kurtosis of child anthropometric zscores
+  skewKurt_wfaz = child_data_zscore |>
+    (\(x) skewKurt(x$wfaz))(),
+  skewKurt_hfaz = child_data_zscore |>
+    (\(x) skewKurt(x$hfaz))(),
+  skewKurt_wfhz = child_data_zscore |>
+    (\(x) skewKurt(x$wfhz))(),
+  whz_mad = with(
+    child_data_zscore |>
+      dplyr::filter(!flag_zscore %in% c(2, 3, 6, 7) | !is.na(flag_zscore), 
+                    oedema == 2, !is.na(wfhz)),
+    mad(wfhz)
+  ),
+  ## Assess digit preference score
+  dp_weight = with(child_data_zscore, digitPreference(cweight)),
+  dp_height = with(child_data_zscore, digitPreference(cheight)),
+  dp_muac = with(child_data_zscore, digitPreference(cmuac)),
+  ## Assess age heaping
+  age_heaping = child_data_clean |>
+    (\(x) ageHeaping(x$age_months))(),
+  age_heaping_class = classify_age_heaping(age_heaping),
+  ## Assess sex ratio
+  sex_ratio = child_data_clean |> 
+    (\(x) sexRatioTest(x$sex, codes = c(1, 2), pop = c(1.03, 1)))(),
+  ## Assess age ratio
+  age_ratio = child_data_clean |>
+    (\(x) x$age_months[x$age_months >= 6 & x$age_months < 60])() |>
+    (\(x) x[!is.na(x)])() |>
+    (\(x) ageRatioTest(x = x, ratio = 0.85))()
+)
+
+
 ## Process data
-processed_data <- tar_plan(
+data_processed <- tar_plan(
   ##
 )
 
@@ -351,6 +561,12 @@ reports <- tar_plan(
     path = "reports/training_area_sample.Rmd",
     output_dir = "outputs",
     knit_root_dir = here::here()
+  ),
+  tar_render(
+    name = survey_progress_report,
+    path = "reports/sofala_survey_progress.Rmd",
+    output_dir = "outputs",
+    knit_root_dir = here::here()
   )
 )
 
@@ -367,8 +583,9 @@ list(
   spatial_sample,
   questionnaire,
   survey_plan,
-  data_targets,
-  processed_data,
+  data_raw,
+  data_checks,
+  data_processed,
   analysis,
   outputs,
   reports,

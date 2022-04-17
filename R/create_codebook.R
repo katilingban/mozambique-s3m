@@ -8,7 +8,8 @@
 
 create_codebook <- function(survey_questions, survey_choices, 
                             raw_data, meta = FALSE) {
-  vars <- get_variables(survey_questions, meta = meta)
+  vars <- get_variables(survey_questions, meta = meta) |>
+    tolower()
   
   questions <- get_questions(survey_questions, meta = meta)
   
@@ -113,7 +114,8 @@ get_types <- function(survey_questions, raw_data, meta = FALSE) {
   vars <- get_variables(survey_questions, meta = meta)
   
   types <- lapply(X = vars, FUN = function(x) class(raw_data[[x]])) |>
-    (\(x) do.call(rbind, x))()
+    (\(x) do.call(rbind, x))() |>
+    c()
   
   types
 }
