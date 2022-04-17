@@ -36,13 +36,13 @@ tally_univariate_outliers_mother <- function(outlier_weight_mother,
                                              outlier_height_mother,
                                              outlier_muac_mother) {
   x <- outlier_weight_mother |>
-    (\(x) x[ , c("today", "id", "enumid", "enumname", "mweight", "mheight", "mmuac")])()
+    (\(x) x[ , c("today", "id", "ad2", "ad3", "mweight", "mheight", "mmuac")])()
   
   y <- outlier_height_mother |>
-    (\(x) x[ , c("today", "id", "enumid", "enumname", "mweight", "mheight", "mmuac")])()
+    (\(x) x[ , c("today", "id", "ad2", "ad3", "mweight", "mheight", "mmuac")])()
   
   z <- outlier_muac_mother |>
-    (\(x) x[ , c("today", "id", "enumid", "enumname", "mweight", "mheight", "mmuac")])()
+    (\(x) x[ , c("today", "id", "ad2", "ad3", "mweight", "mheight", "mmuac")])()
   
   xyz <- rbind(x, y, z) |>
     dplyr::mutate(
@@ -69,10 +69,10 @@ tally_univariate_outliers_mother <- function(outlier_weight_mother,
 ################################################################################
 
 tally_unique_univariate_outliers_mother <- function(outlier_table_univariate_mother,
-                                                    respondent_data_clean) {
+                                                    raw_data_clean) {
   n <- nrow(outlier_table_univariate_mother)
   
-  p <- (n / nrow(respondent_data_clean)) |>
+  p <- (n / nrow(raw_data_clean)) |>
     scales::percent(accuracy = 0.1)
   
   list(
@@ -122,13 +122,13 @@ tally_bivariate_outliers_mother <- function(outlier_weight_height_mother,
                                             outlier_weight_muac_mother,
                                             outlier_height_muac_mother) {
   x <- outlier_weight_height_mother |>
-    (\(x) x[ , c("today", "id", "enumid", "enumname", "mweight", "mheight", "mmuac")])()
+    (\(x) x[ , c("today", "id", "ad2", "ad3", "mweight", "mheight", "mmuac")])()
   
   y <- outlier_weight_muac_mother |>
-    (\(x) x[ , c("today", "id", "enumid", "enumname", "mweight", "mheight", "mmuac")])()
+    (\(x) x[ , c("today", "id", "ad2", "ad3", "mweight", "mheight", "mmuac")])()
   
   z <- outlier_height_muac_mother |>
-    (\(x) x[ , c("today", "id", "enumid", "enumname", "mweight", "mheight", "mmuac")])()
+    (\(x) x[ , c("today", "id", "ad2", "ad3", "mweight", "mheight", "mmuac")])()
   
   xyz <- rbind(x, y, z) |>
     dplyr::mutate(
@@ -155,10 +155,10 @@ tally_bivariate_outliers_mother <- function(outlier_weight_height_mother,
 ################################################################################
 
 tally_unique_bivariate_outliers_mother <- function(outlier_table_bivariate_mother,
-                                                  respondent_data_clean) {
+                                                  raw_data_clean) {
   n <- nrow(outlier_table_bivariate_mother)
   
-  p <- (n / nrow(respondent_data_clean)) |>
+  p <- (n / nrow(raw_data_clean)) |>
     scales::percent(accuracy = 0.1)
   
   list(
@@ -178,7 +178,7 @@ tally_unique_bivariate_outliers_mother <- function(outlier_table_bivariate_mothe
 
 tally_total_unique_outliers_mother <- function(outlier_table_univariate_mother,
                                                outlier_table_bivariate_mother,
-                                               respondent_data_clean) {
+                                               raw_data_clean) {
   x <- rbind(
     outlier_table_univariate_mother,
     outlier_table_bivariate_mother
@@ -187,7 +187,7 @@ tally_total_unique_outliers_mother <- function(outlier_table_univariate_mother,
     
   n <- nrow(x)
   
-  p <- (n / nrow(respondent_data_clean)) |>
+  p <- (n / nrow(raw_data_clean)) |>
     scales::percent(accuracy = 0.1)
   
   list(
@@ -235,13 +235,13 @@ tally_univariate_outliers <- function(outlier_weight,
                                       outlier_height,
                                       outlier_muac) {
   x <- outlier_weight |>
-    (\(x) x[ , c("today", "id", "enumid", "enumname", "cweight", "cheight", "cmuac", "age_months", "flag")])()
+    (\(x) x[ , c("today", "id", "ad2", "ad3", "cweight", "cheight", "cmuac", "age_months", "flag")])()
   
   y <- outlier_height |>
-    (\(x) x[ , c("today", "id", "enumid", "enumname", "cweight", "cheight", "cmuac", "age_months", "flag")])()
+    (\(x) x[ , c("today", "id", "ad2", "ad3", "cweight", "cheight", "cmuac", "age_months", "flag")])()
   
   z <- outlier_muac |>
-    (\(x) x[ , c("today", "id", "enumid", "enumname", "cweight", "cheight", "cmuac", "age_months", "flag")])()
+    (\(x) x[ , c("today", "id", "ad2", "ad3", "cweight", "cheight", "cmuac", "age_months", "flag")])()
   
   xyz <- rbind(x, y, z) |>
     dplyr::mutate(
@@ -273,13 +273,13 @@ tally_univariate_outliers_adj <- function(outlier_weight_adj,
                                           outlier_height_adj,
                                           outlier_muac_adj) {
   x <- outlier_weight_adj |>
-    (\(x) x[ , c("today", "id", "enumid", "enumname", "cweight1", "cheight1", "cmuac1", "age_months", "flag")])()
+    (\(x) x[ , c("today", "id", "ad2", "ad3", "cweight1", "cheight1", "cmuac1", "age_months", "flag")])()
   
   y <- outlier_height_adj |>
-    (\(x) x[ , c("today", "id", "enumid", "enumname", "cweight1", "cheight1", "cmuac1", "age_months", "flag")])()
+    (\(x) x[ , c("today", "id", "ad2", "ad3", "cweight1", "cheight1", "cmuac1", "age_months", "flag")])()
   
   z <- outlier_muac_adj |>
-    (\(x) x[ , c("today", "id", "enumid", "enumname", "cweight1", "cheight1", "cmuac1", "age_months", "flag")])()
+    (\(x) x[ , c("today", "id", "ad2", "ad3", "cweight1", "cheight1", "cmuac1", "age_months", "flag")])()
   
   xyz <- rbind(x, y, z) |>
     dplyr::mutate(
@@ -308,10 +308,10 @@ tally_univariate_outliers_adj <- function(outlier_weight_adj,
 ################################################################################
 
 tally_unique_univariate_outliers <- function(outlier_table_univariate,
-                                             child_data_clean) {
+                                             raw_data_clean) {
   n <- nrow(outlier_table_univariate)
   
-  p <- (n / nrow(child_data_clean)) |>
+  p <- (n / nrow(raw_data_clean)) |>
     scales::percent(accuracy = 0.1)
   
   list(
@@ -371,22 +371,22 @@ tally_bivariate_outliers <- function(outlier_weight_height,
                                      outlier_height_age,
                                      outlier_muac_age) {
   x <- outlier_weight_height |>
-    (\(x) x[ , c("today", "id", "enumid", "enumname", "cweight", "cheight", "cmuac", "age_months", "flag")])()
+    (\(x) x[ , c("today", "id", "ad2", "ad3", "cweight", "cheight", "cmuac", "age_months", "flag")])()
   
   y <- outlier_weight_muac |>
-    (\(x) x[ , c("today", "id", "enumid", "enumname", "cweight", "cheight", "cmuac", "age_months", "flag")])()
+    (\(x) x[ , c("today", "id", "ad2", "ad3", "cweight", "cheight", "cmuac", "age_months", "flag")])()
   
   z <- outlier_height_muac |>
-    (\(x) x[ , c("today", "id", "enumid", "enumname", "cweight", "cheight", "cmuac", "age_months", "flag")])()
+    (\(x) x[ , c("today", "id", "ad2", "ad3", "cweight", "cheight", "cmuac", "age_months", "flag")])()
   
   a <- outlier_weight_age |>
-    (\(x) x[ , c("today", "id", "enumid", "enumname", "cweight", "cheight", "cmuac", "age_months", "flag")])()
+    (\(x) x[ , c("today", "id", "ad2", "ad3", "cweight", "cheight", "cmuac", "age_months", "flag")])()
   
   b <- outlier_height_age |>
-    (\(x) x[ , c("today", "id", "enumid", "enumname", "cweight", "cheight", "cmuac", "age_months", "flag")])()
+    (\(x) x[ , c("today", "id", "ad2", "ad3", "cweight", "cheight", "cmuac", "age_months", "flag")])()
   
   c <- outlier_muac_age |>
-    (\(x) x[ , c("today", "id", "enumid", "enumname", "cweight", "cheight", "cmuac", "age_months", "flag")])()
+    (\(x) x[ , c("today", "id", "ad2", "ad3", "cweight", "cheight", "cmuac", "age_months", "flag")])()
   
   xyzabc <- rbind(x, y, z, a, b, c) |>
     dplyr::mutate(
@@ -416,10 +416,10 @@ tally_bivariate_outliers <- function(outlier_weight_height,
 ################################################################################
 
 tally_unique_bivariate_outliers <- function(outlier_table_bivariate,
-                                            child_data_clean) {
+                                            raw_data_clean) {
   n <- nrow(outlier_table_bivariate)
   
-  p <- (n / nrow(child_data_clean)) |>
+  p <- (n / nrow(raw_data_clean)) |>
     scales::percent(accuracy = 0.1)
   
   list(
@@ -439,7 +439,7 @@ tally_unique_bivariate_outliers <- function(outlier_table_bivariate,
 
 tally_total_unique_outliers <- function(outlier_table_univariate,
                                         outlier_table_bivariate,
-                                        child_data_clean) {
+                                        raw_data_clean) {
   x <- rbind(
     outlier_table_univariate,
     outlier_table_bivariate
@@ -448,7 +448,7 @@ tally_total_unique_outliers <- function(outlier_table_univariate,
   
   n <- nrow(x)
   
-  p <- (n / nrow(child_data_clean)) |>
+  p <- (n / nrow(raw_data_clean)) |>
     scales::percent(accuracy = 0.1)
   
   list(
@@ -491,7 +491,7 @@ plot_anthro_outliers <- function(.data = child_data) {
 #
 ################################################################################
 
-plot_anthro_bivariate <- function(.data = child_data_clean,
+plot_anthro_bivariate <- function(.data = raw_data_clean,
                                   outlier_weight_height,
                                   outlier_weight_muac, 
                                   outlier_height_muac, 
@@ -567,7 +567,7 @@ plot_anthro_bivariate <- function(.data = child_data_clean,
 #
 ################################################################################
 
-calculate_zscore <- function(.data = child_data_clean) {
+calculate_zscore <- function(.data = raw_data_clean) {
   ## Calculate z-score and apply WHO flagging criteria
   child_data_zscore <- .data |>
     zscorer::addWGSR(
@@ -625,21 +625,21 @@ calculate_zscore <- function(.data = child_data_clean) {
       )
     )
 
-  ## Adjust flags
-  #child_data_zscore$flag_description <- with(child_data_zscore, {
-  #  ifelse(
-  #    is.na(flag.1) & (!is.na(cweight) | !is.na(cheight) | !is.na(age_months)), 
-  #    "Check age, height or weight measurements",
-  #    flag_description
-  #  )
-  #})
-  
   ## Return
   tibble::tibble(child_data_zscore)
 }
 
 
-calculate_zscore_adj <- function(.data = child_data_clean) {
+################################################################################
+#
+#'
+#'
+#'
+#'
+#
+################################################################################
+
+calculate_zscore_adj <- function(.data = raw_data_clean) {
   ## Calculate z-score and apply WHO flagging criteria
   child_data_zscore <- .data |>
     zscorer::addWGSR(
@@ -697,15 +697,6 @@ calculate_zscore_adj <- function(.data = child_data_clean) {
       )
     )
 
-  ## Adjust flags
-  #child_data_zscore$flag_description <- with(child_data_zscore, {
-  #  ifelse(
-  #    is.na(flag.1) & (!is.na(cpeso) | !is.na(caltura) | !is.na(age)), 
-  #    "Check age, height or weight measurements",
-  #    flag_description
-  #  )
-  #})
-  
   ## Return
   tibble::tibble(child_data_zscore)
 }
@@ -830,19 +821,12 @@ calculate_age_model <- function(.data = child_data, u5mr = u5mr_census) {
 #
 ################################################################################
 
-plot_age_structure <- function(.data = child_data) {
+plot_age_structure <- function(.data = raw_data_clean) {
   .data <- .data |>
-    dplyr::mutate(
-      age_months = ifelse(
-        is.na(child_birthdate), 
-        child_age, 
-        (as.Date(today) - as.Date(child_birthdate)) / (365.25 / 12)
-      )
-    ) |>
     dplyr::filter(age_months >= 6 & age_months < 60) |>
     dplyr::mutate(
       age_group = cut(
-        age, 
+        age_months, 
         breaks = c(0, 17, 29, 41, 53, 59),
         labels = c("6 to 17", "18 to 29", "30 to 41", "42 to 53", "54 to 59"))
     )
