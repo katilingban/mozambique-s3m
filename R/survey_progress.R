@@ -261,7 +261,17 @@ check_ea <- function(ea, raw_data, complete_ea_sf) {
 }
 
 
-check_ea_table <- function(ea, raw_data, complete_ea_sf, check = c("in", "out")) {
+################################################################################
+#
+#'
+#' Create table of EAs outside respective boundaries
+#'
+#
+################################################################################
+
+check_ea_table <- function(ea, raw_data, 
+                           complete_ea_sf, 
+                           check = c("in", "out")) {
   check <- match.arg(check)
   
   geo_sf <- raw_data |>
@@ -297,6 +307,9 @@ check_ea_table <- function(ea, raw_data, complete_ea_sf, check = c("in", "out"))
       select = c(id, ad2, ad3, today, ea_code)
     ) |>
     (\(x) x[order(x$today), ])()
+  
+  ## Sort by date
+  test_ea_table <- test_ea_table[order(test_ea_table$today), ]
   
   ## Return
   test_ea_table
