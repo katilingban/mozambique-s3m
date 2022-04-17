@@ -1,12 +1,14 @@
-name: run S3M workflow
+name: check endline data
 
 on:
+  # schedule:
+  #   - cron: "0 17 * * *"  
   workflow_dispatch:
     branches:
       - '*'
 
 jobs:
-  run-S3M-workflow:
+  check-endline-data:
     runs-on: ubuntu-latest
     container: rocker/geospatial:4.1.2
     env:
@@ -36,8 +38,28 @@ jobs:
           renv::restore()
         shell: Rscript {0}
         
-      - name: Run workflow
+      - name: Run daily progress and data check workflow
         run: |
-          targets::tar_make()
+          targets::tar_make(survey_progress_deployed)
+          targets::tar_make(data_quality_deployed)
+        shell: Rscript {0}
+        
+      - name: Deploy and archive reports
+        run: |
+          targets::tar_make(survey_progress_archive_deployed)
+          targets::tar_make(data_quality_archive_deployed)
         shell: Rscript {0}
           
+      - name: Email report
+        run: |
+          targets::tar_make(daily_report_emailed)
+        shell: Rscript {0}
+          
+      - name: Commit and push files
+        run: |
+          git config --global user.email "ernest@guevarra.io"
+          git config --global user.name "ernestguevarra"
+          git add .
+          git diff-index --quiet HEAD || git commit -m "deploy daily report"
+          git push
+      

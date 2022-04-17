@@ -215,7 +215,8 @@ data_raw <- tar_plan(
     name = raw_data,
     command = get_data(form_name = "sofala_s3m", survey_questions),
     cue = tar_cue(mode = "always")
-  )
+  ),
+  raw_data_clean = clean_raw_data(raw_data)
 )
 
 
@@ -255,12 +256,12 @@ data_checks <- tar_plan(
     lapply(FUN = check_ea_table, raw_data, complete_ea_sf, check = "out") |>
     dplyr::bind_rows(), 
   ## Detect univariate outliers for mother anthropometric data
-  outlier_weight_mother = respondent_data_clean |>
-    (\(x) x[outliersUV(x$mweight), ])(),
-  outlier_height_mother = respondent_data_clean |>
-    (\(x) x[outliersUV(x$mheight), ])(),
-  outlier_muac_mother = respondent_data_clean |>
-    (\(x) x[outliersUV(x$mmuac), ])(),
+  outlier_weight_mother = raw_data_clean |>
+    (\(x) x[outliersUV(x$mpeso), ])(),
+  outlier_height_mother = raw_data_clean |>
+    (\(x) x[outliersUV(x$maltura), ])(),
+  outlier_muac_mother = raw_data_clean |>
+    (\(x) x[outliersUV(x$mbraco), ])(),
   outlier_summary_univariate_mother = summarise_univariate_outliers_mother(
     outlier_weight_mother, outlier_height_mother, outlier_muac_mother
   ),
@@ -268,22 +269,22 @@ data_checks <- tar_plan(
     outlier_weight_mother, outlier_height_mother, outlier_muac_mother
   ),
   outlier_unique_univariate_mother_total = tally_unique_univariate_outliers_mother(
-    outlier_table_univariate_mother, respondent_data_clean
+    outlier_table_univariate_mother, raw_data_clean
   ),
-  outlier_muac_mother_cm = respondent_data_clean |>
-    subset(mmuac > 0 & mmuac < 100) |>
-    (\(x) x[outliersUV(x$mmuac), ])(),
-  outlier_muac_mother_mm = respondent_data_clean |>
-    subset(mmuac >= 100) |>
-    (\(x) x[outliersUV(x$mmuac), ])(),
+  # outlier_muac_mother_cm = raw_data_clean |>
+  #   subset(mmuac > 0 & mmuac < 100) |>
+  #   (\(x) x[outliersUV(x$mmuac), ])(),
+  # outlier_muac_mother_mm = raw_data_clean |>
+  #   subset(mmuac >= 100) |>
+  #   (\(x) x[outliersUV(x$mmuac), ])(),
   ## Detect bivariate outliers for mother anthropometric data
-  outlier_weight_height_mother = respondent_data_clean |>
+  outlier_weight_height_mother = raw_data_clean |>
     (\(x) x[with(x, outliersMD(mweight, mheight)), ])() |>
     (\(x) x[!is.na(x$id), ])(),
-  outlier_weight_muac_mother = respondent_data_clean |>
+  outlier_weight_muac_mother = raw_data_clean |>
     (\(x) x[with(x, outliersMD(mweight, mmuac)), ])() |>
     (\(x) x[!is.na(x$id), ])(),
-  outlier_height_muac_mother = respondent_data_clean |>
+  outlier_height_muac_mother = raw_data_clean |>
     (\(x) x[with(x, outliersMD(mheight, mmuac)), ])() |>
     (\(x) x[!is.na(x$id), ])(),
   outlier_summary_bivariate_mother = summarise_bivariate_outliers_mother(
@@ -297,30 +298,30 @@ data_checks <- tar_plan(
     outlier_height_muac_mother
   ),
   outlier_unique_bivariate_mother_total = tally_unique_bivariate_outliers_mother(
-    outlier_table_bivariate_mother, respondent_data_clean
+    outlier_table_bivariate_mother, raw_data_clean
   ),
   outlier_unique_mother_total = tally_total_unique_outliers_mother(
     outlier_table_univariate_mother,
     outlier_table_bivariate_mother,
-    respondent_data_clean
+    raw_data_clean
   ),
   ## Detect univariate outliers for child anthropometric data
-  outlier_weight = child_data_clean|>
+  outlier_weight = raw_data_clean|>
     subset(age_months >= 6 & age < 60) |>
     (\(x) x[outliersUV(x$cweight), ])(),
-  outlier_height = child_data_clean |>
+  outlier_height = raw_data_clean |>
     subset(age_months >= 6 & age_months < 60) |>
     (\(x) x[outliersUV(x$cheight), ])(),
-  outlier_muac = child_data_clean |>
+  outlier_muac = raw_data_clean |>
     subset(age_months >= 6 & age_months < 60) |>
     (\(x) x[outliersUV(x$cmuac), ])(),
-  outlier_weight_adj = child_data_clean |>
+  outlier_weight_adj = raw_data_clean |>
     subset(age_months >= 6 & age_months < 60) |>
     (\(x) x[outliersUV(x$cweight1), ])(),
-  outlier_height_adj = child_data_clean |>
+  outlier_height_adj = raw_data_clean |>
     subset(age_months >= 6 & age_months < 60) |>
     (\(x) x[outliersUV(x$cheight1), ])(),
-  outlier_muac_adj = child_data_clean |>
+  outlier_muac_adj = raw_data_clean |>
     subset(age_months >= 6 & age_months < 60) |>
     (\(x) x[outliersUV(x$cmuac1), ])(),
   outlier_summary_univariate = summarise_univariate_outliers(
@@ -330,7 +331,7 @@ data_checks <- tar_plan(
     outlier_weight, outlier_height, outlier_muac
   ),
   outlier_unique_univariate_total = tally_unique_univariate_outliers(
-    outlier_table_univariate, child_data_clean
+    outlier_table_univariate, raw_data_clean
   ),
   outlier_summary_univariate_adj = summarise_univariate_outliers(
     outlier_weight_adj, outlier_height_adj, outlier_muac_adj
@@ -339,30 +340,30 @@ data_checks <- tar_plan(
     outlier_weight_adj, outlier_height_adj, outlier_muac_adj
   ),
   outlier_unique_univariate_total_adj = tally_unique_univariate_outliers(
-    outlier_table_univariate_adj, child_data_clean
+    outlier_table_univariate_adj, raw_data_clean
   ),
   ## Detect bivariate outliers for child anthropometric data
-  outlier_weight_height = child_data_clean |>
+  outlier_weight_height = raw_data_clean |>
     subset(age_months >= 6 & age_months < 60) |>
     (\(x) x[with(x, outliersMD(cweight, cheight)), ])() |>
     (\(x) x[!is.na(x$id), ])(),
-  outlier_weight_muac = child_data_clean |>
+  outlier_weight_muac = raw_data_clean |>
     subset(age_months >= 6 & age_months < 60) |>
     (\(x) x[with(x, outliersMD(cweight, cmuac)), ])() |>
     (\(x) x[!is.na(x$id), ])(),
-  outlier_height_muac = child_data_clean |>
+  outlier_height_muac = raw_data_clean |>
     subset(age_months >= 6 & age_months < 60) |> 
     (\(x) x[with(x, outliersMD(cheight, cmuac)), ])() |>
     (\(x) x[!is.na(x$id), ])(),
-  outlier_weight_age = child_data_clean |>
+  outlier_weight_age = raw_data_clean |>
     subset(age_months >= 6 & age_months < 60) |>
     (\(x) x[with(x, outliersMD(cweight, age_months)), ])() |>
     (\(x) x[!is.na(x$id), ])(),
-  outlier_height_age = child_data_clean |>
+  outlier_height_age = raw_data_clean |>
     subset(age_months >= 6 & age_months < 60) |>
     (\(x) x[with(x, outliersMD(cheight, age_months)), ])() |>
     (\(x) x[!is.na(x$id), ])(),
-  outlier_muac_age = child_data_clean |>
+  outlier_muac_age = raw_data_clean |>
     subset(age_months >= 6 & age_months < 60) |>
     (\(x) x[with(x, outliersMD(cmuac, age_months)), ])() |>
     (\(x) x[!is.na(x$id), ])(),
@@ -375,18 +376,18 @@ data_checks <- tar_plan(
     outlier_weight_age, outlier_height_age, outlier_muac_age
   ),
   outlier_unique_bivariate_total = tally_unique_bivariate_outliers(
-    outlier_table_bivariate, child_data_clean
+    outlier_table_bivariate, raw_data_clean
   ),  
   outlier_unique_total = tally_total_unique_outliers(
     outlier_table_bivariate,
     outlier_table_bivariate,
-    child_data_clean
+    raw_data_clean
   ),
   ## Flag child anthropometric zscores
-  child_data_zscore = child_data_clean |>
+  child_data_zscore = raw_data_clean |>
     subset(age_months < 60 & age_months >= 6) |>
     calculate_zscore(),
-  child_data_zscore_adj = child_data_clean |>
+  child_data_zscore_adj = raw_data_clean |>
     subset(age_months < 60 & age_months >= 6) |>
     calculate_zscore_adj(),
   flag_zscore_total = child_data_zscore |>
@@ -421,14 +422,14 @@ data_checks <- tar_plan(
   dp_height = with(child_data_zscore, digitPreference(cheight)),
   dp_muac = with(child_data_zscore, digitPreference(cmuac)),
   ## Assess age heaping
-  age_heaping = child_data_clean |>
+  age_heaping = raw_data_clean |>
     (\(x) ageHeaping(x$age_months))(),
   age_heaping_class = classify_age_heaping(age_heaping),
   ## Assess sex ratio
-  sex_ratio = child_data_clean |> 
+  sex_ratio = raw_data_clean |> 
     (\(x) sexRatioTest(x$sex, codes = c(1, 2), pop = c(1.03, 1)))(),
   ## Assess age ratio
-  age_ratio = child_data_clean |>
+  age_ratio = raw_data_clean |>
     (\(x) x$age_months[x$age_months >= 6 & x$age_months < 60])() |>
     (\(x) x[!is.na(x)])() |>
     (\(x) ageRatioTest(x = x, ratio = 0.85))()
@@ -562,17 +563,63 @@ reports <- tar_plan(
     output_dir = "outputs",
     knit_root_dir = here::here()
   ),
+  ## Render survey progress report
   tar_render(
     name = survey_progress_report,
     path = "reports/sofala_survey_progress.Rmd",
     output_dir = "outputs",
     knit_root_dir = here::here()
+  ),
+  ## Archive survey progress report
+  survey_progress_report_archive = archive_progress_report(
+    from = survey_progress_report[1]
+  ),
+  ## Render data quality report
+  tar_render(
+    name = data_quality_report,
+    path = "reports/sofala_data_quality.Rmd",
+    output_dir = "outputs",
+    knit_root_dir = here::here()
+  ),
+  ## Archive data quality report
+  data_quality_report_archive = archive_quality_report(
+    from = data_quality_report[1]
+  ),
+  ## Email message for sending survey progress and data quality report
+  email_report_message = blastula::render_email(
+    input = "reports/email_report.Rmd"
   )
 )
 
 ## Deploy targets
 deploy <- tar_plan(
-  ##
+  ## Deploy daily progress report
+  survey_progress_deployed = deploy_progress_report(
+    from = survey_progress_report[1],
+    to = "docs/survey_progress_report.html"
+  ),
+  ## Deploy daily report archive
+  survey_progress_archive_deployed = archive_progress_report(
+    from = survey_progress_deployed, 
+    to = paste0("docs/", Sys.Date(), "/progress/index.html") 
+  ),
+  ## Deploy daily quality report
+  data_quality_deployed = deploy_quality_report(
+    from = data_quality_report[1],
+    to = "docs/data_quality_report.html"
+  ),
+  ## Deploy daily report archive
+  data_quality_archive_deployed = archive_quality_report(
+    from = data_quality_deployed, 
+    to = paste0("docs/", Sys.Date(), "/quality/index.html") 
+  ),
+  ## Email daily report to recipients
+  daily_report_emailed = email_daily_report(
+    message = email_report_message,
+    attachment = c(survey_progress_report[1], data_quality_report[1]),
+    sender = Sys.getenv("GMAIL_USERNAME"),
+    recipient = eval(parse(text = Sys.getenv("REPORT_RECIPIENTS")))
+  )
 )
 
 ## Set seed

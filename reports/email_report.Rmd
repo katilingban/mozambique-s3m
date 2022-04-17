@@ -1,29 +1,12 @@
 ---
-title: Zambezia and Nampula Endline Survey Data Quality Review Report
+title: Sofala S3M Survey Progress and Data Quality Review Report
 output: blastula::blastula_email
 ---
 
-Please find attached the daily data quality review report for the Zambezia and Nampula Endline Survey for `r Sys.Date()`.
+Please find attached the daily survey progress report and the data quality review report for the **Sofala S3M for `r Sys.Date()`**.
 
-This report now incorporates the revised variables for **Survey Team ID** and **Enumerator Name**. **Survey Team ID** is reported as a character value between A to H representing each of the 8 survey teams. **Enumerator Name** is reported as simple integer codes assigned to each enumerator, anthropometrist, and supervisor from each teams. Please refer to the enumerator list for the endline survey to identify the specific enumerator.
+The attached reports are in HTML format and can be viewed/opened on any browser installed on your computer (with no need for internet access).
 
-Please note that the **Survey Team ID** and **Enumerator Name** coding described above only took effect on **2022-04-14** which is when these variables were revised/updated on the questionnaire.
-
-The attached report is in HTML format and can be viewed/opened on any browser installed on your computer (with no need for internet access).
-
-<!-- You can view the same report online at https://katilingban.io/mozambique-endline-monitor/ -->
-
-<!-- You can view previous daily reports from the archive as far back as **2022-04-09**. The links to previous reports can be found below: -->
-
-<!-- ```{r, echo = FALSE} -->
-<!-- base_url <- "https://katilingban.io/mozambique-endline-monitor/" -->
-
-<!-- archive_dates <- seq(from = as.Date("2022-04-09"), to = Sys.Date(), by = "days") -->
-
-<!-- archive_links <- paste0(base_url, archive_dates) |> -->
-<!--   paste(collapse = "\n") -->
-
-<!-- cat(archive_links) -->
 ```
 
 Best,    

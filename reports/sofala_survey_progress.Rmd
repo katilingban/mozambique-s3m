@@ -24,30 +24,6 @@ knitr::opts_chunk$set(
 suppressPackageStartupMessages(source("packages.R"))
 for (f in list.files(here::here("R"), full.names = TRUE)) source (f)
 
-# targets::tar_load(
-#   c(raw_data, respondent_data, respondent_data_clean, child_data, child_data_clean,
-#     outlier_weight_mother, outlier_height_mother, outlier_muac_mother,
-#     outlier_muac_mother_cm, outlier_muac_mother_mm, outlier_weight_height_mother, 
-#     outlier_height_muac_mother, outlier_weight_muac_mother, outlier_weight,
-#     outlier_height, outlier_muac, outlier_weight_height, outlier_weight_muac, 
-#     outlier_height_muac, outlier_weight_age, outlier_height_age, 
-#     outlier_muac_age, outlier_weight_adj, outlier_height_adj, outlier_muac_adj, 
-#     child_data_zscore, child_data_zscore_adj, skewKurt_wfaz, skewKurt_hfaz, 
-#     skewKurt_wfhz, dp_weight, dp_height, dp_muac, age_heaping, sex_ratio, 
-#     age_ratio, table_sp_total, table_sp_children_total, table_sp_date_total,
-#     endline_sample_list, outlier_summary_univariate_mother, outlier_table_univariate_mother,
-#     outlier_unique_univariate_mother_total, outlier_summary_bivariate_mother,
-#     outlier_table_bivariate_mother, outlier_unique_bivariate_mother_total,
-#     outlier_unique_mother_total, outlier_summary_univariate, 
-#     outlier_table_univariate, outlier_unique_univariate_total, 
-#     outlier_summary_univariate_adj, outlier_table_univariate_adj, 
-#     outlier_unique_univariate_total_adj, outlier_summary_bivariate,
-#     outlier_table_bivariate, outlier_unique_bivariate_total,
-#     outlier_unique_total, flag_zscore_total, flag_zscore_prop,
-#     flag_zscore_adj_total, flag_zscore_adj_prop, whz_mad, age_heaping_class,
-#     shapiro_wfaz, shapiro_hfaz, shapiro_wfhz
-#   )
-# )
 targets::tar_load(
   c(raw_data, selected_ea_complete, complete_ea_sf,
     table_sp_total, table_sp_date_total, 

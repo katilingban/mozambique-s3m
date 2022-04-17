@@ -15,13 +15,18 @@
 ################################################################################
 
 email_daily_report <- function(message = email_report_message,
-                               attachment = data_review_report[1],
+                               attachment = c(survey_progress_report[1], data_quality_report[1]),
                                sender = Sys.getenv("GMAIL_USERNAME"),
                                recipient = Sys.getenv("REPORT_RECIPIENTS")) {
   ## Add attachment
   blastula::add_attachment(
     email = message,
-    file = attachment
+    file = attachment[1]
+  ) |>
+  ## Add attachment
+  blastula::add_attachment(
+    email = message,
+    file = attachment[2]
   ) |>
   ## Set-up SMTP and send email report
   blastula::smtp_send(
@@ -29,7 +34,7 @@ email_daily_report <- function(message = email_report_message,
     bcc = sender,
     from = sender, 
     subject = paste0(
-      "Daily data quality report - Zambezia and Nampula Endline Survey - ",
+      "Daily survey progress and data quality report - Sofala S3M - ",
       Sys.Date()
     ), 
     credentials = blastula::creds_envvar(
