@@ -12,6 +12,9 @@ library(here)
 library(rmarkdown)
 library(knitr)
 library(kableExtra)
+library(googledrive)
+library(blastula)
+library(openxlsx)
 
 
 ################################################################################
@@ -37,7 +40,6 @@ library(osmdata)
 #
 ################################################################################
 
-library(ruODK)
 library(okapi)
 
 
@@ -65,14 +67,4 @@ library(anthrocheckr)
 
 library(ppitables)
 
-
-################################################################################
-#
-#'
-#' Other packages
-#'
-#
-################################################################################
-
-library(googledrive)
 
