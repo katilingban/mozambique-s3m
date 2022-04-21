@@ -171,6 +171,7 @@ if (nrow(x) == 0) {
 check_ea_map <- raw_data |>
   subset(!is.na(spid)) |>
   (\(x) x$ea_code)() |>
+  (\(x) x[!is.na(c)])() |>
   unique() |>
   lapply(FUN = check_ea_geo, raw_data, complete_ea_sf)
 ```
