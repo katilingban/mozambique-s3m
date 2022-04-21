@@ -165,7 +165,7 @@ spatial_sample <- tar_plan(
 
 ## Form/questionnaire development
 questionnaire <- tar_plan(
-  ##
+  ## Create survey enumerator list
   survey_enumerator_list_file = download_googledrive(
     filename = "Lista das Equipes  do E.BASE SOFALA-FINAL.xls", overwrite = TRUE
   ),
@@ -189,9 +189,11 @@ questionnaire <- tar_plan(
        x
      )
     )(),
+  ## Retrieve Sofala S3M XLSForm
   sofala_xlsform_file = download_googledrive(
     filename = "sofala_s3m_2022041401.xlsx", overwrite = TRUE
   ),
+  ## Create codebook
   survey_questions = readxl::read_xlsx(
     path = sofala_xlsform_file$local_path, sheet = "survey"
   ),
@@ -232,6 +234,7 @@ data_checks <- tar_plan(
   check_ea_map = raw_data |>
     subset(!is.na(spid)) |>
     (\(x) x$ea_code)() |>
+    (\(x) x[!is.na(x)])() |>
     unique() |>
     lapply(FUN = check_ea_geo, raw_data, complete_ea_sf),
   table_check_ea_map = raw_data |>
@@ -438,7 +441,8 @@ data_checks <- tar_plan(
 
 ## Process data
 data_processed <- tar_plan(
-  ##
+  ## Anthropometric data
+  mother_anthro = recode_anthro_mother(raw_data_clean)
 )
 
 
