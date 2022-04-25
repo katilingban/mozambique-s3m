@@ -23,6 +23,10 @@ jobs:
           apt-get update && apt-get install -y --no-install-recommends \
           git-crypt libxt6 libglpk-dev
           
+      - name: Trust git repo
+        run: |
+          git config --global --add safe.directory /__w/mozambique-s3m/mozambique-s3m
+          
       - name: Decrypt repository using symmetric key
         run: |
           echo $GIT_CRYPT_KEY64 > git_crypt_key.key64 && base64 -di git_crypt_key.key64 > git_crypt_key.key && git-crypt unlock git_crypt_key.key
