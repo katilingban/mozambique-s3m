@@ -704,16 +704,26 @@ calculate_zscore_adj <- function(.data = raw_data_clean) {
 
 ################################################################################
 #
-# Skew and kurtosis
+# Classify skewnewss and kurtosis
 #
 ################################################################################
+
+classify_skew_kurt <- function(x) {
+  cut(
+    x = abs(x), 
+    breaks = c(0, 0.2, 0.4, 0.6, Inf), 
+    labels = c("excellent", "good", "acceptable", "problematic"), 
+    include.lowest = TRUE
+  ) |>
+    as.character()
+}
 
 
 
 ################################################################################
 #
 #'
-#'
+#' Classify age heaping
 #'
 #
 ################################################################################

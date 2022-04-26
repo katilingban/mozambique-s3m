@@ -45,7 +45,12 @@ targets::tar_load(
     outlier_table_bivariate, outlier_unique_bivariate_total,
     outlier_unique_total, flag_zscore_total, flag_zscore_prop,
     flag_zscore_adj_total, flag_zscore_adj_prop, whz_mad, age_heaping_class,
-    shapiro_wfaz, shapiro_hfaz, shapiro_wfhz
+    shapiro_wfaz, shapiro_hfaz, shapiro_wfhz,
+    skew_wfaz_class, kurt_wfaz_class, skew_hfaz_class, kurt_hfaz_class,
+    skew_wfhz_class, kurt_wfhz_class, 
+    skewKurt_wfaz_adj, skewKurt_hfaz_adj, skewKurt_wfhz_adj,
+    skew_wfaz_adj_class, kurt_wfaz_adj_class, 
+    skew_hfaz_adj_class, kurt_hfaz_adj_class, skew_wfhz_adj_class, kurt_wfhz_adj_class
   )
 )
 ```
@@ -67,9 +72,9 @@ Following is today's data quality scorecard (DQS) for the endline survey anthrop
 Outliers | > 1% | Mother data - `r outlier_unique_mother_total$p`; Child data - `r outlier_unique_total$p` | see [2.1. Mother anthropometry] and [2.2. Child anthropometry]
 Illegal values | > 1% | Mother data - `r outlier_unique_mother_total$p`; Child data - `r outlier_unique_total$p` | see [2.1. Mother anthropometry] and [2.2. Child anthropometry]
 Flagged records | > 5% | `r flag_zscore_prop` | see [2.2.2. Flagged records]
-Weight-for-age z-score | Markedly non-normal | Check WAZ Q-Q plot | see [2.2.3. Distribution of anthropometric z-scores and MUAC]
-Height-for-age z-score | Markedly non-normal | Check HAZ Q-Q plot | see [2.2.3. Distribution of anthropometric z-scores and MUAC]
-Weight-for-height z-score | Markedly non-normal; MAD > 1.2 and MAD < 0.8 | MAD = `r round(whz_mad, 2)` | see [2.2.3. Distribution of anthropometric z-scores and MUAC]; [2.2.4. Median absolute deviation of weight-for-height z-score]
+Weight-for-age z-score | Markedly non-normal | Check WAZ Q-Q plot; Skewness = `r paste0(format(round(skewKurt_wfaz_adj$s), scientific = FALSE), " (", skew_wfaz_adj_class, ")")`; Kurtosis = `r paste0(format(round(skewKurt_wfaz_adj$k), scientific = FALSE), " (", kurt_wfaz_adj_class, ")")` | see [2.2.3. Distribution of anthropometric z-scores and MUAC]
+Height-for-age z-score | Markedly non-normal | Check HAZ Q-Q plot; Skewness = `r paste0(format(round(skewKurt_hfaz_adj$s), scientific = FALSE), " (", skew_hfaz_adj_class, ")")`; Kurtosis = `r paste0(format(round(skewKurt_hfaz_adj$k), scientific = FALSE), " (", kurt_hfaz_adj_class, ")")` | see [2.2.3. Distribution of anthropometric z-scores and MUAC]
+Weight-for-height z-score | Markedly non-normal; MAD > 1.2 or MAD < 0.8 | Check WHZ Q-Q plot; Skewness = `r paste0(format(round(skewKurt_wfhz_adj$s), scientific = FALSE), " (", skew_wfhz_adj_class, ")")`; Kurtosis = `r paste0(format(round(skewKurt_wfhz_adj$k), scientific = FALSE), " (", kurt_wfhz_adj_class, ")")`; MAD = `r round(whz_mad, 2)` | see [2.2.3. Distribution of anthropometric z-scores and MUAC]; [2.2.4. Median absolute deviation of weight-for-height z-score]
 Digit preference - weight | DPS > 12 | `r paste0("DPS = ", dp_weight$dps)` | see [2.2.5. Digit preference]
 Digit preference - height | DPS > 12 | `r paste0("DPS = ", dp_height$dps)` | see [2.2.5. Digit preference]
 Digit preference - MUAC | DPS > 12 | `r paste0("DPS = ", dp_muac$dps)` | see [2.2.5. Digit preference]
@@ -654,11 +659,19 @@ Checking for skewness and kurtosis on child anthropometric data, the following a
 skewKurt_wfaz
 ```
 
+The skewness of weight-for-age z-score distribution is **<span style="color: blue">`r round(skewKurt_wfaz$s, digits = 0)`</span>**. This is **<span style="color: blue">`r skew_wfaz_class`</span>**.
+
+The kurtosis of weight-for-age z-score distribution is **<span style="color: blue">`r round(skewKurt_wfaz$k, digits = 0)`</span>**. This is **<span style="color: blue">`r kurt_wfaz_class`</span>**.
+
 **Skewness and kurtosis of height-for-age z-score**
 
 ```{r, echo = FALSE, eval = TRUE}
 skewKurt_hfaz
 ```
+
+The skewness of height-for-age z-score distribution is **<span style="color: blue">`r round(skewKurt_hfaz$s, digits = 0)`</span>**. This is **<span style="color: blue">`r skew_hfaz_class`</span>**.
+
+The kurtosis of height-for-age z-score distribution is **<span style="color: blue">`r round(skewKurt_hfaz$k, digits = 0)`</span>**. This is **<span style="color: blue">`r kurt_hfaz_class`</span>**.
 
 **Skewness and kurtosis of weight-for-height z-score**
 
@@ -666,37 +679,50 @@ skewKurt_hfaz
 skewKurt_wfhz
 ```
 
+The skewness of weight-for-height z-score distribution is **<span style="color: blue">`r round(skewKurt_wfhz$s, digits = 0)`</span>**. This is **<span style="color: blue">`r skew_wfhz_class`</span>**.
+
+The kurtosis of weight-for-height z-score distribution is **<span style="color: blue">`r round(skewKurt_wfhz$k, digits = 0)`</span>**. This is **<span style="color: blue">`r kurt_wfhz_class`</span>**.
+
 Checking for skewness and kurtosis on child anthropometric data where outliers and flagged values have been removed, the following are observed:
 
 **Skewness and kurtosis of weight-for-age z-score - without outliers and flagged values**
 
 ```{r, echo = FALSE, eval = TRUE}
-skewKurt_wfaz_adj <- child_data_zscore |>
-    dplyr::filter(!id %in% c(outlier_table_univariate$id, outlier_table_bivariate$id) | flag_zscore == 0) |>
-    (\(x) skewKurt(x$wfaz))()
-
+# skewKurt_wfaz_adj <- child_data_zscore |>
+#     dplyr::filter(!id %in% c(outlier_table_univariate$id, outlier_table_bivariate$id) | flag_zscore == 0) |>
+#     (\(x) skewKurt(x$wfaz))()
 skewKurt_wfaz_adj
 ```
+
+The skewness of weight-for-age z-score distribution is **<span style="color: blue">`r round(skewKurt_wfaz_adj$s, digits = 0)`</span>**. This is **<span style="color: blue">`r skew_wfaz_adj_class`</span>**.
+
+The kurtosis of weight-for-age z-score distribution is **<span style="color: blue">`r round(skewKurt_wfaz_adj$k, digits = 0)`</span>**. This is **<span style="color: blue">`r kurt_wfaz_adj_class`</span>**.
 
 **Skewness and kurtosis of height-for-age z-score - without outliers and flagged values**
 
 ```{r, echo = FALSE, eval = TRUE}
-skewKurt_hfaz_adj <- child_data_zscore |>
-    dplyr::filter(!id %in% c(outlier_table_univariate$id, outlier_table_bivariate$id) | flag_zscore == 0) |>
-    (\(x) skewKurt(x$hfaz))()
-
+# skewKurt_hfaz_adj <- child_data_zscore |>
+#     dplyr::filter(!id %in% c(outlier_table_univariate$id, outlier_table_bivariate$id) | flag_zscore == 0) |>
+#     (\(x) skewKurt(x$hfaz))()
 skewKurt_hfaz_adj
 ```
+
+The skewness of height-for-age z-score distribution is **<span style="color: blue">`r round(skewKurt_hfaz_adj$s, digits = 0)`</span>**. This is **<span style="color: blue">`r skew_hfaz_adj_class`</span>**.
+
+The kurtosis of height-for-age z-score distribution is **<span style="color: blue">`r round(skewKurt_hfaz_adj$k, digits = 0)`</span>**. This is **<span style="color: blue">`r kurt_hfaz_adj_class`</span>**.
 
 **Skewness and kurtosis of weight-for-height z-score - without outliers and flagged values**
 
 ```{r, echo = FALSE, eval = TRUE}
-skewKurt_wfhz_adj <- child_data_zscore |>
-    dplyr::filter(!id %in% c(outlier_table_univariate$id, outlier_table_bivariate$id) | flag_zscore == 0) |>
-    (\(x) skewKurt(x$wfhz))()
-
+# skewKurt_wfhz_adj <- child_data_zscore |>
+#     dplyr::filter(!id %in% c(outlier_table_univariate$id, outlier_table_bivariate$id) | flag_zscore == 0) |>
+#     (\(x) skewKurt(x$wfhz))()
 skewKurt_wfhz_adj
 ```
+
+The skewness of weight-for-height z-score distribution is **<span style="color: blue">`r round(skewKurt_wfhz_adj$s, digits = 0)`</span>**. This is **<span style="color: blue">`r skew_wfhz_adj_class`</span>**.
+
+The kurtosis of weight-for-height z-score distribution is **<span style="color: blue">`r round(skewKurt_wfhz_adj$k, digits = 0)`</span>**. This is **<span style="color: blue">`r kurt_wfhz_adj_class`</span>**.
 
 &nbsp;
 

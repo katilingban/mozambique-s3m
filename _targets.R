@@ -174,8 +174,10 @@ questionnaire <- tar_plan(
   ) |>
     (\(x) x[3:nrow(x), ])() |>
     (\(x) {
-      x[ , 3] <- c(rep(1, 3), rep(2, 4), rep(3, 3), rep(4, 4), rep(5, 3), rep(6, 4),
-                   rep(7, 3), rep(8, 4), rep(9, 3), rep(10, 4), rep(11, 3), rep(12, 4),
+      x[ , 3] <- c(rep(1, 3), rep(2, 4), rep(3, 3), 
+                   rep(4, 4), rep(5, 3), rep(6, 4),
+                   rep(7, 3), rep(8, 4), rep(9, 3), 
+                   rep(10, 4), rep(11, 3), rep(12, 4),
                    rep(13, 3), rep(14, 4))
       x
     })() |>
@@ -183,8 +185,14 @@ questionnaire <- tar_plan(
     (\(x) 
      tibble::tibble(
        enumerator_code = paste0(
-         stringr::str_pad(x$`Código/Número de equipa`, width = 2, side = "left", pad = "0"),
-         stringr::str_pad(x$`Número de membros`, width = 2, side = "left", pad = "0")
+         stringr::str_pad(
+           x$`Código/Número de equipa`, 
+           width = 2, side = "left", pad = "0"
+         ),
+         stringr::str_pad(
+           x$`Número de membros`, 
+           width = 2, side = "left", pad = "0"
+         )
        ),
        x
      )
@@ -410,10 +418,40 @@ data_checks <- tar_plan(
   ## Test skewness and kurtosis of child anthropometric zscores
   skewKurt_wfaz = child_data_zscore |>
     (\(x) skewKurt(x$wfaz))(),
+  skew_wfaz_class = classify_skew_kurt(x = skewKurt_wfaz$s),
+  kurt_wfaz_class = classify_skew_kurt(x = skewKurt_wfaz$k),
+  skewKurt_wfaz_adj = child_data_zscore |>
+    dplyr::filter(
+      !id %in% c(outlier_table_univariate$id, outlier_table_bivariate$id) | 
+        flag_zscore == 0
+    ) |>
+    (\(x) skewKurt(x$wfaz))(),
+  skew_wfaz_adj_class = classify_skew_kurt(x = skewKurt_wfaz_adj$s),
+  kurt_wfaz_adj_class = classify_skew_kurt(x = skewKurt_wfaz_adj$k),
   skewKurt_hfaz = child_data_zscore |>
     (\(x) skewKurt(x$hfaz))(),
+  skew_hfaz_class = classify_skew_kurt(x = skewKurt_hfaz$s),
+  kurt_hfaz_class = classify_skew_kurt(x = skewKurt_hfaz$k),
+  skewKurt_hfaz_adj = child_data_zscore |>
+    dplyr::filter(
+      !id %in% c(outlier_table_univariate$id, outlier_table_bivariate$id) | 
+        flag_zscore == 0
+    ) |>
+    (\(x) skewKurt(x$hfaz))(),
+  skew_hfaz_adj_class = classify_skew_kurt(x = skewKurt_hfaz_adj$s),
+  kurt_hfaz_adj_class = classify_skew_kurt(x = skewKurt_hfaz_adj$k),
   skewKurt_wfhz = child_data_zscore |>
     (\(x) skewKurt(x$wfhz))(),
+  skew_wfhz_class = classify_skew_kurt(x = skewKurt_wfhz$s),
+  kurt_wfhz_class = classify_skew_kurt(x = skewKurt_wfhz$k),
+  skewKurt_wfhz_adj = child_data_zscore |>
+    dplyr::filter(
+      !id %in% c(outlier_table_univariate$id, outlier_table_bivariate$id) | 
+        flag_zscore == 0
+    ) |>
+    (\(x) skewKurt(x$wfhz))(),
+  skew_wfhz_adj_class = classify_skew_kurt(x = skewKurt_wfhz_adj$s),
+  kurt_wfhz_adj_class = classify_skew_kurt(x = skewKurt_wfhz_adj$k),
   whz_mad = with(
     child_data_zscore |>
       dplyr::filter(!flag_zscore %in% c(2, 3, 6, 7) | !is.na(flag_zscore), 
