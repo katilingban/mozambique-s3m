@@ -458,6 +458,19 @@ data_checks <- tar_plan(
                     oedema == 2, !is.na(wfhz)),
     mad(wfhz)
   ),
+  ## Check zscores against Benford's Law
+  bf_wfaz = with(
+    child_data_zscore, 
+    check_benford_law(x = wfaz, multiplier = 100)
+  ),
+  bf_hfaz = with(
+    child_data_zscore, 
+    check_benford_law(x = hfaz, multiplier = 100)
+  ),
+  bf_wfhz = with(
+    child_data_zscore, 
+    check_benford_law(x = wfhz, multiplier = 10)
+  ),
   ## Assess digit preference score
   dp_weight = with(child_data_zscore, digitPreference(cweight)),
   dp_height = with(child_data_zscore, digitPreference(cheight)),

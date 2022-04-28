@@ -50,7 +50,8 @@ targets::tar_load(
     skew_wfhz_class, kurt_wfhz_class, 
     skewKurt_wfaz_adj, skewKurt_hfaz_adj, skewKurt_wfhz_adj,
     skew_wfaz_adj_class, kurt_wfaz_adj_class, 
-    skew_hfaz_adj_class, kurt_hfaz_adj_class, skew_wfhz_adj_class, kurt_wfhz_adj_class
+    skew_hfaz_adj_class, kurt_hfaz_adj_class, skew_wfhz_adj_class, kurt_wfhz_adj_class,
+    bf_wfaz, bf_hfaz, bf_wfhz
   )
 )
 ```
@@ -737,6 +738,37 @@ if (whz_mad >= 0.8 & whz_mad <= 1.2) {
 ```
 
 The median absolute deviation (MAD) for weight-for-height z-score is **`r whz_mad`**. This is **`r mad_result`**.
+
+&nbsp;
+
+### Check Benford's Law
+
+#### Weight-for-age z-score
+
+```{r, echo = FALSE}
+cat("Chi-square = ", round(bf_wfaz$X2, 4), "\tdf = ", bf_wfaz$df, "\tp = ", bf_wfaz$p)
+
+basePlot <- barplot(bf_wfaz$observed, names.arg = 1:9, xlab = "First Digits",  ylim = c(0, 0.40))
+lines (basePlot[,1], bf_wfaz$expected, type = "b", col = "green", lwd = 4, pch = 20, cex = 1.5)
+```
+
+#### Height-for-age z-score
+
+```{r, echo = FALSE}
+cat("Chi-square = ", round(bf_hfaz$X2, 4), "\tdf = ", bf_hfaz$df, "\tp = ", bf_hfaz$p)
+
+basePlot <- barplot(bf_hfaz$observed, names.arg = 1:9, xlab = "First Digits",  ylim = c(0, 0.40))
+lines (basePlot[,1], bf_hfaz$expected, type = "b", col = "green", lwd = 4, pch = 20, cex = 1.5)
+```
+
+#### Weight-for-height z-score
+
+```{r, echo = FALSE}
+cat("Chi-square = ", round(bf_wfhz$X2, 4), "\tdf = ", bf_wfhz$df, "\tp = ", bf_wfhz$p)
+
+basePlot <- barplot(bf_wfhz$observed, names.arg = 1:9, xlab = "First Digits",  ylim = c(0, 0.40))
+lines (basePlot[,1], bf_wfhz$expected, type = "b", col = "green", lwd = 4, pch = 20, cex = 1.5)
+```
 
 &nbsp;
 
