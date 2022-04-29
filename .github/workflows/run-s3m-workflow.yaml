@@ -2,8 +2,8 @@ name: run S3M workflow
 
 on:
   workflow_dispatch:
-    branches:
-      - '*'
+    # branches:
+    #   - '*'
 
 jobs:
   run-S3M-workflow:

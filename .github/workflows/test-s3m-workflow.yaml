@@ -6,8 +6,8 @@ on:
   pull_request:
     branches: [main, master]
   workflow_dispatch:
-    branches:
-      - '*'
+    # branches:
+    #   - '*'
 
 jobs:
   test-S3M-workflow:
