@@ -17,7 +17,7 @@ check_benford_law <- function(x, multiplier) {
   observed <- pFirstDigits(x = x, multiplier = multiplier)
   
   #X2 <- nrow(svy) * sum((observed - expected)^2 / expected)
-  X2 <- sum((observed - expected) ^ 2 / expected)
+  X2 <- length(x) * sum((observed - expected) ^ 2 / expected)
   DF = length(observed) - 1
   P <- pchisq(q = X2, df = DF)
   
