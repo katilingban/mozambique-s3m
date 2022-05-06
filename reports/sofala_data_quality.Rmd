@@ -51,7 +51,7 @@ targets::tar_load(
     skewKurt_wfaz_adj, skewKurt_hfaz_adj, skewKurt_wfhz_adj,
     skew_wfaz_adj_class, kurt_wfaz_adj_class, 
     skew_hfaz_adj_class, kurt_hfaz_adj_class, skew_wfhz_adj_class, kurt_wfhz_adj_class,
-    bf_wfaz, bf_hfaz, bf_wfhz
+    bf_wfaz, bf_hfaz, bf_wfhz, child_data_zscore_clean
   )
 )
 ```
@@ -617,8 +617,7 @@ withr::with_par(
   new = list(par(mfrow = c(1, 4))),
   {
     with(
-      child_data_zscore |>
-        dplyr::filter(!id %in% c(outlier_table_univariate$id, outlier_table_bivariate$id) | flag_zscore == 0),
+      child_data_zscore_clean,
       {
         histNormal(wfaz, main = "Weight-for-age z-score", xlab = "z-score")
         histNormal(hfaz, main = "Height-for-age z-score", xlab = "z-score")
@@ -635,8 +634,7 @@ withr::with_par(
   new = list(par(mfrow = c(1, 4))),
   {
     with(
-      child_data_zscore |>
-        dplyr::filter(!id %in% c(outlier_table_univariate$id, outlier_table_bivariate$id) | flag_zscore == 0),
+      child_data_zscore_clean,
       {
         qqNormalPlot(wfaz)
         qqNormalPlot(hfaz)

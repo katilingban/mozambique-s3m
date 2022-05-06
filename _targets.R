@@ -398,6 +398,11 @@ data_checks <- tar_plan(
   child_data_zscore = raw_data_clean |>
     subset(age_months < 60 & age_months >= 6) |>
     calculate_zscore(),
+  child_data_zscore_clean = child_data_zscore |>
+    dplyr::filter(
+      !id %in% c(outlier_table_univariate$id, outlier_table_bivariate$id) | 
+        flag == 0
+    ),
   child_data_zscore_adj = raw_data_clean |>
     subset(age_months < 60 & age_months >= 6) |>
     calculate_zscore_adj(),
@@ -412,9 +417,9 @@ data_checks <- tar_plan(
   flag_zscore_adj_prop = (flag_zscore_adj_total / nrow(child_data_zscore_adj)) |>
     scales::percent(accuracy = 0.1),
   ## Test for normality
-  shapiro_wfaz = shapiro.test(x = child_data_zscore$wfaz),
-  shapiro_hfaz = shapiro.test(x = child_data_zscore$hfaz),
-  shapiro_wfhz = shapiro.test(x = child_data_zscore$wfhz),
+  shapiro_wfaz = shapiro.test(x = child_data_zscore_clean$wfaz),
+  shapiro_hfaz = shapiro.test(x = child_data_zscore_clean$hfaz),
+  shapiro_wfhz = shapiro.test(x = child_data_zscore_clean$wfhz),
   ## Test skewness and kurtosis of child anthropometric zscores
   skewKurt_wfaz = child_data_zscore |>
     (\(x) skewKurt(x$wfaz))(),
