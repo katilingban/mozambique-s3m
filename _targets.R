@@ -268,11 +268,11 @@ data_checks <- tar_plan(
     dplyr::bind_rows(), 
   ## Detect univariate outliers for mother anthropometric data
   outlier_weight_mother = raw_data_clean |>
-    (\(x) x[outliersUV(x$mpeso), ])(),
+    (\(x) x[outliersUV(x$mweight), ])(),
   outlier_height_mother = raw_data_clean |>
-    (\(x) x[outliersUV(x$maltura), ])(),
+    (\(x) x[outliersUV(x$mheight), ])(),
   outlier_muac_mother = raw_data_clean |>
-    (\(x) x[outliersUV(x$mbraco), ])(),
+    (\(x) x[outliersUV(x$mmuac), ])(),
   outlier_summary_univariate_mother = summarise_univariate_outliers_mother(
     outlier_weight_mother, outlier_height_mother, outlier_muac_mother
   ),

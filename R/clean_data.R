@@ -11,9 +11,9 @@ clean_raw_data <- function(raw_data) {
   x <- raw_data |>
     #subset(as.Date(today) > as.Date("2022-04-03")) |>
     dplyr::mutate(
-      mweight = ifelse(mpeso == 0, NA, mpeso),
-      mheight = ifelse(maltura == 0, NA, maltura),
-      mmuac = ifelse(mbraco == 0, NA, mbraco),
+      mweight = ifelse(as.numeric(mpeso) == 0, NA, as.numeric(mpeso)),
+      mheight = ifelse(as.numeric(maltura) == 0, NA, as.numeric(maltura)),
+      mmuac = ifelse(as.numeric(mbraco) == 0, NA, as.numeric(mbraco)),
       cpeso = as.numeric(cpeso),
       cpeso1 = as.numeric(cpeso1),
       cweight = ifelse(cpeso == 0, NA, cpeso),
