@@ -3,6 +3,11 @@
 #'
 #' Access endline data from ONA
 #' 
+#' This function uses the `okapi` package (https://github.com/rapidsurveys/okapi)
+#' to interface with ONA via an ONA username and ONA password or an ONA API
+#' token.
+#' 
+#' 
 #' @param form_name Short form name of survey.
 #' 
 #'

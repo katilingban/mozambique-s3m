@@ -15,7 +15,7 @@ library(kableExtra)
 library(googledrive)
 library(blastula)
 library(openxlsx)
-
+library(googleLanguageR)
 
 ################################################################################
 #
