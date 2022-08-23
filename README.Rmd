@@ -24,11 +24,11 @@ This repository is a [`docker`](https://www.docker.com/get-started)-containerise
 
 ## Spatial sample workfow
 
-```{r spatial_sample_workflow, echo = FALSE, message = FALSE, results='asis'}
+```{r spatial_sample_workflow, echo = FALSE, message = FALSE, results = 'asis'}
 cat(
   "```mermaid",
   targets::tar_mermaid(
-    targets_only = FALSE, 
+    targets_only = TRUE, 
     names = c(
       cidade_da_beira_sp,
       cidade_da_beira_grid,
