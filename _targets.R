@@ -501,7 +501,17 @@ data_checks <- tar_plan(
 ## Process data
 data_processed <- tar_plan(
   ## Anthropometric data
-  mother_anthro = recode_anthro_mother(raw_data_clean)
+  mother_anthro = recode_anthro_mother(raw_data_clean),
+  ## Household dietary diversity score
+  hdds_vars_map = hdds_map_fg_vars(
+    cereals = "hdds1", tubers = "hdds2", 
+    vegetables = c("hdds3", "hdds4", "hdds5"), fruits = c("hdds6", "hdds7"), 
+    meat = c("hdds8", "hdds9"), eggs = "hdds10", fish = "hdds11", 
+    legumes_seeds = "hdds12", milk = "hdds13", oils_fats = "hdds14", 
+    sweets = "hdds15", spices = "hdds16"
+  ),
+  hdds_recoded_data = hdds_vars_map |>
+    hdds_recode(.data = raw_data_clean)
 )
 
 

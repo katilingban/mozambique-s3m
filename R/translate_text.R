@@ -84,7 +84,7 @@ translate_df_variable <- function(var, df,
   df |>
     dplyr::mutate(
        "{var}_{target}" := translated_text,
-       .after = var
+       .after = tidyselect::all_of(var)
     )
 }
 
