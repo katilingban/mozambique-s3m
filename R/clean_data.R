@@ -7,7 +7,7 @@
 #
 ################################################################################
 
-clean_raw_data <- function(raw_data) {
+clean_raw_data <- function(raw_data, survey_codebook) {
   x <- raw_data |>
     #subset(as.Date(today) > as.Date("2022-04-03")) |>
     dplyr::mutate(
@@ -34,6 +34,13 @@ clean_raw_data <- function(raw_data) {
         as.numeric()
     )
   
+  integer_vars <- survey_codebook |>
+    subset(choice_names != "") |>
+    (\(x) x$vars)()
+  
+  x[ , integer_vars] <- x[ , integer_vars] |>
+    apply(MARGIN = 2, FUN = function(x) as.integer(x))
+    
   ## Return
   x
 }
