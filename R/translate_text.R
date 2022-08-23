@@ -107,10 +107,23 @@ translate_df_variables <- function(var, df,
     df <- dplyr::relocate(
       .data = df,
       paste(i, "en", sep = "_"),
-      .after = i
+      .after = tidyselect::all_of(i)
     )
   }
   
   df
 }
 
+
+translate_raw_data <- function(raw_data_clean, survey_questions) {
+  vars <- survey_questions |>
+    subset(type == "text") |>    
+    get_variables(meta = FALSE) |>
+    (\(x) x[!x %in% c("mother_name", "child_name")])() |>
+    tolower()
+  
+  translate_df_variables(
+    var = vars,
+    df = raw_data_clean
+  )
+}
