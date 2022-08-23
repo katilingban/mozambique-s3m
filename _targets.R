@@ -226,7 +226,10 @@ data_raw <- tar_plan(
     command = get_data(form_name = "sofala_s3m", survey_questions),
     cue = tar_cue(mode = "always")
   ),
-  raw_data_clean = clean_raw_data(raw_data, survey_codebook)
+  raw_data_clean = clean_raw_data(raw_data, survey_codebook),
+  raw_data_clean_translated = translate_raw_data(
+    raw_data_clean, survey_questions
+  )
 )
 
 

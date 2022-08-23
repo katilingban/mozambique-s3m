@@ -2024,10 +2024,10 @@
     },
     "rlang": {
       "Package": "rlang",
-      "Version": "0.4.12",
+      "Version": "1.0.4",
       "Source": "Repository",
       "Repository": "RSPM",
-      "Hash": "0879f5388fe6e4d56d7ef0b7ccb031e5",
+      "Hash": "6539dd8c651e67e3b55b5ffea106362b",
       "Requirements": []
     },
     "rmarkdown": {
@@ -2358,10 +2358,10 @@
     },
     "targets": {
       "Package": "targets",
-      "Version": "0.10.0",
+      "Version": "0.13.1",
       "Source": "Repository",
-      "Repository": "RSPM",
-      "Hash": "bd9b5c201537ae9e9bf3e8addbeb4218",
+      "Repository": "CRAN",
+      "Hash": "fd48f11ad10f12db2d201b934fda670f",
       "Requirements": [
         "R6",
         "base64url",

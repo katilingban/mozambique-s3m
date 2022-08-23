@@ -93,7 +93,7 @@ translate_df_variables <- function(var, df,
                                    source = "",
                                    target = "en",
                                    model = c("nmt", "base")) {
-  lapply(
+  df <- lapply(
     X = var,
     FUN = translate_df_variable,
     df = df,
@@ -102,5 +102,40 @@ translate_df_variables <- function(var, df,
     model = model
   ) |>
     dplyr::bind_rows()
+  
+  for (i in var) {
+    df <- dplyr::relocate(
+      .data = df,
+      paste(i, "en", sep = "_"),
+      .after = tidyselect::all_of(i)
+    )
+  }
+  
+  df
 }
 
+
+################################################################################
+#
+#'
+#' Translate to English all text entries in raw_data_clean
+#' 
+#' @param raw_data_clean A data.frame of roughly cleaned raw data
+#' @param survey_questions A data.frame containing the survey component of the
+#'   survey questionnaire
+#'
+#
+################################################################################
+
+translate_raw_data <- function(raw_data_clean, survey_questions) {
+  vars <- survey_questions |>
+    subset(type == "text") |>    
+    get_variables(meta = FALSE) |>
+    (\(x) x[!x %in% c("mother_name", "child_name")])() |>
+    tolower()
+  
+  translate_df_variables(
+    var = vars,
+    df = raw_data_clean
+  )
+}
