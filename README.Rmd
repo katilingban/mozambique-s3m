@@ -28,7 +28,7 @@ This repository is a [`docker`](https://www.docker.com/get-started)-containerise
 cat(
   "```mermaid",
   targets::tar_mermaid(
-    targets_only = TRUE, 
+    targets_only = FALSE, 
     names = c(
       cidade_da_beira_sp,
       cidade_da_beira_grid,
