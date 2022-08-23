@@ -115,6 +115,18 @@ translate_df_variables <- function(var, df,
 }
 
 
+################################################################################
+#
+#'
+#' Translate to English all text entries in raw_data_clean
+#' 
+#' @param raw_data_clean A data.frame of roughly cleaned raw data
+#' @param survey_questions A data.frame containing the survey component of the
+#'   survey questionnaire
+#'
+#
+################################################################################
+
 translate_raw_data <- function(raw_data_clean, survey_questions) {
   vars <- survey_questions |>
     subset(type == "text") |>    
