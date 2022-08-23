@@ -46,8 +46,9 @@ jobs:
         
       - name: Run workflow
         run: |
-          targets::tar_make(raw_data)
-          targets::tar_make(raw_data_clean)
-          targets::tar_make(raw_data_clean_translated)
+          #targets::tar_make(raw_data)
+          #targets::tar_make(raw_data_clean)
+          #targets::tar_make(raw_data_clean_translated)
+          targets::tar_make(hdds_recoded_data)
         shell: Rscript {0}
           
