@@ -93,7 +93,7 @@ translate_df_variables <- function(var, df,
                                    source = "",
                                    target = "en",
                                    model = c("nmt", "base")) {
-  lapply(
+  df <- lapply(
     X = var,
     FUN = translate_df_variable,
     df = df,
@@ -102,5 +102,15 @@ translate_df_variables <- function(var, df,
     model = model
   ) |>
     dplyr::bind_rows()
+  
+  for (i in var) {
+    df <- dplyr::relocate(
+      .data = df,
+      paste(i, "en", sep = "_"),
+      .after = i
+    )
+  }
+  
+  df
 }
 
