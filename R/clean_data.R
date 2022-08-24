@@ -40,6 +40,9 @@ clean_raw_data <- function(raw_data, survey_codebook) {
   
   x[ , integer_vars] <- x[ , integer_vars] |>
     apply(MARGIN = 2, FUN = function(x) as.integer(x))
+  
+  x[ , paste0("fcs", 1:16)] <- x[ , paste0("fcs", 1:16)] |>
+    apply(MARGIN = 2, FUN = function(x) as.integer(x))
     
   ## Return
   x
