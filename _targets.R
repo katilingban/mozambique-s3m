@@ -224,7 +224,7 @@ data_raw <- tar_plan(
   tar_target(
     name = raw_data,
     command = get_data(form_name = "sofala_s3m", survey_questions),
-    cue = tar_cue(mode = "always")
+    cue = tar_cue(mode = "thorough")
   ),
   raw_data_clean = clean_raw_data(raw_data, survey_codebook),
   raw_data_clean_translated = translate_raw_data(
@@ -511,7 +511,21 @@ data_processed <- tar_plan(
     sweets = "hdds15", spices = "hdds16"
   ),
   hdds_recoded_data = hdds_vars_map |>
-    hdds_recode(.data = raw_data_clean)
+    hdds_recode(.data = raw_data_clean),
+  ## Food consumption score
+  fcs_vars_map = fcs_map_fg_vars(
+    staples = paste0("fcs", 1:4), 
+    pulses = "fcs5", 
+    vegetables = "fcs14", 
+    fruits = "fcs15", 
+    meat_fish = paste0("fcs", c(6, 8:9, 11)), 
+    milk = "fcs12", 
+    sugar = "fcs16", 
+    oil = "fcs10", 
+    condiments = paste0("fcs", c(7, 13))
+  ),
+  fcs_recoded_data = fcs_vars_map |>
+    fcs_recode(.data = raw_data_clean)
 )
 
 
