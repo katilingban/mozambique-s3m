@@ -52,5 +52,7 @@ jobs:
           targets::tar_make(hdds_recoded_data)
           targets::tar_make(fcs_recoded_data)
           targets::tar_make(rcsi_recoded_data)
+          targets::tar_make(wdds_recoded_data)
+          targets::tar_make(mddw_recoded_data)
         shell: Rscript {0}
           

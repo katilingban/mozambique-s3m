@@ -551,6 +551,22 @@ data_processed <- tar_plan(
   wdds_recoded_data = wdds_recode(
     vars = wdds_vars_map,
     .data = raw_data_clean
+  ),
+  mddw_vars_map = mddw_map_fg_vars(
+    staples = c("nutmul1", "nutmul2"),
+    pulses = "nutmul3",
+    nuts_seeds = "nutmul4",
+    milk = "nutmul5",
+    meat_fish = c("nutmul6", "nutmul7", "nutmul8"), 
+    eggs = "nutmul9", 
+    green_leafy = "nutmul10",
+    other_vita = c("nutmul11", "nutmul12"),
+    vegetables = "nutmul13",
+    fruits = "nutmul14"
+  ),
+  mddw_recoded_data = mddw_recode(
+    vars = mddw_vars_map,
+    .data = raw_data_clean
   )
 )
 
