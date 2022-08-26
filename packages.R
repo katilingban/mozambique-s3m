@@ -31,6 +31,7 @@ library(mozambique)
 library(spatialsampler)
 library(mapboxapi)
 library(osmdata)
+library(sf)
 
 
 
