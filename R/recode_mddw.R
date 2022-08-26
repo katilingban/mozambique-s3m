@@ -1,23 +1,21 @@
 ################################################################################
 #
 #'
-#' Recode WDDS
+#' Recode MDD-W
 #'
 #
 ################################################################################
 
-wdds_recode_group <- function(vars,
+mddw_recode_group <- function(vars,
                               .data,
-                              food_group = c("staples", "grean_leafy", 
-                                             "other_vita", "fruits_vegetables", 
-                                             "organ_meat", "meat_fish", "eggs", 
-                                             "legumes", "milk")) {
+                              food_group = c("staples", "pulses", "nuts_seeds", 
+                                             "milk", "meat_fish", "eggs",
+                                             "green_leafy", "other_vita",
+                                             "vegetables", "fruits")) {
   food_group <- match.arg(food_group)
   
   if (length(vars) > 1) {
-    if (!food_group %in% c(
-      "staples", "other_vita", "fruits_vegetables", "meat_fish", "legumes")
-    ) {
+    if (!food_group %in% c("staples", "other_vita", "meat_fish")) {
       warning(
         paste0(
           "More than one food group variable specified. Please make sure that
@@ -38,9 +36,7 @@ wdds_recode_group <- function(vars,
     fg <- recode_yes_no(x = rowSums(df, na.rm = TRUE), detect = "no") |>
       (\(x) { names(x) <- NULL; x })()
   } else {
-    if (food_group %in% c(
-      "staples", "other_vita", "fruits_vegetables", "meat_fish", "legumes")
-    ) {
+    if (food_group %in% c("staples", "other_vita", "meat_fish")) {
       warning(
         paste0(
           "Only one food group variable specified. Please make sure that
@@ -58,13 +54,13 @@ wdds_recode_group <- function(vars,
   fg
 }
 
-wdds_recode_groups <- function(vars,
+mddw_recode_groups <- function(vars,
                                .data,
-                               food_group = c("staples", "grean_leafy", 
-                                              "other_vita", "fruits_vegetables", 
-                                              "organ_meat", "meat_fish", "eggs", 
-                                              "legumes", "milk")) {
-  .data_list <- rep(list(.data), 9)
+                               food_group = c("staples", "pulses", "nuts_seeds", 
+                                              "milk", "meat_fish", "eggs",
+                                              "green_leafy", "other_vita",
+                                              "vegetables", "fruits")) {
+  .data_list <- rep(list(.data), 10)
   
   ## Check that length of vars is the same as length of food_group
   if (length(vars) != length(food_group)) {
@@ -75,12 +71,12 @@ wdds_recode_groups <- function(vars,
   }
   
   Map(
-    f = wdds_recode_group, 
+    f = mddw_recode_group, 
     vars = vars, 
     .data = .data_list, 
     food_group = food_group
   ) |>
-    (\(x) { names(x) <- paste0("wdds_", food_group); x })() |>
+    (\(x) { names(x) <- paste0("mddw_", food_group); x })() |>
     dplyr::bind_rows()
 
 }
@@ -95,19 +91,20 @@ wdds_recode_groups <- function(vars,
 #
 ################################################################################
 
-wdds_map_fg_vars <- function(staples, grean_leafy, other_vita, 
-                             fruits_vegetables, organ_meat, meat_fish, 
-                             eggs, legumes, milk) {
+mddw_map_fg_vars <- function(staples, pulses, nuts_seeds, milk, meat_fish, 
+                             eggs, green_leafy, other_vita, vegetables, 
+                             fruits) {
   list(
-    staples = staples, 
-    grean_leafy = grean_leafy, 
-    other_vita = other_vita, 
-    fruits_vegetables = fruits_vegetables, 
-    organ_meat = organ_meat, 
+    staples = staples,
+    pulses = pulses,
+    nuts_seeds = nuts_seeds,
+    milk = milk,
     meat_fish = meat_fish, 
     eggs = eggs, 
-    legumes = legumes, 
-    milk = milk
+    green_leafy = green_leafy,
+    other_vita = other_vita,
+    vegetables = vegetables,
+    fruits = fruits
   )
 } 
 
@@ -116,9 +113,9 @@ wdds_map_fg_vars <- function(staples, grean_leafy, other_vita,
 ################################################################################
 #
 #'
-#' Calculate WDDS
+#' Calculate MDDW
 #'
-#' @param fg_df A data.frame with 9 columns, one for each food group in WDDS
+#' @param fg_df A data.frame with 10 columns, one for each food group in WDDS
 #' @param add Logical. Should the resulting score be added to fg_df? Default to
 #'   TRUE
 #' 
@@ -126,40 +123,44 @@ wdds_map_fg_vars <- function(staples, grean_leafy, other_vita,
 #
 ################################################################################
 
-wdds_calculate_score <- function(fg_df, add = TRUE) {
-  ## Check that fg_df has 9 columns
-  if (ncol(fg_df) != 9) {
+mddw_calculate_score <- function(fg_df, add = TRUE) {
+  ## Check that fg_df has 10 columns
+  if (ncol(fg_df) != 10) {
     stop(
-      "The food group data.frame needs to have 9 columns for each of the
-      HDDS food groups. Please verify your dataset."
+      "The food group data.frame needs to have 10 variables for each of the
+      MDD-W food groups. Please verify your dataset."
     )
   }
   
-  wdds <- rowSums(fg_df, na.rm = TRUE)
+  mddw <- rowSums(fg_df, na.rm = TRUE)
   
   if (add) {
     data.frame(
       fg_df,
-      wdds = wdds
+      mddw_score = mddw,
+      mddw = ifelse(mddw >= 5, 1, 0)
     )
   } else {
-    wdds
+    data.frame(
+      mddw_score = mddw,
+      mddw = ifelse(mddw >= 5, 1, 0)
+    )
   }
 }
 
 
-wdds_recode <- function(vars,
+mddw_recode <- function(vars,
                         .data,
-                        food_group = c("staples", "grean_leafy", 
-                                       "other_vita", "fruits_vegetables", 
-                                       "organ_meat", "meat_fish", "eggs", 
-                                       "legumes", "milk")) {
+                        food_group = c("staples", "pulses", "nuts_seeds", 
+                                       "milk", "meat_fish", "eggs",
+                                       "green_leafy", "other_vita",
+                                       "vegetables", "fruits")) {
   core_vars <- get_core_variables(raw_data_clean = .data)
   
-  recoded_vars <- wdds_recode_groups(
+  recoded_vars <- mddw_recode_groups(
     vars = vars, .data = .data, food_group = food_group
   ) |>
-    wdds_calculate_score(add = TRUE)
+    mddw_calculate_score(add = TRUE)
   
   data.frame(core_vars, recoded_vars)
 }
