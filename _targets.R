@@ -525,7 +525,12 @@ data_processed <- tar_plan(
     condiments = paste0("fcs", c(7, 13))
   ),
   fcs_recoded_data = fcs_vars_map |>
-    fcs_recode(.data = raw_data_clean)
+    fcs_recode(.data = raw_data_clean),
+  rcsi_recoded_data = rcsi_recode(
+    vars = paste0("rcsi", 1:5),
+    .data = raw_data_clean,
+    na_values = c(88, 99)
+  )
 )
 
 
