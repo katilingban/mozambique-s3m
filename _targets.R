@@ -504,11 +504,17 @@ data_processed <- tar_plan(
   mother_anthro = recode_anthro_mother(raw_data_clean),
   ## Household dietary diversity score
   hdds_vars_map = hdds_map_fg_vars(
-    cereals = "hdds1", tubers = "hdds2", 
-    vegetables = c("hdds3", "hdds4", "hdds5"), fruits = c("hdds6", "hdds7"), 
-    meat = c("hdds8", "hdds9"), eggs = "hdds10", fish = "hdds11", 
-    legumes_seeds = "hdds12", milk = "hdds13", oils_fats = "hdds14", 
-    sweets = "hdds15", spices = "hdds16"
+    cereals = "hdds1", 
+    tubers = "hdds2", 
+    vegetables = c("hdds3", "hdds4", "hdds5"), 
+    fruits = c("hdds6", "hdds7"), 
+    meat = c("hdds8", "hdds9"), 
+    eggs = "hdds10", fish = "hdds11", 
+    legumes_seeds = "hdds12", 
+    milk = "hdds13", 
+    oils_fats = "hdds14", 
+    sweets = "hdds15", 
+    spices = "hdds16"
   ),
   hdds_recoded_data = hdds_vars_map |>
     hdds_recode(.data = raw_data_clean),
@@ -530,6 +536,21 @@ data_processed <- tar_plan(
     vars = paste0("rcsi", 1:5),
     .data = raw_data_clean,
     na_values = c(88, 99)
+  ),
+  wdds_vars_map = wdds_map_fg_vars(
+    staples = c("nutmul1", "nutmul2"),
+    grean_leafy = "nutmul10",
+    other_vita = c("nutmul11", "nutmul12"),
+    fruits_vegetables = c("nutmul13", "nutmul14"),
+    organ_meat = "nutmul6",
+    meat_fish = c("nutmul7", "nutmul8"),
+    eggs = "nutmul9",
+    legumes = c("nutmul3", "nutmul4"),
+    milk = "nutmul5"
+  ),
+  wdds_recoded_data = wdds_recode(
+    vars = wdds_vars_map,
+    .data = raw_data_clean
   )
 )
 
