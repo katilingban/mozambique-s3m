@@ -567,6 +567,14 @@ data_processed <- tar_plan(
   mddw_recoded_data = mddw_recode(
     vars = mddw_vars_map,
     .data = raw_data_clean
+  ),
+  lcsi_recoded_data = lcsi_recode(
+    vars = c(
+      "lcs01", "lcs02", "lcs03", "lcs04", "lcs05", "lcs06", "lcs07", 
+      "lcs08", "lcs09", "lcs10", "lcs11", "lcs12", "lcs13", "lcs14"
+    ),
+    .data = raw_data_clean,
+    na_values = c(5, 8, 9)
   )
 )
 
