@@ -43,6 +43,23 @@ cat(
 )
 ```
 
+## Food security indicator set
+
+```{r food_security_workflow, echo = FALSE, message = FALSE, results = 'asis'}
+cat(
+  "```mermaid",
+  targets::tar_mermaid(
+    targets_only = TRUE, 
+    names = tidyselect::starts_with(
+      c("hdds", "fcs", "rcsi", "wdds", "mddw", "lcsi", "fies")
+    )
+  ),
+  "```",
+  sep = "\n"
+)
+```
+
+
 
 ## Authors
 
