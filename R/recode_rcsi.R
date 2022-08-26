@@ -27,7 +27,7 @@
 
 rcsi_recode_strategy <- function(x, na_values = NA) {
   if (any(!is.na(na_values))) {
-    score <- ifelse(
+    ifelse(
       x %in% na_values, NA,
       ifelse(
         x > 7, 7, x
