@@ -71,3 +71,36 @@ recode_yes_no <- function(x, na_values = NULL, detect = c("yes", "no")) {
 #'
 #
 ################################################################################
+
+split_select_multiple <- function(x, fill, na_rm = FALSE, prefix) {
+  if (na_rm) {
+    if (is.na(x)) {
+      rep(NA_integer_, times = length(fill)) |>
+        (\(x) { names(x) <- paste0(prefix, "_", fill); x })()
+    } else {
+      stringr::str_split(x, pattern = " ") |> 
+        unlist() |> 
+        as.integer() |> 
+        spread_vector_to_columns(fill = fill, prefix = prefix) |>
+        colSums(na.rm = TRUE)
+    }
+  } else {
+    stringr::str_split(x, pattern = " ") |> 
+      unlist() |> 
+      as.integer() |> 
+      spread_vector_to_columns(fill = fill, prefix = prefix) |>
+      colSums(na.rm = TRUE)
+  }
+}
+
+split_select_multiples <- function(x, fill, na_rm = FALSE, prefix) {
+  lapply(
+    X = x,
+    FUN = split_select_multiple,
+    fill = fill,
+    na_rm = na_rm,
+    prefix = prefix
+  ) |>
+    dplyr::bind_rows()
+}
+

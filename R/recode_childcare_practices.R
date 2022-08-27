@@ -44,4 +44,68 @@
 #
 ################################################################################
 
+ccare_recode_responses <- function(x, na_values) {
+  ifelse(x %in% na_values, NA, x)
+}
 
+ccare_danger_recode <- function(vars, .data, 
+                                na_values = c("88", "99"),
+                                fill = 1:10, 
+                                na_rm = TRUE, 
+                                prefix = "ccare_danger",
+                                threshold = 8) {
+  x <- .data[[vars]]
+  
+  x <- ccare_recode_responses(x, na_values = na_values)
+  
+  danger_df <- split_select_multiples(
+    x = x, fill = fill, na_rm = na_rm, prefix = prefix
+  )
+  
+  ccare_danger_score <- rowSums(danger_df, na.rm = TRUE) |>
+    (\(x) ifelse(x == 0, NA_integer_, x))()
+  
+  ccare_danger_prop <- ifelse(ccare_danger_score >= threshold, 1, 0)
+  
+  data.frame(
+    danger_df, ccare_danger_score, ccare_danger_prop
+  )
+}
+
+
+ccare_participation_recode <- function(x, na_values) {
+  ifelse(
+    x %in% na_values, NA,
+    ifelse(
+      x == 2, 0, 1
+    )
+  )
+}
+
+ccare_barriers_recode <- function(vars, .data, 
+                                  na_values = c("88", "99"),
+                                  fill = 1:5, 
+                                  na_rm = TRUE, 
+                                  prefix = "ccare_barriers") {
+  x <- .data[[vars]]
+  
+  x <- ccare_recode_responses(x, na_values = na_values)
+  
+  split_select_multiples(
+    x = x, fill = fill, na_rm = na_rm, prefix = prefix
+  )
+}
+
+
+
+ccare_recode <- function(.data) {
+  core_vars <- get_core_variables(raw_data_clean = .data)
+  
+  recoded_vars <- data.frame(
+    ccare_danger_recode(vars = "ccare1", .data = .data),
+    ccare_participation = ccare_participation_recode(x = .data[["ccare2"]], na_values = c(8, 9)),
+    ccare_barriers_recode(vars = "ccare3", .data = .data)
+  )
+  
+  data.frame(core_vars, recoded_vars)
+}

@@ -7,7 +7,7 @@
 #
 ################################################################################
 
-clean_raw_data <- function(raw_data, survey_codebook) {
+clean_raw_data <- function(raw_data, survey_codebook, survey_questions) {
   x <- raw_data |>
     #subset(as.Date(today) > as.Date("2022-04-03")) |>
     dplyr::mutate(
@@ -34,8 +34,14 @@ clean_raw_data <- function(raw_data, survey_codebook) {
         as.numeric()
     )
   
+  ## Get select multiple variables
+  select_multiple_vars <- survey_questions |> 
+    subset(stringr::str_detect(type, "multiple")) |> 
+    dplyr::pull(type) |> 
+    stringr::str_remove_all(pattern = "select_multiple ")
+  
   integer_vars <- survey_codebook |>
-    subset(choice_names != "") |>
+    subset(!choice_names %in% c("", select_multiple_vars)) |>
     (\(x) x$vars)()
   
   x[ , integer_vars] <- x[ , integer_vars] |>

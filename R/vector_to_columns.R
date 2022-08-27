@@ -15,8 +15,13 @@
 #
 ################################################################################
 
-spread_vector_to_columns <- function(x, prefix) {
+spread_vector_to_columns <- function(x, fill = NULL, prefix) {
   values <- sort(unique(x), na.last = NA)
+  
+  if (!is.null(fill)) {
+    values <- c(values, fill[!fill %in% values]) |>
+      sort(na.last = NA)
+  }
   
   values <- values |>
     stringr::str_replace_all(
