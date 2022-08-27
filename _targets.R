@@ -575,6 +575,11 @@ data_processed <- tar_plan(
     ),
     .data = raw_data_clean,
     na_values = c(5, 8, 9)
+  ),
+  phq_recoded_data = phq_recode(
+    vars = paste0("ment", 1:9),
+    .data = raw_data_clean,
+    na_values = c(88, 99)
   )
 )
 

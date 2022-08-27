@@ -71,3 +71,12 @@ library(anthrocheckr)
 library(ppitables)
 
 
+################################################################################
+#
+#'
+#' Food insecurity experience scale (FIES) related package/s
+#'
+#
+################################################################################
+
+library(RM.weights)
