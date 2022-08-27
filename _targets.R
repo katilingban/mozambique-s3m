@@ -226,7 +226,7 @@ data_raw <- tar_plan(
     command = get_data(form_name = "sofala_s3m", survey_questions),
     cue = tar_cue(mode = "thorough")
   ),
-  raw_data_clean = clean_raw_data(raw_data, survey_codebook),
+  raw_data_clean = clean_raw_data(raw_data, survey_codebook, survey_questions),
   raw_data_clean_translated = translate_raw_data(
     raw_data_clean, survey_questions
   )
@@ -580,7 +580,8 @@ data_processed <- tar_plan(
     vars = paste0("ment", 1:9),
     .data = raw_data_clean,
     na_values = c(88, 99)
-  )
+  ),
+  ccare_recoded_data = ccare_recode(.data = raw_data_clean)
 )
 
 

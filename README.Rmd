@@ -73,6 +73,20 @@ cat(
 )
 ```
 
+## Childcare practices workflow
+
+```{r childcare_workflow, echo = FALSE, message = FALSE, results = 'asis'}
+cat(
+  "```mermaid",
+  targets::tar_mermaid(
+    targets_only = TRUE, 
+    names = tidyselect::starts_with("ccare")
+  ),
+  "```",
+  sep = "\n"
+)
+```
+
 ## Authors
 
 * Mark Myatt
