@@ -59,7 +59,19 @@ cat(
 )
 ```
 
+## Mother/carer mental health workflow
 
+```{r mental_health_workflow, echo = FALSE, message = FALSE, results = 'asis'}
+cat(
+  "```mermaid",
+  targets::tar_mermaid(
+    targets_only = TRUE, 
+    names = tidyselect::starts_with("phq")
+  ),
+  "```",
+  sep = "\n"
+)
+```
 
 ## Authors
 

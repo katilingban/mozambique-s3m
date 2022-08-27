@@ -18,6 +18,11 @@
 spread_vector_to_columns <- function(x, prefix) {
   values <- sort(unique(x), na.last = NA)
   
+  values <- values |>
+    stringr::str_replace_all(
+      pattern = " ", replacement = "_"
+    )
+  
   col_names <- paste(prefix, values, sep = "_")
   
   lapply(

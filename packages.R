@@ -31,6 +31,7 @@ library(mozambique)
 library(spatialsampler)
 library(mapboxapi)
 library(osmdata)
+library(sf)
 
 
 
@@ -70,3 +71,12 @@ library(anthrocheckr)
 library(ppitables)
 
 
+################################################################################
+#
+#'
+#' Food insecurity experience scale (FIES) related package/s
+#'
+#
+################################################################################
+
+library(RM.weights)

@@ -19,11 +19,11 @@
 #'     8=Loss of consciousness; 
 #'     9=Fatigue/no response/not wanting to play; 
 #'     10=Neck rigidity; 
-#'     88=Don&apos;t know; 
+#'     88=Don't know; 
 #'     99=No response
 #'
-#'   ccare2 - In relation to the child&apos;s health issues (e.g., vaccines, care, 
-#'     etc.), do you have the support or involvement of the child&apos;s father?
+#'   ccare2 - In relation to the child's health issues (e.g., vaccines, care, 
+#'     etc.), do you have the support or involvement of the child's father?
 #'     integer variables for the following categorical values:
 #'     
 #'     1=Yes; 
@@ -38,7 +38,7 @@
 #'     3=Money; 
 #'     4=Poor treatment at the health facility/hospital; 
 #'     5=Other; 
-#'     88=Don&apos;t know; 
+#'     88=Don't know; 
 #'     99=No response
 #'     
 #

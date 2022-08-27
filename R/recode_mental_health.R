@@ -23,12 +23,6 @@
 #'     1=No days; 2=Less than 1 week; 3=1 week or more; 4=Almost all days; 
 #'     88=Don&apos;t know; 99=No response
 #'
-#'   ment2 - In the last two weeks, how many days did you feel down, depresssed 
-#'     or without motivation?
-#'
-#'     1=No days; 2=Less than 1 week; 3=1 week or more; 4=Almost all days; 
-#'     88=Don&apos;t know; 99=No response
-#'
 #'   ment4 - In the last two weeks, how many days did you feel tired or with 
 #'     little energy?
 #'
@@ -70,3 +64,95 @@
 #'      
 #
 ################################################################################
+
+phq_recode_symptom <- function(x, na_values) {
+  ifelse(x %in% na_values, NA, x - 1)
+}
+
+phq_recode_symptoms <- function(vars, .data, na_values) {
+  .data <- .data[vars]
+  
+  apply(
+    X = .data,
+    MARGIN = 2,
+    FUN = phq_recode_symptom,
+    na_values = na_values
+  ) |>
+    data.frame()
+}
+
+
+phq_calculate_score <- function(phq_df, add = TRUE) {
+  phq <- rowSums(phq_df, na.rm = TRUE)
+  
+  if (add) {
+    data.frame(
+      phq_df,
+      phq = phq
+    )
+  } else {
+    phq
+  }
+  
+}
+
+
+phq_classify <- function(phq, add = FALSE, spread = FALSE) {
+  breaks <- c(1, 4, 9, 14, 19, 27)
+  labels <- c("minimal", "mild", "moderate", "moderate severe", "severe")
+  
+  phq_class <- cut(
+    x = phq,
+    breaks = breaks,
+    labels = labels,
+    include.lowest = TRUE, right = TRUE
+  ) |>
+    as.character() |>
+    (\(x) ifelse(is.na(x), "no depression", x))() |>
+    factor(
+      levels = c(
+        "no depression", "minimal", "mild", 
+        "moderate", "moderately severe", "severe"
+      )
+    )
+  
+  if (spread) {
+    phq_class <- data.frame(
+      phq_class = phq_class,
+      spread_vector_to_columns(x = phq_class, prefix = "rcsi")
+    )
+  }
+  
+  if (add) {
+    phq_class <- data.frame(
+      phq, phq_class
+    )
+  }
+  
+  phq_class
+}
+
+
+################################################################################
+#
+#'
+#' Overall recode function
+#'
+#
+################################################################################
+
+phq_recode <- function(vars,
+                       .data,
+                       na_values = NA) {
+  core_vars <- get_core_variables(raw_data_clean = .data)
+  
+  recoded_vars <- phq_recode_symptoms(
+    vars = vars, .data = .data, na_values = na_values
+  )
+  
+  recoded_vars |>
+    phq_calculate_score(add = FALSE) |>
+    phq_classify(add = TRUE, spread = TRUE) |>
+    (\(x) data.frame(core_vars, recoded_vars, x))()
+}
+
