@@ -15,12 +15,16 @@
 #
 ################################################################################
 
-spread_vector_to_columns <- function(x, fill = NULL, prefix) {
+spread_vector_to_columns <- function(x, fill = NULL, na_rm = FALSE, prefix) {
   values <- sort(unique(x), na.last = NA)
   
   if (!is.null(fill)) {
     values <- c(values, fill[!fill %in% values]) |>
       sort(na.last = NA)
+  }
+  
+  if (na_rm) {
+    values <- c(values, NA_integer_)
   }
   
   values <- values |>

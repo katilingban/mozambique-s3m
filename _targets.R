@@ -589,7 +589,9 @@ data_processed <- tar_plan(
       "imm5", "imm5a", "imm6a", "imm6b", "imm6c", "imm7a", "imm7b"
     ),
     .data = raw_data_clean
-  )
+  ),
+  ## VAS coverage
+  vas_recoded_data = vas_recode(.data = raw_data_clean)
 )
 
 

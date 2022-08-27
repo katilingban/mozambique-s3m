@@ -94,7 +94,7 @@ cat(
   "```mermaid",
   targets::tar_mermaid(
     targets_only = TRUE, 
-    names = tidyselect::starts_with("imm")
+    names = tidyselect::starts_with(c("imm", "vas"))
   ),
   "```",
   sep = "\n"
