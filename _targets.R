@@ -285,12 +285,6 @@ data_checks <- tar_plan(
   outlier_unique_univariate_mother_total = tally_unique_univariate_outliers_mother(
     outlier_table_univariate_mother, raw_data_clean
   ),
-  # outlier_muac_mother_cm = raw_data_clean |>
-  #   subset(mmuac > 0 & mmuac < 100) |>
-  #   (\(x) x[outliersUV(x$mmuac), ])(),
-  # outlier_muac_mother_mm = raw_data_clean |>
-  #   subset(mmuac >= 100) |>
-  #   (\(x) x[outliersUV(x$mmuac), ])(),
   ## Detect bivariate outliers for mother anthropometric data
   outlier_weight_height_mother = raw_data_clean |>
     (\(x) x[with(x, outliersMD(mweight, mheight)), ])() |>
@@ -532,11 +526,13 @@ data_processed <- tar_plan(
   ),
   fcs_recoded_data = fcs_vars_map |>
     fcs_recode(.data = raw_data_clean),
+  ## Reduced coping strategies index (rCSI)
   rcsi_recoded_data = rcsi_recode(
     vars = paste0("rcsi", 1:5),
     .data = raw_data_clean,
     na_values = c(88, 99)
   ),
+  ## Women's dietary diversity score (WDDS)
   wdds_vars_map = wdds_map_fg_vars(
     staples = c("nutmul1", "nutmul2"),
     grean_leafy = "nutmul10",
@@ -552,6 +548,7 @@ data_processed <- tar_plan(
     vars = wdds_vars_map,
     .data = raw_data_clean
   ),
+  ## Minimum dietary diversity - women (MDD-W)
   mddw_vars_map = mddw_map_fg_vars(
     staples = c("nutmul1", "nutmul2"),
     pulses = "nutmul3",
@@ -568,6 +565,7 @@ data_processed <- tar_plan(
     vars = mddw_vars_map,
     .data = raw_data_clean
   ),
+  ## Livelihoods coping strategy index (LCSI)
   lcsi_recoded_data = lcsi_recode(
     vars = c(
       "lcs01", "lcs02", "lcs03", "lcs04", "lcs05", "lcs06", "lcs07", 
@@ -576,12 +574,22 @@ data_processed <- tar_plan(
     .data = raw_data_clean,
     na_values = c(5, 8, 9)
   ),
+  ## Primary health questionnaire - depression
   phq_recoded_data = phq_recode(
     vars = paste0("ment", 1:9),
     .data = raw_data_clean,
     na_values = c(88, 99)
   ),
-  ccare_recoded_data = ccare_recode(.data = raw_data_clean)
+  ## Childcare practices
+  ccare_recoded_data = ccare_recode(.data = raw_data_clean),
+  ## Immunisation
+  imm_recoded_data = imm_recode(
+    vars = c(
+      "imm3a", "imm3b", "imm3c", "imm3d", "imm3e", "imm4a", "imm4b", "imm4c", 
+      "imm5", "imm5a", "imm6a", "imm6b", "imm6c", "imm7a", "imm7b"
+    ),
+    .data = raw_data_clean
+  )
 )
 
 
