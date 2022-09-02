@@ -603,6 +603,13 @@ data_processed <- tar_plan(
     vars = c("pica1", "pica2", "pica3"),
     .data = raw_data_clean,
     na_values = c(8, 9, 88, 99)
+  ),
+  ## Carer characteristics
+  carer_recoded_data = carer_recode(
+    .data = raw_data_clean, 
+    age_na_values = c(1:14, 88, 99, 100:1000), 
+    marital_na_values = c(88, 99),
+    education_na_values = c(88, 99)
   )
 )
 
