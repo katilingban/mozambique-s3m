@@ -591,7 +591,13 @@ data_processed <- tar_plan(
     .data = raw_data_clean
   ),
   ## VAS coverage
-  vas_recoded_data = vas_recode(.data = raw_data_clean)
+  vas_recoded_data = vas_recode(.data = raw_data_clean),
+  ## Development milestones
+  dev_recoded_data = dev_recode(
+    vars = c("des1", "des2"),
+    .data = raw_data_clean,
+    na_values = c(88, 99)
+  )
 )
 
 
