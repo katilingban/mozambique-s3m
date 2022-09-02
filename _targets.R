@@ -610,7 +610,9 @@ data_processed <- tar_plan(
     age_na_values = c(1:14, 88, 99, 100:1000), 
     marital_na_values = c(88, 99),
     education_na_values = c(88, 99)
-  )
+  ),
+  ## Women's empowerment and decision-makin
+  wem_recoded_data = wem_recode(raw_data_clean)
 )
 
 
