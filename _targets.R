@@ -597,6 +597,12 @@ data_processed <- tar_plan(
     vars = c("des1", "des2"),
     .data = raw_data_clean,
     na_values = c(88, 99)
+  ),
+  ## Pica
+  pica_recoded_data = pica_recode(
+    vars = c("pica1", "pica2", "pica3"),
+    .data = raw_data_clean,
+    na_values = c(8, 9, 88, 99)
   )
 )
 
