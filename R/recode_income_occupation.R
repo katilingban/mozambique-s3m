@@ -14,7 +14,7 @@
 #'     4=Fishing; 
 #'     5=Salary, pension, remittance; 
 #'     6=Other; 
-#'     88=Don&apos;t know; 
+#'     88=Don't know; 
 #'     99=No response 
 #'
 #'  q08 - Adding the income of all the members of the household, including 
@@ -32,7 +32,7 @@
 #'    7=From Mts 5500.01 to Mts 7500.00 per month; 
 #'    8=From Mts 7500.01 to Mts 9500.00 per month; 
 #'    9=More than Mts 9500.00 per month; 
-#'    88=Don&apos;t know; 
+#'    88=Don't know; 
 #'    99=No response
 #'
 #'  igs1 - What is your primary occupation? integer variables for the following
@@ -44,7 +44,7 @@
 #'    4=Wage labor; 
 #'    5=Business; 
 #'    6=Other; 
-#'    88=Don&apos;t know; 
+#'    88=Don't know; 
 #'    99=No response
 #'
 #'  igs2	What is the primary occupation of your husband/partner? integer
@@ -57,8 +57,150 @@
 #'    5=Business; 
 #'    6=Other; 
 #'    7=I do not have a partner/husband; 
-#'    88=Don&apos;t know; 
+#'    88=Don't know; 
 #'    99=No response
 #'    
 #
 ################################################################################
+
+work_recode_response <- function(x, na_values, fill, na_rm = FALSE, 
+                                 prefix, label = NULL) {
+  x <- ifelse(x %in% na_values, NA, x)
+  
+  y <- spread_vector_to_columns(
+    x = x,
+    fill = fill,
+    na_rm = na_rm,
+    prefix = prefix
+  )
+  
+  if (!is.null(label)) {
+    names(y) <- paste0(prefix, "_", label)
+  }
+  
+  work_df <- data.frame(x, y) |>
+    (\(x) { names(x)[1] <- prefix; x } )()
+  
+  work_df
+}
+
+work_recode_responses <- function(vars, .data, na_values, fill, na_rm = FALSE, 
+                                  prefix, label = NULL) {
+  x <- .data[vars]
+  x <- apply(X = x, MARGIN = 2, list) |>
+    unlist(recursive = FALSE)
+  
+  Map(
+    f = work_recode_response,
+    x = x,
+    na_values = na_values,
+    fill = fill,
+    na_rm = na_rm,
+    prefix = prefix,
+    label = label
+  ) |>
+    dplyr::bind_cols()
+}
+
+
+work_recode <- function(vars, .data, na_values, fill, na_rm = FALSE, 
+                        prefix, label = NULL) {
+  core_vars <- get_core_variables(raw_data_clean = .data)
+  
+  recoded_vars <- work_recode_responses(
+    vars = vars,
+    .data = .data,
+    na_values = na_values,
+    fill = fill,
+    na_rm = na_rm,
+    prefix = prefix,
+    label = label
+  )
+  
+  data.frame(core_vars, recoded_vars)
+}
+
+
+
+inc_recode_source <- function(x, na_values, fill, na_rm = FALSE, 
+                              prefix = "income_source", label = NULL) {
+  x <- ifelse(x %in% na_values, NA, x)
+
+  y <- spread_vector_to_columns(
+    x = x,
+    fill = fill,
+    na_rm = na_rm,
+    prefix = prefix
+  )
+  
+  if (!is.null(label)) {
+    names(y) <- paste0(prefix, "_", label)
+  }
+  
+  income_source <- data.frame(x, y)
+  
+  income_source
+}
+
+inc_recode_amount <- function(x, na_values, fill, na_rm = FALSE, 
+                              prefix = "income_amount", label) {
+  x <- ifelse(x %in% na_values, NA, x)
+  
+  y <- spread_vector_to_columns(
+    x = x,
+    fill = fill,
+    na_rm = na_rm,
+    prefix = prefix
+  )
+  
+  if (!is.null(label)) {
+    names(y) <- paste0(prefix, "_", label)
+  }
+  
+  income_amount <- data.frame(x, y)
+  
+  income_amount
+}
+
+
+occ_recode_carer <- function(x, na_values, fill, na_rm = FALSE, 
+                             prefix = "occ_carer", label) {
+  x <- ifelse(x %in% na_values, NA, x)
+  
+  y <- spread_vector_to_columns(
+    x = x,
+    fill = fill,
+    na_rm = na_rm,
+    prefix = prefix
+  )
+  
+  if (!is.null(label)) {
+    names(y) <- paste0(prefix, "_", label)
+  }
+  
+  occ_carer <- data.frame(x, y)
+  
+  occ_carer
+}
+
+
+
+occ_recode_partner <- function(x, na_values, fill, na_rm = FALSE, 
+                               prefix = "occ_partner", label) {
+  x <- ifelse(x %in% na_values, NA, x)
+  
+  y <- spread_vector_to_columns(
+    x = x,
+    fill = fill,
+    na_rm = na_rm,
+    prefix = prefix
+  )
+  
+  if (!is.null(label)) {
+    names(y) <- paste0(prefix, "_", label)
+  }
+  
+  occ_partner <- data.frame(x, y)
+  
+  occ_partner
+}

@@ -612,7 +612,23 @@ data_processed <- tar_plan(
     education_na_values = c(88, 99)
   ),
   ## Women's empowerment and decision-makin
-  wem_recoded_data = wem_recode(raw_data_clean)
+  wem_recoded_data = wem_recode(raw_data_clean),
+  ## Income and occupation
+  work_recoded_data = work_recode(
+    vars = c("ig1", "q08", "igs1", "igs2"),
+    .data = raw_data_clean,
+    na_values = list(
+      c(88, 99), c(88, 99), 
+      c(88, 99), c(7, 88, 99)
+    ),
+    fill = list(1:6, 1:9, 1:6, 1:6),
+    na_rm = rep(list(FALSE), length(vars)),
+    prefix = list(
+      "income_source", "income_amount", 
+      "occupation_carer", "occupation_partner"
+    ),
+    label = rep(list(NULL), length(vars))
+  )
 )
 
 
