@@ -648,6 +648,12 @@ data_processed <- tar_plan(
     vars = c("wt2", "wt3", "wt3a", "wt3b", "wt4", "wt4a", "wt5", "wt6"),
     .data = raw_data_clean,
     na_values = c(88, 99, 888, 999)
+  ),
+  ## Sanitation
+  san_recoded_data = san_recode(
+    vars = paste0("lusd", 1:8),
+    .data = raw_data_clean,
+    na_values = c(8, 9, 88, 99, 888, 999)
   )
 )
 
