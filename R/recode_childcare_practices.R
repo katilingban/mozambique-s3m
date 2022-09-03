@@ -103,7 +103,9 @@ ccare_recode <- function(.data) {
   
   recoded_vars <- data.frame(
     ccare_danger_recode(vars = "ccare1", .data = .data),
-    ccare_participation = ccare_participation_recode(x = .data[["ccare2"]], na_values = c(8, 9)),
+    ccare_participation = ccare_participation_recode(
+      x = .data[["ccare2"]], na_values = c(8, 9)
+    ),
     ccare_barriers_recode(vars = "ccare3", .data = .data)
   )
   
