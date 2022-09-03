@@ -628,7 +628,9 @@ data_processed <- tar_plan(
       "occupation_carer", "occupation_partner"
     ),
     label = rep(list(NULL), length(vars))
-  )
+  ),
+  ## Time-to-travel
+  travel_recode_data = travel_recode(raw_data_clean)
 )
 
 
