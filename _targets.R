@@ -630,7 +630,13 @@ data_processed <- tar_plan(
     label = rep(list(NULL), length(vars))
   ),
   ## Time-to-travel
-  travel_recode_data = travel_recode(raw_data_clean)
+  travel_recode_data = travel_recode(raw_data_clean),
+  ## Play
+  play_recode_data = play_recode(
+    vars = paste0("play", c(paste0(1, letters[1:7]), 2, paste0(3, letters[1:6]))),
+    .data = raw_data_clean,
+    na_values = c(8, 9)
+  )
 )
 
 
