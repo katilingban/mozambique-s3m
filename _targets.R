@@ -636,6 +636,12 @@ data_processed <- tar_plan(
     vars = paste0("play", c(paste0(1, letters[1:7]), 2, paste0(3, letters[1:6]))),
     .data = raw_data_clean,
     na_values = c(8, 9)
+  ),
+  ## Mosquito net
+  net_recoded_data = net_recode(
+    vars = "cdcg13", 
+    .data = raw_data_clean,
+    na_values = c(88, 99)
   )
 )
 
