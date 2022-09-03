@@ -53,6 +53,9 @@ clean_raw_data <- function(raw_data, survey_codebook, survey_questions) {
   x[ , c("gi2t", "gi3t", "wt1t")] <- x[ , c("gi2t", "gi3t", "wt1t")] |>
     apply(MARGIN = 2, FUN = function(x) as.integer(x))
   
+  x[ , c("wt3a", "wt3b")] <- x[ , c("wt3a", "wt3b")] |>
+    apply(MARGIN = 2, FUN = function(x) as.integer(x))
+  
   x[ , paste0("fcs", 1:16)] <- x[ , paste0("fcs", 1:16)] |>
     apply(MARGIN = 2, FUN = function(x) as.integer(x))
   

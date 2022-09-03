@@ -642,6 +642,12 @@ data_processed <- tar_plan(
     vars = "cdcg13", 
     .data = raw_data_clean,
     na_values = c(88, 99)
+  ),
+  ## Water
+  water_recoded_data = water_recode(
+    vars = c("wt2", "wt3", "wt3a", "wt3b", "wt4", "wt4a", "wt5", "wt6"),
+    .data = raw_data_clean,
+    na_values = c(88, 99, 888, 999)
   )
 )
 
