@@ -227,9 +227,25 @@ data_raw <- tar_plan(
     cue = tar_cue(mode = "thorough")
   ),
   raw_data_clean = clean_raw_data(raw_data, survey_codebook, survey_questions),
-  raw_data_clean_translated = translate_raw_data(
-    raw_data_clean, survey_questions
-  )
+  # raw_data_clean_translated = translate_raw_data(
+  #   raw_data_clean, survey_questions
+  # ),
+  raw_data_clean_translated = raw_data_clean |>
+    (\(x) translate_df_variable(var = "q05_specify", df = x))() |>
+    (\(x) translate_df_variable(var = "q06_content", df = x))() |>
+    (\(x) translate_df_variable(var = "q07_specify", df = x))() |>
+    (\(x) translate_df_variable(var = "gi1_other", df = x))() |>
+    (\(x) translate_df_variable(var = "wt2_other", df = x))() |>
+    (\(x) translate_df_variable(var = "caha2_other", df = x))() |>
+    (\(x) translate_df_variable(var = "wh6a", df = x))() |>
+    (\(x) translate_df_variable(var = "wh7a", df = x))() |>
+    (\(x) translate_df_variable(var = "bs2a", df = x))() |>
+    (\(x) translate_df_variable(var = "bs3a", df = x))() |>
+    (\(x) translate_df_variable(var = "bs4a", df = x))() |>
+    (\(x) translate_df_variable(var = "pest2_other", df = x))() |>
+    (\(x) translate_df_variable(var = "ort5e_specify", df = x))() |>
+    (\(x) translate_df_variable(var = "ch5a_other", df = x))() |>
+    (\(x) translate_df_variable(var = "liquid_other_specify", df = x))()
 )
 
 
@@ -654,6 +670,12 @@ data_processed <- tar_plan(
     vars = paste0("lusd", 1:8),
     .data = raw_data_clean,
     na_values = c(8, 9, 88, 99, 888, 999)
+  ),
+  ## Hygiene
+  hygiene_recoded_data = hygiene_recode(
+    vars = c(paste0("caha", 1:3), paste0("lusd", 9:11)),
+    .data = raw_data_clean,
+    na_values = c(8, 9, 88, 99)
   )
 )
 

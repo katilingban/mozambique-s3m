@@ -111,9 +111,15 @@ translate_df_variables <- function(var, df,
     )
   }
   
+  # Map(
+  #   f = dplyr::relocate,
+  #   .data = rep(list(df), length(var)),
+  #   as.list(paste0(var, "_en")),
+  #   .after = as.list(var)
+  # )
+  
   df
 }
-
 
 ################################################################################
 #
