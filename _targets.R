@@ -676,6 +676,11 @@ data_processed <- tar_plan(
     vars = c(paste0("caha", 1:3), paste0("lusd", 9:11)),
     .data = raw_data_clean,
     na_values = c(8, 9, 88, 99)
+  ),
+  ## Treatment-seeking - fever
+  fever_recoded_data = fever_recode(
+    vars = c(paste0("fever", 1:6), "fever6a", "fever7"),
+    .data = raw_data_clean
   )
 )
 

@@ -7,3 +7,86 @@
 #'
 #
 ################################################################################
+
+fever_recode_response <- function(x, na_values, binary = TRUE) {
+  na_type <- get_na_type(x)
+  
+  if (binary) {
+    ifelse(
+      x %in% na_values, na_type,
+      ifelse(x == 2, 0, 1)
+    )
+  } else {
+    ifelse(x %in% na_values, na_type, x)
+  }
+}
+
+fever_recode_responses <- function(vars, .data, 
+                                   na_values = c(8, 9, 88, 99, "88", "99"), 
+                                   binary = TRUE) {
+  x <- .data[vars]
+  
+  Map(
+    f = fever_recode_response,
+    x = as.list(x),
+    na_values <- rep(list(na_values), length(vars)),
+    binary <- c(
+      rep(list(binary), 2), FALSE, rep(list(binary), 3), FALSE, binary
+    ) 
+  ) |>
+    dplyr::bind_cols()
+}
+
+
+fever_recode_poc <- function(vars, .data) {
+  x <- .data[[vars]]
+  
+  spread_vector_to_columns(
+    x = x,
+    fill = 1:6,
+    na_rm = FALSE,
+    prefix = "fever_poc"
+  )
+}
+
+
+fever_recode_malaria <- function(vars, .data) {
+  x <- .data[[vars]]
+  
+  split_select_multiples(
+    x = x,
+    fill = 1:7,
+    na_rm = FALSE,
+    prefix = "fever_malaria"
+  )
+}
+
+
+fever_recode <- function(vars, .data) {
+  core_vars <- get_core_variables(raw_data_clean = .data)
+  
+  fever_df <- fever_recode_responses(
+    vars = vars, .data = .data
+  )
+  
+  recoded_vars <- data.frame(
+    fever_episode = fever_df[[vars[1]]],
+    fever_treatment = fever_df[[vars[2]]],
+    fever_poc = fever_df[[vars[3]]],
+    fever_recode_poc(
+      vars = vars[3], .data = fever_df
+    ),
+    fever_rdt = fever_df[[vars[4]]],
+    fever_smear = fever_df[[vars[5]]],
+    fever_test = ifelse(
+      fever_df[[vars[4]]] == 1 | fever_df[[vars[5]]] == 1, 1, 0
+    ),
+    fever_test_result = fever_df[[vars[6]]],
+    fever_recode_malaria(
+      vars = vars[7], .data = fever_df
+    ),
+    fever_malaria_intake = fever_df[[vars[8]]]
+  )
+  
+  data.frame(core_vars, recoded_vars)
+}
