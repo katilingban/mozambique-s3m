@@ -692,7 +692,10 @@ data_processed <- tar_plan(
   rti_recoded_data = rti_recode(
     vars = c("ch1", "ch1a", paste0("ch", 2:5), "ch5a"),
     .data = raw_data_clean
-  )
+  ),
+  ## Breastfeeding
+  bf_vars_map = bf_map_vars(survey_codebook),
+  bf_recoded_data = bf_recode(vars = bf_vars_map, .data = raw_data_clean)
 )
 
 
