@@ -104,3 +104,27 @@ split_select_multiples <- function(x, fill, na_rm = FALSE, prefix) {
     dplyr::bind_rows()
 }
 
+
+################################################################################
+#
+#'
+#' Get NA types
+#'
+#
+################################################################################
+
+get_na_type <- function(x) {
+  if (inherits(x, "character")) {
+    na_type <- NA_character_
+  }
+  
+  if (inherits(x, "integer")) {
+    na_type <- NA_integer_
+  }
+  
+  if (inherits(x, "numeric")) {
+    na_type <- NA_real_
+  }
+  
+  na_type
+}

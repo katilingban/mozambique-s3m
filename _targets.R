@@ -676,6 +676,22 @@ data_processed <- tar_plan(
     vars = c(paste0("caha", 1:3), paste0("lusd", 9:11)),
     .data = raw_data_clean,
     na_values = c(8, 9, 88, 99)
+  ),
+  ## Treatment-seeking - fever
+  fever_recoded_data = fever_recode(
+    vars = c(paste0("fever", 1:6), "fever6a", "fever7"),
+    .data = raw_data_clean
+  ),
+  ## Treatment-seeking - diarrhoea
+  diarrhoea_recoded_data = dia_recode(
+    vars = c("ort1", paste0("ort1", letters[1:3]), paste0("ort", 2:4), 
+             paste0("ort5", letters[1:5]), "ort6", "ort7"),
+    .data = raw_data_clean
+  ),
+  ## Treatment-seeking - respiratory tract infections
+  rti_recoded_data = rti_recode(
+    vars = c("ch1", "ch1a", paste0("ch", 2:5), "ch5a"),
+    .data = raw_data_clean
   )
 )
 
