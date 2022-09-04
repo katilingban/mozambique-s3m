@@ -3,6 +3,18 @@
 #'
 #' Recode childhood illness - fever
 #' 
+#' FEVER1	Has **${child_random_name}** been ill with a fever at any time in the 
+#' last  two weeks?
+#' FEVER2	Did you seek advice or treatment for the fever? 
+#' FEVER3	Where did you seek advice or treatment?
+#' FEVER4	Was a malaria rapid diagnostic test (RDT) done to 
+#'   **${child_random_name}**?
+#' FEVER5	Was a laboratory test (blood smear) for diagnosing malaria done for 
+#'   **${child_random_name}**?
+#' FEVER6	Was the result (RDT/Blood smear) positive for malaria?
+#' FEVER6a	What treatment was given to **${child_random_name}**?
+#' FEVER7	Did **${child_random_name}** take the antimalarial treatment the same 
+#'   day or the day after the onset of the fever?
 #' 
 #'
 #
@@ -90,3 +102,4 @@ fever_recode <- function(vars, .data) {
   
   data.frame(core_vars, recoded_vars)
 }
+
