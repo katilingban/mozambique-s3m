@@ -53,8 +53,8 @@ dia_recode_responses <- function(vars, .data,
   Map(
     f = dia_recode_response,
     x = as.list(x),
-    na_values <- na_values,
-    binary <- c(
+    na_values = na_values,
+    binary = c(
       binary, rep(list(FALSE), 2), 
       rep(list(binary), 8), 
       rep(list(FALSE), 3)
@@ -77,7 +77,8 @@ dia_recode_other <- function(vars, .data) {
 #
 ################################################################################
 
-dia_recode_diagnosis <- function(vars = c(paste0("ort1", c("", letters[1:3])), "ort2"), 
+dia_recode_diagnosis <- function(vars = c(paste0("ort1", c("", letters[1:3])), 
+                                          "ort2"), 
                                  .data) {
   x <- .data[vars]
   
