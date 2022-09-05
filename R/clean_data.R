@@ -58,6 +58,15 @@ clean_raw_data <- function(raw_data, survey_codebook, survey_questions) {
   
   x[ , "lusd3"] <- x[ , "lusd3"] |> as.integer()
   
+  x[ , c("ebf_eibf_hr", "ebf_eibf_day")] <- x[ , c("ebf_eibf_hr", "ebf_eibf_day")] |>
+    apply(MARGIN = 2, FUN = function(x) as.integer(x))
+  
+  x[ , c("liquid_bms_num", "liquid_milk_num")] <- x[ , c("liquid_bms_num", "liquid_milk_num")] |>
+    apply(MARGIN = 2, FUN = function(x) as.integer(x))
+  
+  x[ , c("food_yogurt_num", "food_num")] <- x[ , c("food_yogurt_num", "food_num")] |>
+    apply(MARGIN = 2, FUN = function(x) as.integer(x))
+  
   x[ , paste0("fcs", 1:16)] <- x[ , paste0("fcs", 1:16)] |>
     apply(MARGIN = 2, FUN = function(x) as.integer(x))
   

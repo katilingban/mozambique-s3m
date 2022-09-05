@@ -692,6 +692,29 @@ data_processed <- tar_plan(
   rti_recoded_data = rti_recode(
     vars = c("ch1", "ch1a", paste0("ch", 2:5), "ch5a"),
     .data = raw_data_clean
+  ),
+  ## Breastfeeding
+  bf_vars_map = bf_map_vars(survey_codebook),
+  bf_recoded_data = bf_recode(vars = bf_vars_map, .data = raw_data_clean),
+  ## Food groups
+  fg_vars_map = fg_map_vars(
+    dairy = c("food_yogurt", "food_cheese"), 
+    starch = c("food_rice", "food_potatoes"),
+    vita = c("food_pumpkin", "food_mango"),
+    other_fruit_veg = c("food_oth_veg", "food_oth_fruit"),
+    legumes = "food_bean",
+    meat = c("food_liver", "food_proc_meat", "food_meat", "food_fish"),
+    eggs = "food_egg"
+  ),
+  fg_recoded_data = fg_recode(
+    vars = fg_vars_map, .data = raw_data_clean
+  ),
+  ## Meals
+  meal_recoded_data = meal_recode(vars = "food_num", .data = raw_data_clean),
+  ## IYCF
+  iycf_recoded_data = iycf_recode(
+    .data = raw_data_clean,
+    bf_recoded_data, fg_recoded_data, meal_recoded_data
   )
 )
 
