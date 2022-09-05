@@ -30,7 +30,8 @@ translate_response <- function(text,
       format = "text",
       source = source,
       model = model
-    )
+    ) |>
+      suppressMessages()
   }
 }
 

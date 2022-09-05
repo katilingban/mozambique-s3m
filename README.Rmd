@@ -100,6 +100,49 @@ cat(
 )
 ```
 
+## Development milestones workflow
+
+```{r development_workflow, echo = FALSE, message = FALSE, results = 'asis'}
+cat(
+  "```mermaid",
+  targets::tar_mermaid(
+    targets_only = TRUE, 
+    names = tidyselect::starts_with("dev")
+  ),
+  "```",
+  sep = "\n"
+)
+```
+
+## Pica workflow
+
+```{r pica_workflow, echo = FALSE, message = FALSE, results = 'asis'}
+cat(
+  "```mermaid",
+  targets::tar_mermaid(
+    targets_only = TRUE, 
+    names = tidyselect::starts_with("pica")
+  ),
+  "```",
+  sep = "\n"
+)
+```
+
+
+## Carer characteristics workflow
+
+```{r carer_workflow, echo = FALSE, message = FALSE, results = 'asis'}
+cat(
+  "```mermaid",
+  targets::tar_mermaid(
+    targets_only = TRUE, 
+    names = tidyselect::starts_with("carer")
+  ),
+  "```",
+  sep = "\n"
+)
+```
+
 ## Authors
 
 * Mark Myatt
