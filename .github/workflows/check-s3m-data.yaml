@@ -10,7 +10,7 @@ on:
 jobs:
   check-s3m-data:
     runs-on: ubuntu-latest
-    container: rocker/geospatial:4.2.0
+    container: rocker/geospatial:4.2.1
     env:
       GIT_CRYPT_KEY64: ${{ secrets.GIT_CRYPT_KEY64 }}
     steps:

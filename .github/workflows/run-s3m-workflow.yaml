@@ -8,7 +8,7 @@ on:
 jobs:
   run-S3M-workflow:
     runs-on: ubuntu-latest
-    container: rocker/geospatial:4.1.3
+    container: rocker/geospatial:4.2.1
     env:
       GIT_CRYPT_KEY64: ${{ secrets.GIT_CRYPT_KEY64 }}
     steps:
