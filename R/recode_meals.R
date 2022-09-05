@@ -46,6 +46,24 @@ meal_recode_responses <- function(vars, .data,
 }
 
 
+meal_calculate_icfi <- function(age_months, meal_frequency) {
+  icfi_group <- cut(
+    age_months, breaks = c(0, 5, 8, 11, 24), include.lowest = TRUE
+  ) |>
+    as.numeric()
+  
+  ifelse(
+    icfi_group == 2, (meal_frequency == 1) + (meal_frequency > 1) * 2,
+    ifelse(
+      icfi_group == 3, (meal_frequency %in% 1:2) + (meal_frequency > 2) * 2,
+      ifelse(
+        icfi_group == 4, (meal_frequency == 2) + 
+          (meal_frequency == 3) * 2 + (meal_frequency > 3) * 3, NA
+      )
+    )
+  )
+}
+
 meal_recode <- function(vars, .data) {
   core_vars <- get_core_variables(raw_data_clean = .data)
   
@@ -53,6 +71,10 @@ meal_recode <- function(vars, .data) {
     x = .data[[vars]], na_values = 9, binary = FALSE
   )
   
-  data.frame(core_vars, meal_frequency)
+  meal_icfi <- meal_calculate_icfi(
+    .data[["age_months"]], meal_frequency
+  )
+  
+  data.frame(core_vars, meal_frequency, meal_icfi)
 }
 

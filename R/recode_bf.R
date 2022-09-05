@@ -166,6 +166,24 @@ bf_recode_early <- function(vars = c("age_months", "ebf_eibf",
 }
 
 
+bf_calculate_icfi <- function(vars = c("age_months", "bf_yest"), .data) {
+  x <- .data[vars]
+  
+  bf_continuing <- ifelse(
+    x[[vars[1]]] < 6, NA, x[[vars[2]]]
+  )
+  
+  icfi_group <- cut(
+    x[[vars[1]]], breaks = c(0, 5, 8, 11, 24), include.lowest = TRUE
+  ) |>
+    as.numeric()
+  
+  bf_icfi <- ifelse(icfi_group %in% 2:3, bf_continuing * 2, bf_continuing)
+  
+  bf_icfi
+}
+
+
 
 ################################################################################
 #
@@ -188,7 +206,10 @@ bf_recode <- function(vars = bf_vars_map, .data) {
     bf_exclusive = bf_recode_exclusive(
       vars = vars[c(1, 6:21)], .data = bf_df
     ),
-    bf_continuing = bf_recode_continuing(.data = bf_df)
+    bf_continuing = bf_recode_continuing(.data = bf_df),
+    bf_icfi = bf_calculate_icfi(.data = bf_df)
   )
+  
+  data.frame(core_vars, recoded_vars)
 }
 

@@ -710,7 +710,12 @@ data_processed <- tar_plan(
     vars = fg_vars_map, .data = raw_data_clean
   ),
   ## Meals
-  meal_recoded_data = meal_recode(vars = "food_num", .data = raw_data_clean)
+  meal_recoded_data = meal_recode(vars = "food_num", .data = raw_data_clean),
+  ## IYCF
+  iycf_recoded_data = iycf_recode(
+    .data = raw_data_clean,
+    bf_recoded_data, fg_recoded_data, meal_recoded_data
+  )
 )
 
 

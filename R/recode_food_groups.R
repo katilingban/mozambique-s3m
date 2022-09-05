@@ -201,18 +201,34 @@ fg_calculate_score <- function(fg_df, add = TRUE) {
     )
   }
   
-  mdd <- rowSums(fg_df, na.rm = TRUE)
+  fg_score <- rowSums(fg_df, na.rm = TRUE)
   
   if (add) {
     data.frame(
       fg_df,
-      mdd = mdd
+      fg_score = fg_score
     )
   } else {
-    mdd
+    fg_score
   }
 }
 
+fg_calculate_icfi <- function(age_months, fg_score) {
+  icfi_group <- cut(
+    age_months, breaks = c(0, 5, 8, 11, 24), include.lowest = TRUE
+  ) |>
+    as.numeric()
+  
+  ifelse(
+    icfi_group == 2, (fg_score == 1) + (fg_score > 1) * 2,
+    ifelse(
+      icfi_group == 3, (fg_score %in% 1:2) + (fg_score > 2) * 2,
+      ifelse(
+        icfi_group == 4, (fg_score %in% 2:3) + (fg_score > 3) * 2, NA
+      )
+    )
+  )
+}
 
 fg_recode <- function(vars,
                       .data,
@@ -226,5 +242,10 @@ fg_recode <- function(vars,
   ) |>
     fg_calculate_score(add = TRUE)
   
-  data.frame(core_vars, recoded_vars)
+  fg_icfi <- fg_calculate_icfi(
+    age_months = .data[["age_months"]], 
+    fg_score = recoded_vars[["fg_score"]]
+  )
+  
+  data.frame(core_vars, recoded_vars, fg_icfi)
 }
