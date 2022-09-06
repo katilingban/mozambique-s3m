@@ -37,3 +37,62 @@
 #'     
 #
 ################################################################################
+
+fies_recode_response <- function(x, na_values, binary = TRUE) {
+  na_type <- get_na_type(x)
+  
+  if (binary) {
+    ifelse(
+      x %in% na_values, na_type,
+      ifelse(x == 2, 0, 1)
+    )
+  } else {
+    ifelse(x %in% na_values, na_type, x)
+  }
+}
+
+
+fies_recode_responses <- function(vars, .data, 
+                                  na_values = c(8, 9), 
+                                  binary = TRUE) {
+  x <- .data[vars]
+  
+  Map(
+    f = fever_recode_response,
+    x = as.list(x),
+    na_values = rep(list(na_values), length(vars)),
+    binary = rep(list(binary), length(vars)) 
+  ) |>
+    dplyr::bind_cols()
+}
+
+
+fies_calculate_score <- function(fies_df, na_rm = FALSE, add = TRUE) {
+  fies_score <- rowSums(fies_df, na.rm = na_rm)
+  
+  if (add) {
+    fies_score <- data.frame(fies_df, fies_score)
+  } else {
+    fies_score
+  }
+  
+  fies_score
+}
+
+fies_recode <- function(vars = paste0("fies0", 1:8), 
+                        .data, 
+                        na_values = c(8, 9), 
+                        na_rm = TRUE) {
+  core_vars <- get_core_variables(raw_data_clean = .data)
+  
+  recoded_vars <- fies_recode_responses(
+    vars = vars,
+    .data = .data,
+    na_values = na_values,
+    binary = TRUE
+  ) |>
+    fies_calculate_score(na_rm = na_rm, add = TRUE)
+  
+  data.frame(core_vars, recoded_vars)
+}
+

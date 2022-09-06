@@ -41,8 +41,8 @@ fever_recode_responses <- function(vars, .data,
   Map(
     f = fever_recode_response,
     x = as.list(x),
-    na_values <- rep(list(na_values), length(vars)),
-    binary <- c(
+    na_values = rep(list(na_values), length(vars)),
+    binary = c(
       rep(list(binary), 2), FALSE, rep(list(binary), 3), FALSE, binary
     ) 
   ) |>
