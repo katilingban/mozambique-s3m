@@ -268,6 +268,68 @@ graph LR
   linkStyle 1 stroke-width:0px;
 ```
 
+## Child’s play workflow
+
+✓ Successfully auto-authenticated via
+auth/mozambique-s3m-e9da207bc2a3.json
+
+``` mermaid
+graph LR
+  subgraph legend
+    x0a52b03877696646([""Outdated""]):::outdated --- x7420bd9270f8d27d([""Up to date""]):::uptodate
+    x7420bd9270f8d27d([""Up to date""]):::uptodate --- xbf4603d6c2c2ad6b([""Stem""]):::none
+  end
+  subgraph Graph
+    x09e58614f2343db8(["raw_data_clean"]):::uptodate --> x161fe1c795db5a79(["play_recode_data"]):::outdated
+    x136e4e85e6851637(["raw_data"]):::uptodate --> x09e58614f2343db8(["raw_data_clean"]):::uptodate
+    xfcfc1959dbba8ed3(["survey_codebook"]):::uptodate --> x09e58614f2343db8(["raw_data_clean"]):::uptodate
+    x0c65864d89dfd824(["survey_questions"]):::uptodate --> x09e58614f2343db8(["raw_data_clean"]):::uptodate
+    x0c65864d89dfd824(["survey_questions"]):::uptodate --> x136e4e85e6851637(["raw_data"]):::uptodate
+    x52eeb21c389d52d8(["sofala_xlsform_file"]):::uptodate --> x0c65864d89dfd824(["survey_questions"]):::uptodate
+    x136e4e85e6851637(["raw_data"]):::uptodate --> xfcfc1959dbba8ed3(["survey_codebook"]):::uptodate
+    x5aed27afbde18e19(["survey_choices"]):::uptodate --> xfcfc1959dbba8ed3(["survey_codebook"]):::uptodate
+    x0c65864d89dfd824(["survey_questions"]):::uptodate --> xfcfc1959dbba8ed3(["survey_codebook"]):::uptodate
+    x52eeb21c389d52d8(["sofala_xlsform_file"]):::uptodate --> x5aed27afbde18e19(["survey_choices"]):::uptodate
+  end
+  classDef outdated stroke:#000000,color:#000000,fill:#78B7C5;
+  classDef uptodate stroke:#000000,color:#ffffff,fill:#354823;
+  classDef none stroke:#000000,color:#000000,fill:#94a4ac;
+  linkStyle 0 stroke-width:0px;
+  linkStyle 1 stroke-width:0px;
+```
+
+## Childhood illnesses workflow
+
+✓ Successfully auto-authenticated via
+auth/mozambique-s3m-e9da207bc2a3.json
+
+``` mermaid
+graph LR
+  subgraph legend
+    x0a52b03877696646([""Outdated""]):::outdated --- x7420bd9270f8d27d([""Up to date""]):::uptodate
+    x7420bd9270f8d27d([""Up to date""]):::uptodate --- xbf4603d6c2c2ad6b([""Stem""]):::none
+  end
+  subgraph Graph
+    x09e58614f2343db8(["raw_data_clean"]):::uptodate --> x367849809100f60a(["diarrhoea_recoded_data"]):::outdated
+    x136e4e85e6851637(["raw_data"]):::uptodate --> x09e58614f2343db8(["raw_data_clean"]):::uptodate
+    xfcfc1959dbba8ed3(["survey_codebook"]):::uptodate --> x09e58614f2343db8(["raw_data_clean"]):::uptodate
+    x0c65864d89dfd824(["survey_questions"]):::uptodate --> x09e58614f2343db8(["raw_data_clean"]):::uptodate
+    x0c65864d89dfd824(["survey_questions"]):::uptodate --> x136e4e85e6851637(["raw_data"]):::uptodate
+    x52eeb21c389d52d8(["sofala_xlsform_file"]):::uptodate --> x0c65864d89dfd824(["survey_questions"]):::uptodate
+    x09e58614f2343db8(["raw_data_clean"]):::uptodate --> x1f3fecfd1ca845bd(["fever_recoded_data"]):::outdated
+    x136e4e85e6851637(["raw_data"]):::uptodate --> xfcfc1959dbba8ed3(["survey_codebook"]):::uptodate
+    x5aed27afbde18e19(["survey_choices"]):::uptodate --> xfcfc1959dbba8ed3(["survey_codebook"]):::uptodate
+    x0c65864d89dfd824(["survey_questions"]):::uptodate --> xfcfc1959dbba8ed3(["survey_codebook"]):::uptodate
+    x09e58614f2343db8(["raw_data_clean"]):::uptodate --> x3fba54c49f8f16c2(["rti_recoded_data"]):::outdated
+    x52eeb21c389d52d8(["sofala_xlsform_file"]):::uptodate --> x5aed27afbde18e19(["survey_choices"]):::uptodate
+  end
+  classDef outdated stroke:#000000,color:#000000,fill:#78B7C5;
+  classDef uptodate stroke:#000000,color:#ffffff,fill:#354823;
+  classDef none stroke:#000000,color:#000000,fill:#94a4ac;
+  linkStyle 0 stroke-width:0px;
+  linkStyle 1 stroke-width:0px;
+```
+
 ## Authors
 
 -   Mark Myatt

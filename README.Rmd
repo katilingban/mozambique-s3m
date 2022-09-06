@@ -143,6 +143,34 @@ cat(
 )
 ```
 
+## Child's play workflow
+
+```{r play_workflow, echo = FALSE, message = FALSE, results = 'asis'}
+cat(
+  "```mermaid",
+  targets::tar_mermaid(
+    targets_only = TRUE, 
+    names = tidyselect::starts_with("play")
+  ),
+  "```",
+  sep = "\n"
+)
+```
+
+## Childhood illnesses workflow
+
+```{r illness_workflow, echo = FALSE, message = FALSE, results = 'asis'}
+cat(
+  "```mermaid",
+  targets::tar_mermaid(
+    targets_only = TRUE, 
+    names = tidyselect::starts_with(c("fever", "dia", "rti"))
+  ),
+  "```",
+  sep = "\n"
+)
+```
+
 ## Authors
 
 * Mark Myatt
