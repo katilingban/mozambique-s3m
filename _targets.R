@@ -714,6 +714,11 @@ data_processed <- tar_plan(
   iycf_recoded_data = iycf_recode(
     .data = raw_data_clean,
     bf_recoded_data, fg_recoded_data, meal_recoded_data
+  ),
+  ## FIES
+  fies_recoded_data = fies_recode(
+    vars = paste0("fies0", 1:8),
+    .data = raw_data_clean
   )
 )
 
