@@ -719,6 +719,14 @@ data_processed <- tar_plan(
   fies_recoded_data = fies_recode(
     vars = paste0("fies0", 1:8),
     .data = raw_data_clean
+  ),
+  ## Food stocks
+  stock_recoded_data = stock_recode(
+    vars = c("reserve1", "reserve1a", "reserve2", "reserve2a", 
+             "reserve3", "reserve3a", "reserve4", "reserve4a", 
+             "reserve5", "reserve5a", "reserve6", "reserve6a", 
+             "reserve7", "reserve7a"),
+    .data = raw_data_clean
   )
 )
 

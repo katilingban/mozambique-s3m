@@ -58,7 +58,7 @@ fies_recode_responses <- function(vars, .data,
   x <- .data[vars]
   
   Map(
-    f = fever_recode_response,
+    f = fies_recode_response,
     x = as.list(x),
     na_values = rep(list(na_values), length(vars)),
     binary = rep(list(binary), length(vars)) 
