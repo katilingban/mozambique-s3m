@@ -733,6 +733,11 @@ data_processed <- tar_plan(
     vars = c("wh1", "wh2", "wh3", "wh4", "wh5", "wh6", "wh7", 
              "wh8", "preg1", "preg2", "preg3"),
     .data = raw_data_clean
+  ),
+  ## PMTCT
+  pmtct_recoded_data = pmtct_recode(
+    vars = paste0("pmtct", 1:3),
+    .data = raw_data_clean
   )
 )
 
