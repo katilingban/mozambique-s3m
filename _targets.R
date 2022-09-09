@@ -738,6 +738,11 @@ data_processed <- tar_plan(
   pmtct_recoded_data = pmtct_recode(
     vars = paste0("pmtct", 1:3),
     .data = raw_data_clean
+  ),
+  ## Pregnancy - mosquito net
+  pnet_recoded_data = pnet_recode(
+    vars = paste0("idk", 1:2),
+    .data = raw_data_clean
   )
 )
 
