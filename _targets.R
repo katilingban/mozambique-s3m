@@ -727,6 +727,12 @@ data_processed <- tar_plan(
              "reserve5", "reserve5a", "reserve6", "reserve6a", 
              "reserve7", "reserve7a"),
     .data = raw_data_clean
+  ),
+  ## Pregnancy
+  preg_recoded_data = preg_recode(
+    vars = c("wh1", "wh2", "wh3", "wh4", "wh5", "wh6", "wh7", 
+             "wh8", "preg1", "preg2", "preg3"),
+    .data = raw_data_clean
   )
 )
 
