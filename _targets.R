@@ -743,6 +743,13 @@ data_processed <- tar_plan(
   pnet_recoded_data = pnet_recode(
     vars = paste0("idk", 1:2),
     .data = raw_data_clean
+  ),
+  ## Pre- and post-natal check
+  nc_recoded_data = nc_recode(
+    vars = c(paste0("spc", 1:2), paste0("spc2", letters[1:2]),
+             paste0("spc", 3:5), "spc5a", "spc6", paste0("spc6", letters[1:2]),
+             "spc7", paste0("spc7", letters[1:2]), "ther1"),
+    .data = raw_data_clean
   )
 )
 
