@@ -750,6 +750,13 @@ data_processed <- tar_plan(
              paste0("spc", 3:5), "spc5a", "spc6", paste0("spc6", letters[1:2]),
              "spc7", paste0("spc7", letters[1:2]), "ther1"),
     .data = raw_data_clean
+  ),
+  ## Other RH
+  rh_recoded_data = rh_recode(
+    vars = c(paste0("chm", 1:2), 
+             paste0("fansidar", 1:2), "fol1", 
+             paste0("tt", 1:2)),
+    .data = raw_data_clean
   )
 )
 
