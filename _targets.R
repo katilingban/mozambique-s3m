@@ -727,6 +727,36 @@ data_processed <- tar_plan(
              "reserve5", "reserve5a", "reserve6", "reserve6a", 
              "reserve7", "reserve7a"),
     .data = raw_data_clean
+  ),
+  ## Pregnancy
+  preg_recoded_data = preg_recode(
+    vars = c("wh1", "wh2", "wh3", "wh4", "wh5", "wh6", "wh7", 
+             "wh8", "preg1", "preg2", "preg3"),
+    .data = raw_data_clean
+  ),
+  ## PMTCT
+  pmtct_recoded_data = pmtct_recode(
+    vars = paste0("pmtct", 1:3),
+    .data = raw_data_clean
+  ),
+  ## Pregnancy - mosquito net
+  pnet_recoded_data = pnet_recode(
+    vars = paste0("idk", 1:2),
+    .data = raw_data_clean
+  ),
+  ## Pre- and post-natal check
+  nc_recoded_data = nc_recode(
+    vars = c(paste0("spc", 1:2), paste0("spc2", letters[1:2]),
+             paste0("spc", 3:5), "spc5a", "spc6", paste0("spc6", letters[1:2]),
+             "spc7", paste0("spc7", letters[1:2]), "ther1"),
+    .data = raw_data_clean
+  ),
+  ## Other RH
+  rh_recoded_data = rh_recode(
+    vars = c(paste0("chm", 1:2), 
+             paste0("fansidar", 1:2), "fol1", 
+             paste0("tt", 1:2)),
+    .data = raw_data_clean
   )
 )
 
