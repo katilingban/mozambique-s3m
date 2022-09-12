@@ -1,7 +1,15 @@
 ################################################################################
 #
 #'
+#' Recode mother characteristics indicators
 #' 
+#' mother_age	What is your age?
+#' resp_marital_status	What is your marital status?
+#' resp_edu	How many years of education have you completed?
+#' q02	Does your husband/partner actually live in this household?
+#' q02a	What is the age of your husband/partner?
+#' q02b	What is the highest educational attainment of your husband/partner?
+#' q03	For how many years has your family (household) lived in this place?
 #'
 #
 ################################################################################

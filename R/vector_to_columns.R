@@ -15,32 +15,32 @@
 #
 ################################################################################
 
-spread_vector_to_columns <- function(x, fill = NULL, na_rm = FALSE, prefix) {
-  values <- sort(unique(x), na.last = NA)
-  
-  if (!is.null(fill)) {
-    values <- c(values, fill[!fill %in% values]) |>
-      sort(na.last = NA)
-  }
-  
-  if (na_rm) {
-    values <- c(values, NA_integer_)
-  }
-  
-  values <- values |>
-    stringr::str_replace_all(
-      pattern = " ", replacement = "_"
-    )
-  
-  col_names <- paste(prefix, values, sep = "_")
-  
-  lapply(
-    X = x,
-    FUN = function(x, y) ifelse(x == y, 1, 0),
-    y = values
-  ) |>
-    (\(x) do.call(rbind, x))() |>
-    data.frame() |>
-    (\(x) { names(x) <- col_names; x })()
-}
+# spread_vector_to_columns <- function(x, fill = NULL, na_rm = FALSE, prefix) {
+#   values <- sort(unique(x), na.last = NA)
+#   
+#   if (!is.null(fill)) {
+#     values <- c(values, fill[!fill %in% values]) |>
+#       sort(na.last = NA)
+#   }
+#   
+#   if (na_rm) {
+#     values <- c(values, NA_integer_)
+#   }
+#   
+#   values <- values |>
+#     stringr::str_replace_all(
+#       pattern = " ", replacement = "_"
+#     )
+#   
+#   col_names <- paste(prefix, values, sep = "_")
+#   
+#   lapply(
+#     X = x,
+#     FUN = function(x, y) ifelse(x == y, 1, 0),
+#     y = values
+#   ) |>
+#     (\(x) do.call(rbind, x))() |>
+#     data.frame() |>
+#     (\(x) { names(x) <- col_names; x })()
+# }
 

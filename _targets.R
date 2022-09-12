@@ -911,6 +911,13 @@ reports <- tar_plan(
   ## Email message for sending survey data quality report
   email_quality_message = blastula::render_email(
     input = "reports/email_quality_report.Rmd"
+  ),
+  ## Data processing report
+  tar_render(
+    name = data_processing_report,
+    path = "reports/data_processing_report.Rmd",
+    output_dir = "outputs",
+    knit_root_dir = here::here()
   )
 )
 
