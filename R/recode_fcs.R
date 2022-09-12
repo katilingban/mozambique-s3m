@@ -145,7 +145,7 @@ fcs_recode_groups <- function(vars,
     .data = .data_list, 
     food_group = food_group
   ) |>
-    (\(x) { names(x) <- food_group; x })() |>
+    (\(x) { names(x) <- paste0("fcs_", food_group); x })() |>
     dplyr::bind_rows()
   
 }

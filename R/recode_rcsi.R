@@ -95,7 +95,17 @@ rcsi_calculate_index <- function(rcsi_df, add = TRUE,
 rcsi_classify <- function(rcsi, add = FALSE, spread = FALSE, 
                           phase = 3, cutoff = c(3, 18, 42)) {
   breaks <- c(0, cutoff[1:(phase - 1)], Inf)
-  labels <- paste0("phase", 1:phase)
+  
+  if (phase == 3) {
+    #labels <- paste0("phase", 1:phase)
+    labels <- c("minimal", "stressed", "crisis")
+  }
+  
+  if (phase == 4) {
+    #labels <- paste0("phase", 1:phase)
+    labels <- c("minimal", "stressed", "crisis", "emergency")
+  }
+  
     
   rcsi_class <- cut(
     x = rcsi,
