@@ -2305,11 +2305,870 @@ data.frame(indicators, desc) |>
 
 ### Women's empowerment/decision-making
 
+```r
+################################################################################
+#
+# Process and recode decision making data/indicators
+#
+# Relevant variables:
+#
+#   ge1 - Appropriate age to marry? integer variables for the following
+#     categorical values:
+#     
+#     1=The men; 
+#     2=The women; 
+#     3=Both men and women; 
+#     88=Don't know; 
+#     99=No response
+#
+#   ge2 - Use of condoms? integer variables for the following categorical
+#     values:
+# 
+#     1=The men; 
+#     2=The women; 
+#     3=Both men and women; 
+#     88=Don't know; 
+#     99=No response
+#
+#   ge3 - Household responsibilities? integer variables for the following
+#     categorical values:
+#
+#     1=The men; 
+#     2=The women; 
+#     3=Both men and women; 
+#     88=Don't know; 
+#     99=No response
+#
+#   ge4 - Family planning - number of childre to have? integer variables for
+#     the following categorical values:
+# 
+#     1=The men; 
+#     2=The women; 
+#     3=Both men and women; 
+#     88=Don't know; 
+#     99=No response
+#
+#   ge5 - Family/land chores? integer variables for the following categorical
+#     values:
+#   
+#     1=The men; 
+#     2=The women; 
+#     3=Both men and women; 
+#     88=Don't know; 
+#     99=No response
+#
+#   ge6 - Administration of finances (money) in the home? integer variables
+#     for the following categorical values:
+#
+#     1=The men; 
+#     2=The women; 
+#     3=Both men and women; 
+#     88=Don't know; 
+#     99=No response
+#
+#   ge7 - How to raise children? integer variables for the following
+#     categorical values:
+#
+#     1=The men; 
+#     2=The women; 
+#     3=Both men and women; 
+#     88=Don't know; 
+#     99=No response
+#
+#   ge8 - Hitting/spanking children? integer variables for the following
+#     categorical values:
+#     
+#     1=The men; 
+#     2=The women; 
+#     3=Both men and women; 
+#     88=Don't know; 
+#     99=No response
+#   
+#   ge9 - Seeking health care for pregnancy?	integer variables for the
+#     following categorical values:
+#   
+#     1=The men; 
+#     2=The women; 
+#     3=Both men and women; 
+#     88=Don't know; 
+#     99=No response 
+#
+#   ge10 - Seeking health care for a child? integer variables for the
+#     following categorical values:
+# 
+#     1=The men; 
+#     2=The women; 
+#     3=Both men and women; 
+#     88=Don't know; 
+#     99=No response
+#
+#   von1 - Please, how much freedong of choice do you feel you have on what 
+#     happens to your life? integer variables for the following categorical
+#     values:
+#
+#     1=No choice; 
+#     2=Little choice; 
+#     3=Some choice; 
+#     4=A lot of choice; 
+#     88=Don't know; 
+#     99=No response
+#
+#   von2 - Until what point do you feel you can decide your own destiny?
+#     integer variables for the following categorical values:
+# 
+#     1=Not at all; 
+#     2=A little; 
+#     3=Enough; 
+#     4=A lot; 
+#     88=Don't know; 
+#     99=No response
+#
+#   von3	In general, do you think you can make decisions by yourself, freely, 
+#     without consulting your husband? Please, to what extent can you do this?
+#     integer variables for the following categorical values:
+#
+#       1=Never; 
+#       2=Sometimes; 
+#       3=Almost always; 
+#       4=Always; 
+#       88=Don't know; 
+#       99=No response
+#
+#   von4	Did you accept to participate in this survey of your own volition?
+#     integer variables for the following categorical values:
+#   
+#     1=I accepted to participate voluntarily and freely; 
+#     2=Yes, but I need the consent of the male head of household; 
+#     3=No, I needed the consent of the male head of household; 
+#     4=I need someone else's consent; 
+#     88=Don't know; 
+#     99=No response
+#
+################################################################################
+
+## Recode responses to individual questions in indicator set -------------------
+
+wem_recode_response <- function(x, na_values) {
+  ifelse(x %in% na_values, NA_integer_, x)
+}
+
+## Recode responses to multiple questions in indicator set ---------------------
+
+wem_recode_responses <- function(vars, .data, na_values) {
+  vars <- .data[vars]
+  
+  apply(
+    X = vars,
+    MARGIN = 2,
+    FUN = wem_recode_response,
+    na_values = na_values,
+    simplify = TRUE
+  ) |>
+    data.frame() |>
+    (\(x) { names(x) <- names(vars); x } )()
+}
+
+## Recode responses to a specific decision topic -------------------------------
+
+wem_recode_decision <- function(x, 
+                                fill = NULL,
+                                na_rm = FALSE,
+                                prefix,
+                                label = NULL) {
+  wem_decision <- spread_vector_to_columns(
+    x = x,
+    fill = fill,
+    na_rm = na_rm,
+    prefix = prefix
+  )
+  
+  if (!is.null(label)) {
+    names(wem_decision) <- paste0(prefix, "_", label)
+    wem_decision
+  }
+  
+  data.frame(x, wem_decision) |>
+    (\(x) { names(x)[1] <- prefix; x } )()
+}
+
+## Recode responses to multiple decision topcis --------------------------------
+
+wem_recode_decisions <- function(vars, .data, na_rm = FALSE, label = NULL) {
+  x <- .data[vars]
+  
+  Map(
+    f = wem_recode_decision,
+    x = apply(X = x, MARGIN = 2, list) |>
+      unlist(recursive = FALSE),
+    prefix = vars,
+    na_rm = na_rm,
+    label = rep(list(label), length(vars))
+  ) |>
+    dplyr::bind_cols()
+}
+
+## Overall women's empowerment recode function
+
+wem_recode <- function(.data) {
+  core_vars <- get_core_variables(raw_data_clean = .data)
+  
+  wem_recoded_vars <- wem_recode_responses(
+    vars = c(paste0("ge", 1:10), paste0("von", 1:4)) ,
+    .data = .data,
+    na_values = c(88, 99)
+  ) 
+  
+  ge_recoded_vars <- wem_recode_decisions(
+    vars = paste0("ge", 1:10),
+    .data = wem_recoded_vars,
+    na_rm = FALSE,
+    label = c("men", "women", "both")
+  )
+  
+  von_recoded_vars <- data.frame(
+    wem_recode_decisions(
+      vars = "von1",
+      .data = wem_recoded_vars,
+      na_rm = FALSE,
+      label = c("no_choice", "little_choice", "some_choice", "lots_choices")
+    ),
+    von1_some_lots = ifelse(wem_recoded_vars[["von1"]] %in% 3:4, 1, 0),
+    wem_recode_decisions(
+      vars = "von2",
+      .data = wem_recoded_vars,
+      na_rm = FALSE,
+      label = c("no", "little", "enough", "a_lot")
+    ),
+    von2_enough_lots = ifelse(wem_recoded_vars[["von2"]] %in% 3:4, 1, 0),
+    wem_recode_decisions(
+      vars = "von3",
+      .data = wem_recoded_vars,
+      na_rm = FALSE,
+      label = c("never", "sometimes", "almost", "always")
+    ),
+    von3_almost_always = ifelse(wem_recoded_vars[["von3"]] %in% 3:4, 1, 0),
+    wem_recode_decisions(
+      vars = "von4",
+      .data = wem_recoded_vars,
+      na_rm = FALSE,
+      label = c("freely", "freely_consent", "husband_consent", "someone_consent")
+    ),
+    von4_some_freely = ifelse(wem_recoded_vars[["von2"]] %in% 3:4, 0, 1)
+  ) 
+  
+  data.frame(core_vars, ge_recoded_vars, von_recoded_vars)
+}
+```
+
+The first two functions performs general recoding of the responses to the various questions in this indicator set. The next two functions performs specific recoding of responses to various decision topics. The final function provides overall recoding and concatenates the various women's empowerment indicators with the core variables.
+
+To get the final recoded women's empowerment dataset, the following call is performed:
+
+```{r wem_function, echo = TRUE, eval = FALSE}
+## Women's empowerment and decision-makin
+wem_recoded_data = wem_recode(raw_data_clean)
+```
+
+which produces a data.frame with the core variables and the following recoded women's empowerment indicator values:
+
+```{r wem_indicators}
+indicators <- c(
+  paste0("ge1", c("", "_men", "_women", "_both")),
+  paste0("ge2", c("", "_men", "_women", "_both")),
+  paste0("ge3", c("", "_men", "_women", "_both")),
+  paste0("ge4", c("", "_men", "_women", "_both")),
+  paste0("ge5", c("", "_men", "_women", "_both")),
+  paste0("ge6", c("", "_men", "_women", "_both")),
+  paste0("ge7", c("", "_men", "_women", "_both")),
+  paste0("ge8", c("", "_men", "_women", "_both")),
+  paste0("ge9", c("", "_men", "_women", "_both")),
+  paste0("ge10", c("", "_men", "_women", "_both")),
+  paste0("von1", c("", "_no_choice", "_little_choice", "_some_choice", "_lots_choices", "_some_lots")),
+  paste0("von2", c("", "_no", "_little", "_enough", "_a_lot", "_enough_lots")),
+  paste0("von3", c("", "_never", "_sometimes", "_almost", "_always", "_almost_always")),
+  paste0("von4", c("", "_freely", "_freely_consent", "_husband_consent", "_someone_consent", "_some_freely"))
+)
+
+desc <- c(
+  "Decision maker for topic 1",
+  "Decision maker for topic 1 - men",
+  "Decision maker for topic 1 - women",
+  "Decision maker for topic 1 - both",
+  "Decision maker for topic 2",
+  "Decision maker for topic 2 - men",
+  "Decision maker for topic 2 - women",
+  "Decision maker for topic 2 - both",
+  "Decision maker for topic 3",
+  "Decision maker for topic 3 - men",
+  "Decision maker for topic 3 - women",
+  "Decision maker for topic 3 - both",
+  "Decision maker for topic 4",
+  "Decision maker for topic 4 - men",
+  "Decision maker for topic 4 - women",
+  "Decision maker for topic 4 - both",
+  "Decision maker for topic 5",
+  "Decision maker for topic 5 - men",
+  "Decision maker for topic 5 - women",
+  "Decision maker for topic 5 - both",
+  "Decision maker for topic 6",
+  "Decision maker for topic 6 - men",
+  "Decision maker for topic 6 - women",
+  "Decision maker for topic 6 - both",
+  "Decision maker for topic 7",
+  "Decision maker for topic 7 - men",
+  "Decision maker for topic 7 - women",
+  "Decision maker for topic 7 - both",
+  "Decision maker for topic 8",
+  "Decision maker for topic 8 - men",
+  "Decision maker for topic 8 - women",
+  "Decision maker for topic 8 - both",
+  "Decision maker for topic 9",
+  "Decision maker for topic 9 - men",
+  "Decision maker for topic 9 - women",
+  "Decision maker for topic 9 - both",
+  "Decision maker for topic 10",
+  "Decision maker for topic 10 - men",
+  "Decision maker for topic 10- - women",
+  "Decision maker for topic 10- both",
+  "Amount of freedom of choice",
+  "Amount of freedom of choice - none",
+  "Amount of freedom of choice - little",
+  "Amount of freedom of choice - some",
+  "Amount of freedom of choice - lots",
+  "Amount of freedom of choice - at least some",
+  "Decide own destiny",
+  "Decide own destiny - no",
+  "Decide own destiny - little",
+  "Decide own destiny - enough",
+  "Decide own destiny - a lot",
+  "Decide own destiny - at least enough",
+  "Make decisions freely",
+  "Make decisions freely - never",
+  "Make decisions freely - sometimes",
+  "Make decisions freely - almost always",
+  "Make decisions freely - always",
+  "Make decisions freely - at least almost always",
+  "Decision to participate in survey",
+  "Decision to participate in survey - freely",
+  "Decision to participate in survey - freely with consent",
+  "Decision to participate in survey - husband consent",
+  "Decision to participate in survey - someone's consent",
+  "Decision to participate in survey - at least freely with consent"
+  )
+
+data.frame(indicators, desc) |>
+  knitr::kable(
+    col.names = c("Indicator variable", "Indicator description")
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = c("striped", "bordered"),
+    position = "center",
+    full_width = FALSE,
+    font_size = 16
+  )
+```
+
 ### Child's play
+
+```r
+################################################################################
+#
+#'
+#' Recode child play indicators
+#'
+#
+################################################################################
+
+## Recode responses to a question in the child play indicator set --------------
+
+play_recode_response <- function(x, na_values) {
+  ifelse(
+    x %in% na_values, NA,
+    ifelse(x == 2, 0, 1)
+  )
+}
+
+## Recode responses to multiple questions in the child play indicator set ------
+
+play_recode_responses <- function(vars, .data, na_values) {
+  x <- .data[vars]
+  
+  apply(
+    X = x,
+    MARGIN = 2,
+    FUN = play_recode_response,
+    na_values = c(8, 9),
+    simplify = TRUE
+  ) |>
+    data.frame() |>
+    (\(x) { names(x) <- vars; x } )()
+}
+
+## Overall recode functions
+
+play_recode <- function(vars, .data, na_values) {
+  core_vars <- get_core_variables(raw_data_clean = .data)
+  
+  recoded_vars <- play_recode_responses(
+    vars = vars,
+    .data = .data,
+    na_values = na_values
+  )
+  
+  data.frame(core_vars, recoded_vars)
+}
+```
+
+The first two functions perform recoding of responses for each of the child play indicators. The final function provides overall recoding and concatenates the various child play indicators with the core variables.
+
+To get the final recoded child's play dataset, the following call is performed:
+
+```{r play_function, echo = TRUE, eval = FALSE}
+## Play
+play_recoded_data = play_recode(
+  vars = paste0("play", c(paste0(1, letters[1:7]), 2, paste0(3, letters[1:6]))),
+  .data = raw_data_clean,
+  na_values = c(8, 9)
+)
+```
+
+which produces a data.frame with the core variables and the following recoded child's play indicator values:
+
+```{r play_indicators}
+indicators <- c(
+  paste0("play1", letters[1:7]), "play2", paste0("play3", letters[1:6])
+)
+
+desc <- c(
+  "Play - sang songs",
+  "Play - take a walk",
+  "Play - play a game",
+  "Play - read a book",
+  "Play - told stories",
+  "Play - name things",
+  "Play - draw things",
+  "Have a bag or box for child's things?",
+  "Play - when giving a bath",
+  "Play - when feeding",
+  "Play - when changing clothes",
+  "Play - while working at home",
+  "Play - while working in the field",
+  "Play - during free time"
+)
+
+data.frame(indicators, desc) |>
+  knitr::kable(
+    col.names = c("Indicator variable", "Indicator description")
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = c("striped", "bordered"),
+    position = "center",
+    full_width = FALSE,
+    font_size = 16
+  )
+``` 
 
 ### Income and occupation
 
+```r
+################################################################################
+#
+#' 
+#' Process and recode income and occupation data/indicators
+#'
+#' Relevant variables:
+#'
+#'   ig1 - What is the main source of income for the family in this household?
+#'     integer variables for the following categorical values:
+#'     
+#'     1=Sale of agricultural products and/or animals; 
+#'     2=Self-employed (commercial, service); 
+#'     3=Assitência alimentar/ajuda/ganho ganho/biscate; 
+#'     4=Fishing; 
+#'     5=Salary, pension, remittance; 
+#'     6=Other; 
+#'     88=Don't know; 
+#'     99=No response 
+#'
+#'  q08 - Adding the income of all the members of the household, including 
+#'    remittances from people who are abroad, receipts, or salary of all adults 
+#'    and children in the household who work, which of the following categories 
+#'    is the closest to the monthly income of the family in this household?	
+#'    integer variables for the following categorical values:
+#'
+#'    1=No income/or remittances not declared in money; 
+#'    2=Less than 60-150 Mts per month; 
+#'    3=From Mts 150.01 to Mts 500.00 per month; 
+#'    4=From Mts 500.01 to Mts 1500.00 per month; 
+#'    5=From Mts 1500.01 to Mts 3500.00 per month; 
+#'    6=From Mts 3500.01 to Mts 5500.00 per month; 
+#'    7=From Mts 5500.01 to Mts 7500.00 per month; 
+#'    8=From Mts 7500.01 to Mts 9500.00 per month; 
+#'    9=More than Mts 9500.00 per month; 
+#'    88=Don't know; 
+#'    99=No response
+#'
+#'  igs1 - What is your primary occupation? integer variables for the following
+#'    categorical values:
+#'
+#'    1=Homemaker; 
+#'    2=Your land; 
+#'    3=Fishing; 
+#'    4=Wage labor; 
+#'    5=Business; 
+#'    6=Other; 
+#'    88=Don't know; 
+#'    99=No response
+#'
+#'  igs2	What is the primary occupation of your husband/partner? integer
+#'    variable for the following categorical values:
+#'  
+#'    1=None; 
+#'    2=Your land; 
+#'    3=Fishing; 
+#'    4=Wage labor; 
+#'    5=Business; 
+#'    6=Other; 
+#'    7=I do not have a partner/husband; 
+#'    88=Don't know; 
+#'    99=No response
+#'    
+#
+################################################################################
+
+## Recode responses to 
+
+work_recode_response <- function(x, na_values, fill, na_rm = FALSE, 
+                                 prefix, label = NULL) {
+  x <- ifelse(x %in% na_values, NA, x)
+  
+  y <- spread_vector_to_columns(
+    x = x,
+    fill = fill,
+    na_rm = na_rm,
+    prefix = prefix
+  )
+  
+  if (!is.null(label)) {
+    names(y) <- paste0(prefix, "_", label)
+  }
+  
+  work_df <- data.frame(x, y) |>
+    (\(x) { names(x)[1] <- prefix; x } )()
+  
+  work_df
+}
+
+work_recode_responses <- function(vars, .data, na_values, fill, na_rm = FALSE, 
+                                  prefix, label = NULL) {
+  x <- .data[vars]
+  x <- apply(X = x, MARGIN = 2, list) |>
+    unlist(recursive = FALSE)
+  
+  Map(
+    f = work_recode_response,
+    x = x,
+    na_values = na_values,
+    fill = fill,
+    na_rm = na_rm,
+    prefix = prefix,
+    label = label
+  ) |>
+    dplyr::bind_cols()
+}
+
+
+work_recode <- function(vars, .data, na_values, fill, na_rm = FALSE, 
+                        prefix, label = NULL) {
+  core_vars <- get_core_variables(raw_data_clean = .data)
+  
+  recoded_vars <- work_recode_responses(
+    vars = vars,
+    .data = .data,
+    na_values = na_values,
+    fill = fill,
+    na_rm = na_rm,
+    prefix = prefix,
+    label = label
+  )
+  
+  data.frame(core_vars, recoded_vars)
+}
+```
+
+The first 2 functions recodes the variables on income source, income amount, occupation and partner's occupation into unique columns. The final function provides overall recoding and concatenates the various income and occupation indicators with the core variables.
+
+To get the final recoded income and occupation dataset, the following call is performed:
+
+```{r work_function, echo = TRUE, eval = FALSE}
+## Income and occupation
+work_recoded_data = work_recode(
+  vars = c("ig1", "q08", "igs1", "igs2"),
+  .data = raw_data_clean,
+  na_values = list(
+    c(88, 99), c(88, 99), 
+    c(88, 99), c(7, 88, 99)
+  ),
+  fill = list(1:6, 1:9, 1:6, 1:6),
+  na_rm = rep(list(FALSE), length(vars)),
+  prefix = list(
+    "income_source", "income_amount", 
+    "occupation_carer", "occupation_partner"
+  ),
+  label = rep(list(NULL), length(vars))
+)
+```
+
+which produces a data.frame with the core variables and the following recoded income and occupation indicator values:
+
+```{r work_indicators}
+indicators <- c(
+  paste0("income_source", c("", paste0("_", 1:6))),
+  paste0("income_amount", c("", paste0("_", 1:9))),
+  paste0("occupation_carer", c("", paste0("_", 1:6))),
+  paste0("occupation_partner", c("", paste0("_", 1:6)))
+)
+
+desc <- c(
+  "Income source",
+  "Income source - Sale of agricultural products and/or animals",
+  "Income source - Self-employed (commercial, service)",
+  "Income source - Assitência alimentar/ajuda/ganho ganho/biscate",
+  "Income source - Fishing",
+  "Income source - Salary, pension, remittance",
+  "Income source - Other",
+  "Income amount",
+  "Income amount - No income/or remittances not declared in money",
+  "Income amount - Less than 60-150 Mts per month",
+  "Income amount - From Mts 150.01 to Mts 500.00 per month",
+  "Income amount - From Mts 500.01 to Mts 1500.00 per month",
+  "Income amount - From Mts 1500.01 to Mts 3500.00 per month",
+  "Income amount - From Mts 3500.01 to Mts 5500.00 per month",
+  "Income amount - From Mts 5500.01 to Mts 7500.00 per month",
+  "Income amount - From Mts 7500.01 to Mts 9500.00 per month",
+  "Income amount - More than Mts 9500.00 per month",
+  "Occupation of carer",
+  "Occupation of carer - Homemaker",
+  "Occupation of carer - Your land",
+  "Occupation of carer - Fishing",
+  "Occupation of carer - Wage labor",
+  "Occupation of carer - Business",
+  "Occupation of carer - Other",
+  "Occupation of partner",
+  "Occupation of partner - None",
+  "Occupation of partner - Your land",
+  "Occupation of partner - Fishing",
+  "Occupation of partner - Wage labor",
+  "Occupation of partner - Business",
+  "Occupation of partner - Other"
+)
+
+data.frame(indicators, desc) |>
+  knitr::kable(
+    col.names = c("Indicator variable", "Indicator description")
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = c("striped", "bordered"),
+    position = "center",
+    full_width = FALSE,
+    font_size = 16
+  )
+```
+
 ### Time-to-travel
+
+```r
+################################################################################
+#
+#'
+#' Recode travel indicators/data
+#'
+#
+################################################################################
+
+## Recode others responses to mode of transportation ---------------------------
+
+travel_recode_mode_other <- function(x, y) {
+  ## Recode other modes of travel
+  x[y %in% c("Barco", "Canoa")]                              <- 7
+  x[y %in% c("Carro chapa")]                                 <- 8
+  x[y %in% c("Chate")]                                       <- 9
+  x[y %in% c("Comboio")]                                     <- 10
+  x[stringr::str_detect(y, pattern = "Mota|Moto|mota|moto")] <- 11
+  
+  x
+}
+
+## Recode mode of transportation for specific travel purpose -------------------
+
+travel_recode_mode <- function(x, na_values, fill, na_rm = FALSE, 
+                               prefix, label = NULL) {
+  x <- ifelse(x %in% na_values, NA, x)
+  
+  y <- spread_vector_to_columns(
+    x = x,
+    fill = fill,
+    na_rm = na_rm,
+    prefix = prefix
+  )
+  
+  if (!is.null(label)) {
+    names(y) <- paste0(prefix, "_", label)
+  }
+  
+  travel_df <- data.frame(x, y) |>
+    (\(x) { names(x)[1] <- prefix; x } )()
+  
+  travel_df
+}
+
+## Recode mode of transportation for multiple travel purposes ------------------
+
+travel_recode_modes <- function(vars, .data, na_values, fill, na_rm = FALSE, 
+                                prefix, label = NULL) {
+  x <- .data[vars]
+  x <- apply(X = x, MARGIN = 2, list) |>
+    unlist(recursive = FALSE)
+  
+  Map(
+    f = travel_recode_mode,
+    x = x,
+    na_values = na_values,
+    fill = fill,
+    na_rm = na_rm,
+    prefix = prefix,
+    label = label
+  ) |>
+    dplyr::bind_cols()
+}
+
+## Recode time to travel for specific travel purpose ---------------------------
+
+travel_recode_time <- function(x, na_values) {
+  ifelse(x %in% na_values, NA, x)
+}
+
+## Recode time to travel for multiple travel purposes --------------------------
+
+travel_recode_times <- function(vars, .data, na_values) {
+  x <- .data[vars]
+  
+  apply(
+    X = x,
+    MARGIN = 2,
+    FUN = travel_recode_time,
+    na_values = na_values,
+    simplify = TRUE
+  ) |>
+    data.frame() |>
+    (\(x) 
+      {
+        names(x) <- paste0(
+          "travel_times_", 
+          c("health_facility", "local_markets", "water_sources")
+        )
+        x
+      }
+     )()
+}
+
+## Overall travel recode function ----------------------------------------------
+
+travel_recode <- function(.data) {
+  core_vars <- get_core_variables(raw_data_clean = .data)
+  
+  travel_modes <- travel_recode_modes(
+    vars = c("gi1", "gi2m", "gi3m", "wt1m"),
+    .data = .data,
+    na_values = rep(list(c(88, 99)), length(vars)),
+    fill = list(1:11, 1:5, 1:5, 1:5),
+    na_rm = rep(list(FALSE), length(vars)),
+    prefix = paste0(
+      "travel_modes_", 
+      c("town", "health_facility", "local_markets", "water_sources")
+    ),
+    label = rep(list(NULL), length(vars))
+  )
+  
+  travel_times <- travel_recode_times(
+    vars = c("gi2t", "gi3t", "wt1t"),
+    .data = .data,
+    na_values = c(88, 99, 888, 999)
+  )
+  
+  data.frame(
+    core_vars, travel_modes, travel_times
+  )
+}
+```
+The first 2 functions recodes the mode of transport used across the various travel purposes asked of respondent. The next 2 functions recode the time it takes to travel for the various travel purposes asked of respondent. The final function provides overall recoding and concatenates the various travel indicators with the core variables.
+
+To get the final recoded travel dataset, the following call is performed:
+
+```{r travel_function, echo = TRUE, eval = FALSE}
+## Time-to-travel
+travel_recode_data <- travel_recode(raw_data_clean)
+```
+
+which produces a data.frame with the core variables and the following recoded travel indicator values:
+
+```{r travel_indicators}
+indicators <- c(
+  paste0("travel_modes_town", c("", paste0("_", 1:11))),
+  paste0("travel_modes_health_facility", c("", paste0("_", 1:5))),
+  paste0("travel_modes_local_markets", c("", paste0("_", 1:5))),
+  paste0("travel_modes_water_sources", c("", paste0("_", 1:5))),
+  paste0("travel_times_", c("health_facility", "local_markets", "water_sources"))
+)
+
+desc <- c(
+  "Transport mode to nearest town",
+  "Transport mode to nearest town - on foot",
+  "Transport mode to nearest town - bicycle",
+  "Transport mode to nearest town - bus",
+  "Transport mode to nearest town - personal motorised vehicle",
+  "Transport mode to nearest town - truck",
+  "Transport mode to nearest town - don't travel",
+  "Transport mode to nearest town - boat",
+  "Transport mode to nearest town - rental car",
+  "Transport mode to nearest town - chate",
+  "Transport mode to nearest town - train",
+  "Transport mode to nearest town - moto or mota hire",
+  "Transport mode to health facility",
+  "Transport mode to health facility - on foot",
+  "Transport mode to health facility - bicycle",
+  "Transport mode to health facility - motorcycle",
+  "Transport mode to health facility - car",
+  "Transport mode to health facility - other",
+  "Transport mode to local markets",
+  "Transport mode to local markets - on foot",
+  "Transport mode to local markets - bicycle",
+  "Transport mode to local markets - motorcycle",
+  "Transport mode to local markets - car",
+  "Transport mode to local markets - other",
+  "Transport mode to water sources",
+  "Transport mode to water sources - on foot",
+  "Transport mode to water sources - bicycle",
+  "Transport mode to water sources - motorcycle",
+  "Transport mode to water sources - car",
+  "Transport mode to water sources - other",
+  "Travel time to health facility",
+  "Travel time to local markets",
+  "Travel time to water sources"
+)
+
+data.frame(indicators, desc) |>
+  knitr::kable(
+    col.names = c("Indicator variable", "Indicator description")
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = c("striped", "bordered"),
+    position = "center",
+    full_width = FALSE,
+    font_size = 16
+  )
+```
+
 
 ### Mosquito net
 
