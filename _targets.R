@@ -645,9 +645,9 @@ data_processed <- tar_plan(
     label = rep(list(NULL), length(vars))
   ),
   ## Time-to-travel
-  travel_recode_data = travel_recode(raw_data_clean),
+  travel_recoded_data = travel_recode(raw_data_clean),
   ## Play
-  play_recode_data = play_recode(
+  play_recoded_data = play_recode(
     vars = paste0("play", c(paste0(1, letters[1:7]), 2, paste0(3, letters[1:6]))),
     .data = raw_data_clean,
     na_values = c(8, 9)
@@ -757,6 +757,11 @@ data_processed <- tar_plan(
              paste0("fansidar", 1:2), "fol1", 
              paste0("tt", 1:2)),
     .data = raw_data_clean
+  ),
+  ## Family planning
+  fp_recoded_data = fp_recode(
+    vars = c("pf1", "bs1", "bs1a", "bs2", "bs3", "bs4", "abor1", "abor1a"),
+    .data = raw_data_clean_translated
   )
 )
 
