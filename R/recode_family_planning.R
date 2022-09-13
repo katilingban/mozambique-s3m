@@ -164,10 +164,7 @@ fp_recode_multiparity <- function(vars, .data, fill = 1:9,
 fp_recode_wait_abort <- function(vars, .data) {
   x <- .data[[vars]]
   
-  data.frame(
-    fp_wait_abort = x,
-    fp_wait_abort_appropriate = ifelse(x >= 6, 1, 0)
-  )
+  ifelse(x >= 6, 1, 0)
 }
 
 ## Overall recode --------------------------------------------------------------
@@ -179,11 +176,11 @@ fp_recode <- function(vars, .data) {
     x = .data[[vars[4]]], y = .data[["bs2a_en"]]
   )
   
-  .data[[vars[5]]] <- fp_recode_bs2a(
+  .data[[vars[5]]] <- fp_recode_bs3a(
     x = .data[[vars[5]]], y = .data[["bs3a_en"]]
   )
   
-  .data[[vars[6]]] <- fp_recode_bs2a(
+  .data[[vars[6]]] <- fp_recode_bs4a(
     x = .data[[vars[6]]], y = .data[["bs4a_en"]]
   )
   
@@ -199,7 +196,9 @@ fp_recode <- function(vars, .data) {
     fp_recode_benefit_first(vars = vars[5], .data = fp_df),
     fp_recode_multiparity(vars = vars[6], .data = fp_df),
     fp_wait_abort = fp_df[[vars[7]]],
-    fp_recode_wait_abort(vars = vars[8], .data = fp_df)
+    fp_wait_abort_appropriate = fp_recode_wait_abort(
+      vars = vars[8], .data = fp_df
+    )
   )
   
   data.frame(core_vars, recoded_vars)
