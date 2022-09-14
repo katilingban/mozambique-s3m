@@ -21,6 +21,8 @@
 #
 ################################################################################
 
+## Recode responses to individual questions ------------------------------------
+
 rti_recode_response <- function(x, na_values, binary = TRUE) {
   na_type <- get_na_type(x)
     
@@ -34,6 +36,7 @@ rti_recode_response <- function(x, na_values, binary = TRUE) {
   }
 }
 
+## Recode responses to multiple questions --------------------------------------
 
 rti_recode_responses <- function(vars, .data, 
                                  na_values = c(rep(list(c(8, 9)), 4),
@@ -48,18 +51,17 @@ rti_recode_responses <- function(vars, .data,
     x = as.list(x),
     na_values = na_values,
     binary = c(
-      rep(list(binary), 4), 
-      FALSE, binary, FALSE
+      rep(list(binary), 3), 
+      rep(list(FALSE), 2), binary, FALSE
     ) 
   ) |>
     dplyr::bind_cols()
 }
 
-
 ################################################################################
 #
 #'
-#' Diagnose diarrhoea
+#' Diagnose respiratory tract infection
 #'
 #
 ################################################################################
@@ -73,7 +75,7 @@ rti_recode_diagnosis <- function(vars = c("ch1", "ch1a", "ch2"),
   )
 }
 
-
+## Recode point-of-care --------------------------------------------------------
 
 rti_recode_poc <- function(vars = "ch4", .data) {
   x <- .data[[vars]]
@@ -86,6 +88,7 @@ rti_recode_poc <- function(vars = "ch4", .data) {
   )
 }
 
+## Recode treatment ------------------------------------------------------------
 
 rti_recode_treatment <- function(vars = "ch5a", .data) {
   x <- .data[[vars]]
@@ -98,6 +101,7 @@ rti_recode_treatment <- function(vars = "ch5a", .data) {
   )
 }
 
+## Overall recode function -----------------------------------------------------
 
 rti_recode <- function(vars, .data) {
   core_vars <- get_core_variables(raw_data_clean = .data)

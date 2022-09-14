@@ -8,6 +8,8 @@
 #
 ################################################################################
 
+## Recode responses to individual development indicator questions --------------
+
 dev_recode_var <- function(x, na_values) {
   ifelse(
     x %in% na_values, NA,
@@ -17,6 +19,7 @@ dev_recode_var <- function(x, na_values) {
   )
 }
 
+## Recode responses to multiple development indicator questions ----------------
 
 dev_recode_vars <- function(vars, .data, na_values) {
   vars <- .data[vars]
@@ -32,6 +35,7 @@ dev_recode_vars <- function(vars, .data, na_values) {
     (\(x) { names(x) <- c("see", "hear"); x })()
 }
 
+## Overall recode function -----------------------------------------------------
 
 dev_recode <- function(vars, .data, na_values = c(88, 99)) {
   core_vars <- get_core_variables(raw_data_clean = .data)

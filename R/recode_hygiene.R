@@ -10,10 +10,13 @@
 #
 ################################################################################
 
+## Recode responses to specific questions --------------------------------------
+
 hygiene_recode_response <- function(x, na_values) {
   ifelse(x %in% na_values, NA, x)
 }
 
+## Recode responses to multiple questions --------------------------------------
 
 hygiene_recode_responses <- function(vars, .data, na_values) {
   x <- .data[vars]
@@ -29,11 +32,7 @@ hygiene_recode_responses <- function(vars, .data, na_values) {
     (\(x) { names(x) <- vars; x } )()
 }
 
-
-hygiene_recode_event <- function(x) {
-  
-}
-
+## Recode response to select multiple events of handwashing --------------------
 
 hygiene_recode_events <- function(vars, .data, fill, na_rm = FALSE, prefix) {
   x <- .data[[vars]]
@@ -46,6 +45,7 @@ hygiene_recode_events <- function(vars, .data, fill, na_rm = FALSE, prefix) {
   )
 }
 
+## Overall recode function -----------------------------------------------------
 
 hygiene_recode <- function(vars, .data, na_values) {
   core_vars <- get_core_variables(raw_data_clean = .data)

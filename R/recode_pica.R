@@ -6,9 +6,13 @@
 #
 ################################################################################
 
+## Recode responses to specific pica questions ---------------------------------
+
 pica_recode_var <- function(x, na_values) {
   ifelse(x %in% na_values, NA, x)
 }
+
+## Recode responses to all pica questions --------------------------------------
 
 pica_recode_vars <- function(vars, .data, na_values) {
   vars <- .data[vars]
@@ -23,9 +27,13 @@ pica_recode_vars <- function(vars, .data, na_values) {
     data.frame()
 }
 
+## Recode pica diagnosis -------------------------------------------------------
+
 pica_recode_diagnosis <- function(x) {
   ifelse(x >= 3, 1, 0)
 }
+
+## Recode pica frequency -------------------------------------------------------
 
 pica_recode_frequency <- function(x) {
   pica_frequencies <- spread_vector_to_columns(
@@ -36,6 +44,7 @@ pica_recode_frequency <- function(x) {
   )
 }
 
+## Recode the response to pica knowledge ---------------------------------------
 
 pica_recode_response <- function(x) {
   pica_response <- spread_vector_to_columns(
@@ -46,6 +55,7 @@ pica_recode_response <- function(x) {
   )
 }
 
+## Overall recode function -----------------------------------------------------
 
 pica_recode <- function(vars, .data, na_values) {
   core_vars <- get_core_variables(raw_data_clean = .data)

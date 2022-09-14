@@ -62,9 +62,13 @@
 #
 ################################################################################
 
+## Recode responses to specific question ---------------------------------------
+
 san_recode_response <- function(x, na_values) {
   ifelse(x %in% na_values, NA, x)
 }
+
+## Recode responses to multiple questions --------------------------------------
 
 san_recode_responses <- function(vars, .data, na_values) {
   x <- .data[vars]
@@ -89,6 +93,11 @@ san_recode_responses <- function(vars, .data, na_values) {
 #
 #'
 #' Sanitation ladder
+#' 
+#'   Open defecation
+#'   Unimproved sanitation facilities
+#'   Improved but limited sanitation facilities
+#'   Basic sanitation facilities
 #' 
 #
 ################################################################################
@@ -121,7 +130,7 @@ san_recode_basic <- function(vars, .data) {
 ################################################################################
 #
 #'
-#' 
+#' Overall recode function
 #'
 #
 ################################################################################

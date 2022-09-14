@@ -8,7 +8,7 @@ date: '`r Sys.Date()`'
 output: 
   html_document:
     toc: true
-    toc_depth: 3
+    toc_depth: 4
     self_contained: true
     code_download: true
 ---
@@ -3169,20 +3169,1725 @@ data.frame(indicators, desc) |>
   )
 ```
 
-
 ### Mosquito net
+
+```r
+################################################################################
+#
+#'
+#' Process and recode mosquito nets coverage data/indicators
+#' 
+#' 
+#' Relevant variables:
+#'   cdcg13
+#' 
+#
+################################################################################
+
+## Recode responses to the different mosquito net questions --------------------
+
+net_recode_response <- function(x, na_values) {
+  ## Net responses with NAs
+  net <- ifelse(x %in% na_values, NA, x)
+  
+  ## Household with any net
+  net_any <- ifelse(
+    x %in% na_values, NA,
+    ifelse(x == 1, 0, 1)
+  )
+  
+  ## Household with adequate nets
+  net_adequate <- ifelse(
+    x %in% na_values, NA,
+    ifelse(x %in% 3:4, 1, 0)
+  )
+  
+  data.frame(
+    net, net_any, net_adequate,
+    spread_vector_to_columns(
+      x = net,
+      fill = 1:4,
+      na_rm = FALSE,
+      prefix = "net"
+    ) |>
+      (\(x) { names(x) <- paste0("net", 1:4); x } )()
+  )
+}
+
+## Overall recode function -----------------------------------------------------
+
+net_recode <- function(vars, .data, na_values) {
+  core_vars <- get_core_variables(raw_data_clean = .data)
+  
+  recoded_vars <- net_recode_response(
+    x = .data[[vars]],
+    na_values = na_values
+  )
+  
+  data.frame(core_vars, recoded_vars)
+}
+```
+
+The first function recodes the various mosquito net questions while the last function concatenates the core variables with the recoded responses. 
+
+To get the final recoded mosquito net dataset, the following call is performed:
+
+```{r net_function, echo = TRUE, eval = FALSE}
+## Mosquito net
+net_recoded_data <- net_recode(
+  vars = "cdcg13", 
+  .data = raw_data_clean,
+  na_values = c(88, 99)
+)
+```
+
+which produces a data.frame with the core variables and the following recoded mosquito net indicator values:
+
+```{r net_indicators}
+indicators <- c(
+  "net", "net_any", "net_adequate", paste0("net", 1:4)
+)
+
+desc <- c(
+  "Net ownership",
+  "Net ownership - any",
+  "Net ownership - adequate",
+  "Net ownership - none",
+  "Net ownership - less than the number of beds/sleeping mats",
+  "Net ownership - same number as beds/sleeping mats",
+  "Net ownership - more than the number of beds/sleeping mats"
+)
+
+data.frame(indicators, desc) |>
+  knitr::kable(
+    col.names = c("Indicator variable", "Indicator description")
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = c("striped", "bordered"),
+    position = "center",
+    full_width = FALSE,
+    font_size = 16
+  )
+```
 
 ### Water, sanition and hygiene
 
+#### Water
+
+```r
+################################################################################
+#
+#' 
+#' Process and recode water data/indicators
+#'
+#' Relevant variables:
+#'
+#'   wt2 - Usually, where do you get your drinking water for the family members 
+#'     of the household? integer variables for the following categorial values:
+#'     
+#'     1=House faucet; 
+#'     2=Yard faucet; 
+#'     3=Neighbours faucet; 
+#'     4=Public faucet; 
+#'     5=Water pump; 
+#'     6=Well with lid; 
+#'     7=Open well; 
+#'     8=Protected stream; 
+#'     9=Non-protected stream; 
+#'     10=Rain; 
+#'     11=River/lake/lagoon; 
+#'     12=Bottled; 
+#'     13=Other; 
+#'     88=Don't know; 
+#'     99=No response
+#'
+#'   wt2_other - Specify other source of drinking water; text entry; will need
+#'     translation
+#'
+#'   wt3 - Who usually goes to this source to collect water for the family?
+#'     integer variables for the following categorial values:
+#'   
+#'     1=Adult males; 
+#'     2=Adult females; 
+#'     3=Young girls; 
+#'     4=Young boys; 
+#'     5=Other; 
+#'     88=Don't know; 
+#'     99=No response
+#'
+#'   wt3a - How long does it take for this person to go collect water, counting 
+#'     total time of travel to go, come back, and collect water? integer
+#'
+#'   wt3b	How many times has this person collected water in the past 7 days?
+#'     integer
+#'
+#'   wt4 - In the last month, has there been a moment in which your household 
+#'     did not have sufficient water to drink?
+#'     
+#'     1=Yes, at least one time; 
+#'     2=No, it was always sufficient; 
+#'     88=Don't know; 
+#'     99=No response
+#'
+#'   wt4a - What was the principal reason for not being able to access water in 
+#'     a sufficient quantity?
+#'
+#'     1=Water not available at the source; 
+#'     2=Water is too expensive; 
+#'     3=Source not accessible; 
+#'     88=Don't know; 
+#'     99=No response
+#'
+#'   wt5 - Have you ever done anything to the water to make it cleaner to drink?
+#'
+#'     1=Yes; 
+#'     2=No
+#'
+#'   wt6 - What do you normally do to make your water cleaner to drink?
+#'
+#'     1=Boil; 
+#'     2=Lixivia/chlorine; 
+#'     3=Certeza; 
+#'     4=Filter with cloth; 
+#'     5=Use water filter (ceramic, sand, compost, etc); 
+#'     6=Solar disinfection; 
+#'     7=Let stand and sit; 
+#'     8=Other; 
+#'     88=Don't know; 
+#'     99=No response   
+#'     
+#
+################################################################################
+
+## Recode responses from a specific question -----------------------------------
+
+water_recode_response <- function(x, na_values) {
+  ifelse(x %in% na_values, NA, x)
+}
+
+## Recode responses from multiple questions ------------------------------------
+
+water_recode_responses <- function(vars, .data, na_values) {
+  x <- .data[vars]
+  
+  water_df <- apply(
+    X = x,
+    MARGIN = 2,
+    FUN = water_recode_response,
+    na_values = na_values,
+    simplify = TRUE
+  ) |>
+    data.frame()
+  
+  water_df[ , "wt4"] <- ifelse(water_df[ , "wt4"] == 2, 1, 0)
+  
+  water_df[ , "wt5"] <- ifelse(
+    water_df[ , "wt5"] %in% 8:9, NA,
+    ifelse(water_df[ , "wt5"] == 2, 0, 1)
+  )
+  
+  water_df
+}
+
+################################################################################
+#
+#'
+#' Recode JMP ladder indicators
+#' 
+#'   surface water
+#'   unimproved water source
+#'   improved but limited water source
+#'   basic water source
+#'   sufficient water source
+#'
+#
+################################################################################
+
+water_recode_surface <- function(vars, .data) {
+  x <- .data[[vars]]
+  
+  ifelse(x == 11, 1, 0)
+}
+
+water_recode_unimproved <- function(vars, .data) {
+  x <- .data[[vars]]
+  
+  ifelse(x %in% c(7, 9), 1, 0)
+}
+
+
+water_recode_limited <- function(vars, .data) {
+  x <- .data[vars]
+  
+  ifelse(
+    x[[vars[1]]] %in% c(1:6, 8, 10, 12) & x[[vars[2]]] > 30, 1, 0
+  )
+}
+
+water_recode_basic <- function(vars, .data) {
+  x <- .data[vars]
+  
+  ifelse(
+    x[[vars[1]]] %in% c(1:6, 8, 10, 12) & x[[vars[2]]] <= 30, 1, 0
+  )
+}
+
+water_recode_sufficient <- function(vars, .data) {
+  x <- .data[vars]
+  
+  ifelse(
+    x[[vars[1]]] %in% 1:2 & x[[vars[2]]] == 1, 1, 0
+  )
+}
+
+################################################################################
+#
+#'
+#' Recode water collector
+#'
+#
+################################################################################
+
+water_recode_collector <- function(vars, .data,
+                                   prefix = "water_collector",
+                                   label = c("men", "women", "boys", 
+                                             "girls", "others")) {
+  x <- .data[[vars]]
+  
+  data.frame(
+    water_collector = x,
+    spread_vector_to_columns(
+      x = x,
+      fill = 1:5,
+      na_rm = FALSE,
+      prefix = prefix
+    ) |>
+      (\(x) { names(x) <- paste0(prefix, "_", label); x } )()
+  )
+}
+
+################################################################################
+#
+#'
+#' Recode water sufficiency
+#'
+#
+################################################################################
+
+water_recode_sufficiency <- function(vars, .data,
+                                    prefix = "water_sufficient_reasons") {
+  x <- .data[vars]
+  
+  data.frame(
+    water_sufficiency = x[[1]],
+    water_sufficient_reasons = x[[2]],
+    spread_vector_to_columns(
+      x = x[[2]],
+      fill = 1:3,
+      na_rm = FALSE,
+      prefix = prefix
+    )
+  )
+}
+
+################################################################################
+#
+#'
+#' Recode water filter
+#'
+#
+################################################################################
+
+water_recode_filter <- function(vars, .data) {
+  x <- .data[[vars]]
+  
+  ifelse(x %in% c(1:3, 5:6), 1, 0)
+}
+
+## Overall recode function -----------------------------------------------------
+
+water_recode <- function(vars, .data, na_values) {
+  core_vars <- get_core_variables(raw_data_clean = .data)
+  
+  water_df <- water_recode_responses(
+    vars = vars, 
+    .data = .data, 
+    na_values = na_values
+  )
+  
+  recoded_vars <- data.frame(
+    water_surface = water_recode_surface(
+      vars = "wt2", .data = water_df
+    ),
+    water_unimproved = water_recode_unimproved(
+      vars = "wt2", .data = water_df
+    ),
+    water_limited = water_recode_limited(
+      vars = c("wt2", "wt3a"), .data = water_df
+    ),
+    water_basic = water_recode_basic(
+      vars = c("wt2", "wt3a"), .data = water_df
+    ),
+    water_sufficient = water_recode_sufficient(
+      vars = c("wt2", "wt4"), .data = water_df
+    ),
+    water_recode_sufficiency(
+      vars = c("wt4", "wt4a"), .data = water_df
+    ),
+    water_recode_collector(
+      vars = "wt3", .data = water_df
+    ),
+    water_collection_time = water_df[["wt3a"]],
+    water_filter_use = water_df[["wt5"]],
+    water_filter_adequate = water_recode_filter(
+      vars = "wt6", .data = water_df
+    )
+  )
+  
+  data.frame(core_vars, recoded_vars)
+}
+```
+
+The first two functions recodes the various questions in the water indicator set. The next five questions recodes each of the five JMP water ladder indicators based on WHO and UNICEF Joint Monitoring Programme official guidance[^7]. The eighth function recodes the responses to who collects water for the household. The ninth function recodes reasons for water being insufficient. The tenth function recodes the type of water filter used by the household. The final function provides overall recoding and concatenates the various water indicators with the core variables.
+
+To get the final recoded water dataset, the following call is performed:
+
+```{r water_function, echo = TRUE, eval = FALSE}
+## Water
+water_recoded_data <- water_recode(
+  vars = c("wt2", "wt3", "wt3a", "wt3b", "wt4", "wt4a", "wt5", "wt6"),
+  .data = raw_data_clean,
+  na_values = c(88, 99, 888, 999)
+)
+```
+
+which produces a data.frame with the core variables and the following recoded water indicator values:
+
+```{r water_indicators}
+indicators <- paste0(
+  "water_", c("surface", "unimproved", "limited", "basic", "sufficient", "sufficiency"),
+  paste0("sufficient_", c("reasons", 1:3)), "collector", 
+  paste0("collector_", c("men", "women", "boys", "girls", "others")),
+  "collection_time", "filter_use", "filter_adequate"
+)
+
+desc <- c(
+  "Surface water",
+  "Unimproved water source",
+  "Improved but limited water source",
+  "Basic water source",
+  "Sufficient water source",
+  "Is water sufficient?",
+  "Reasons for not being sufficient - water not available at the source",
+  "Reasons for not being sufficient - water is too expensive",
+  "Reasons for not being sufficient - source not accessible",
+  "Water collector of the household",
+  "Water collector - men",
+  "Water collector - women",
+  "Water collector - boys",
+  "Water collector - girls",
+  "Water collector - other",
+  "Water collection time",
+  "Water filter used",
+  "Water filter used is adequate"
+)
+
+data.frame(indicators, desc) |>
+  knitr::kable(
+    col.names = c("Indicator variable", "Indicator description")
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = c("striped", "bordered"),
+    position = "center",
+    full_width = FALSE,
+    font_size = 16
+  )
+```
+
+#### Sanitation
+
+```r
+################################################################################
+#
+#' 
+#' Process and recode sanitation data/indicators
+#'
+#' Relevant variables:
+#'
+#'   lusd1 - Does the family in this household use a latrine? integer variables
+#'     for the following categorical values:
+#'     
+#'     1=Yes; 
+#'     2=No
+#'
+#'   lusd2 - Do you share this latrine with other families? integer variables
+#'     for the following categorical values:
+#'
+#'     1=Yes; 
+#'     2=No
+#'
+#'   lusd3 - How many families use this latrine? text entry
+#'
+#'   lusd4- What type of latrine does this household own? integer variables
+#'     for the following categorical values:
+#'
+#'     1=Toilet with flush; 
+#'     2=Toilet without flush; 
+#'     3=Improved latrine; 
+#'     4=Traditional improved latrine; 
+#'     5=Unimproved latrine; 
+#'     6=Do not have a latrine/open defecation; 
+#'     88=Don't know; 
+#'     99=No response
+#'
+#'   lusd5 - Does this latrine have a lid? integer variables for the following
+#'     categorical values:
+#'
+#'     1=Yes; 
+#'     2=No
+#'
+#'  lusd6 - Where is the latrine located? integer variables for the following
+#'    categorical values:
+#'
+#'    1=In the house; 
+#'    2=In the yard; 
+#'    3=In another place; 
+#'    88=Don't know; 
+#'    99=No response
+#'
+#'   lusd7 - Are there members of this family who defecate in the garden/farm 
+#'     where you cultivate your agricultural products to eat? integer variables
+#'     for the following categorical values:
+#'
+#'     1=Yes; 
+#'     2=No
+#'
+#'   lusd8 - Have you seen anyone in your family defecate in the open in the 
+#'     last 7 days? integer veriable for the following categorical values:
+#'
+#'     1=Yes; 
+#'     2=No
+#'     
+#
+################################################################################
+
+## Recode responses to specific question ---------------------------------------
+
+san_recode_response <- function(x, na_values) {
+  ifelse(x %in% na_values, NA, x)
+}
+
+## Recode responses to multiple questions --------------------------------------
+
+san_recode_responses <- function(vars, .data, na_values) {
+  x <- .data[vars]
+  
+  san_df <- apply(
+    X = x,
+    MARGIN = 2,
+    FUN = san_recode_response,
+    na_values = na_values,
+    simplify = TRUE
+  ) |>
+    data.frame()
+  
+  san_df[ , paste0("lusd", c(1:2, 5, 7, 8))] <- ifelse(
+    san_df[ , paste0("lusd", c(1:2, 5, 7, 8))] == 2, 0, 1
+  )
+  
+  san_df
+}
+
+################################################################################
+#
+#'
+#' Sanitation ladder
+#' 
+#'   Open defecation
+#'   Unimproved sanitation facilities
+#'   Improved but limited sanitation facilities
+#'   Basic sanitation facilities
+#' 
+#
+################################################################################
+
+san_recode_open <- function(vars, .data) {
+  x <- .data[vars]
+  
+  ifelse(x[[vars[1]]] == 0 | is.na(x[[vars[2]]]), 1, 0)
+}
+
+san_recode_unimproved <- function(vars, .data) {
+  x <- .data[[vars]]
+  
+  ifelse(x == 5, 1, 0)
+}
+
+san_recode_limited <- function(vars, .data) {
+  x <- .data[vars]
+  
+  ifelse(x[[vars[1]]] != 5 & x[[vars[2]]] == 1, 1, 0)
+}
+
+san_recode_basic <- function(vars, .data) {
+  x <- .data[vars]
+  
+  ifelse(x[[vars[1]]] == 5 & x[[vars[2]]] != 1, 1, 0)
+}
+
+
+################################################################################
+#
+#'
+#' Overall recode function
+#'
+#
+################################################################################
+
+san_recode <- function(vars, .data, na_values) {
+  core_vars <- get_core_variables(raw_data_clean = .data)
+  
+  san_df <- san_recode_responses(
+    vars = vars, 
+    .data = .data, 
+    na_values = na_values
+  )
+  
+  recoded_vars <- data.frame(
+    san_open = san_recode_open(vars = c("lusd1", "lusd4"), .data = san_df),
+    san_unimproved = san_recode_unimproved(vars = "lusd4", .data = san_df),
+    san_limited = san_recode_limited(vars = c("lusd2", "lusd4"), .data = san_df),
+    san_basic = san_recode_basic(vars = c("lusd2", "lusd4"), .data = san_df),
+    san_open_garden = san_df[["lusd7"]],
+    san_open_past = san_df[["lusd8"]]
+  )
+  
+  data.frame(core_vars, recoded_vars)
+}
+```
+The first two functions recodes the various questions in the sanitation indicator set. The next four functions recodes each of the four JMP water ladder indicators based on WHO and UNICEF Joint Monitoring Programme official guidance[^7]. The final function provides overall recoding and concatenates the various sanitation indicators with the core variables.
+
+To get the final recoded sanitation dataset, the following call is performed:
+
+```{r san_function, echo = TRUE, eval = FALSE}
+## Sanitation
+san_recoded_data <- san_recode(
+  vars = paste0("lusd", 1:8),
+  .data = raw_data_clean,
+  na_values = c(8, 9, 88, 99, 888, 999)
+)
+```
+
+which produces a data.frame with the core variables and the following recoded sanitation indicator values:
+
+```{r sanitation_indicators}
+indicators <- paste0(
+  "san_", c("open", "unimproved", "limited", "basic", "open_garden", "open_past")
+)
+
+desc <- c(
+  "Open defecation",
+  "Unimproved sanitation facility",
+  "Improved but limited sanitation facility",
+  "Basic sanitation facility",
+  "Has someone in household defecated in the open in the garden where food is grown?",
+  "Has someone in household defecated in the open in the past?"
+)
+
+data.frame(indicators, desc) |>
+  knitr::kable(
+    col.names = c("Indicator variable", "Indicator description")
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = c("striped", "bordered"),
+    position = "center",
+    full_width = FALSE,
+    font_size = 16
+  )
+```
+
+#### Hygiene
+
+```r
+################################################################################
+#
+#'
+#' Recode hygiene indicators/data
+#' 
+#' lusd9, lusd10, lusd11
+#' caha1, caha2, caha2_other, caha3
+#' 
+#'
+#
+################################################################################
+
+## Recode responses to specific questions --------------------------------------
+
+hygiene_recode_response <- function(x, na_values) {
+  ifelse(x %in% na_values, NA, x)
+}
+
+## Recode responses to multiple questions --------------------------------------
+
+hygiene_recode_responses <- function(vars, .data, na_values) {
+  x <- .data[vars]
+  
+  apply(
+    X = x,
+    MARGIN = 2,
+    FUN = hygiene_recode_response,
+    na_values = na_values,
+    simplify = TRUE
+  ) |>
+    data.frame() |>
+    (\(x) { names(x) <- vars; x } )()
+}
+
+## Recode response to select multiple events of handwashing --------------------
+
+hygiene_recode_events <- function(vars, .data, fill, na_rm = FALSE, prefix) {
+  x <- .data[[vars]]
+  
+  split_select_multiples(
+    x = x, 
+    fill = fill, 
+    na_rm = na_rm, 
+    prefix = prefix
+  )
+}
+
+## Overall recode function -----------------------------------------------------
+
+hygiene_recode <- function(vars, .data, na_values) {
+  core_vars <- get_core_variables(raw_data_clean = .data)
+  
+  hygiene_df <- hygiene_recode_responses(
+    vars = vars,
+    .data = .data,
+    na_values = na_values
+  )
+  
+  recoded_vars <- data.frame(
+    hygiene_wash_recent = ifelse(hygiene_df[[vars[1]]] == 2, 0, 1),
+    hygiene_recode_events(
+      vars = vars[2],
+      .data = hygiene_df,
+      fill = 1:6,
+      na_rm = FALSE,
+      prefix = "handwash_event"
+    ),
+    hygiene_wash_appropriate = ifelse(hygiene_df[[vars[3]]] == 2, 0, 1),
+    hygiene_child_defecation = ifelse(hygiene_df[[vars[4]]] %in% 1:2, 1, 0),
+    hygiene_child_disposal = ifelse(hygiene_df[[vars[5]]] %in% c(1, 7), 1, 0),
+    hygiene_child_diaper = ifelse(hygiene_df[[vars[6]]] == 1, 1, 0)
+  )
+  
+  data.frame(core_vars, recoded_vars)
+} 
+```
+
+The first two functions recodes responses to the hygiene questions. The final function provides overall recoding and concatenates the various hygiene indicators with the core variables.
+
+To get the final recoded hygiene dataset, the following call is performed:
+
+```{r hygiene_function, echo = TRUE, eval = FALSE}
+## Hygiene
+hygiene_recoded_data <- hygiene_recode(
+  vars = c(paste0("caha", 1:3), paste0("lusd", 9:11)),
+  .data = raw_data_clean,
+  na_values = c(8, 9, 88, 99)
+)
+```
+
+which produces a data.frame with the core variables and the following recoded hygiene indicator values:
+
+```{r hygiene_indicators}
+indicators <- paste0(
+  "hygiene_", c("wash_recent", paste0("event_", 1:6), "wash_appropriate", "child_defecation", "child_disposal", "child_diaper")
+)
+
+desc <- c(
+  "Washed hands within the last day",
+  "Handwashing event - after using latrine/defecation",
+  "Handwashing event - after cleaning up faeces of children",
+  "Handwashing event - before preparing food",
+  "Handwashing event - before giving food to children",
+  "Handwashing event - before eating",
+  "Handwashing event - other",
+  "Handwashing with soap or ash",
+  "Appropriate location for child defecation",
+  "Appropriate disposal of child's faeces",
+  "Appropriate cleaning/washing of child's soiled diapers"
+)
+
+data.frame(indicators, desc) |>
+  knitr::kable(
+    col.names = c("Indicator variable", "Indicator description")
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = c("striped", "bordered"),
+    position = "center",
+    full_width = FALSE,
+    font_size = 16
+  )
+```
+
 ### Child development
 
+```r
+################################################################################
+#
+#'
+#' Recode child development indicators
+#' 
+#
+################################################################################
+
+## Recode responses to individual development indicator questions --------------
+
+dev_recode_var <- function(x, na_values) {
+  ifelse(
+    x %in% na_values, NA,
+    ifelse(
+      x == 2, 0, 1
+    )
+  )
+}
+
+## Recode responses to multiple development indicator questions ----------------
+
+dev_recode_vars <- function(vars, .data, na_values) {
+  vars <- .data[vars]
+  
+  apply(
+    X = vars,
+    MARGIN = 2,
+    FUN = dev_recode_var,
+    na_values = na_values,
+    simplify = TRUE
+  ) |>
+    data.frame() |>
+    (\(x) { names(x) <- c("see", "hear"); x })()
+}
+
+## Overall recode function -----------------------------------------------------
+
+dev_recode <- function(vars, .data, na_values = c(88, 99)) {
+  core_vars <- get_core_variables(raw_data_clean = .data)
+  
+  recoded_vars <- dev_recode_vars(
+    vars = vars,
+    .data = .data,
+    na_values = na_values
+  )
+  
+  data.frame(core_vars, recoded_vars)
+}
+```
+
+The first two functions recodes responses to the different child development indicators. The final function provides overall recoding and concatenates the various child development indicators with the core variables.
+
+To get the final recoded child development dataset, the following call is performed:
+
+```{r dev_function, echo = TRUE, eval = FALSE}
+## Development milestones
+dev_recoded_data <- dev_recode(
+  vars = c("des1", "des2"),
+  .data = raw_data_clean,
+  na_values = c(88, 99)
+)
+```
+
+which produces a data.frame with the core variables and the following recoded child development indicator values:
+
+```{r dev_indicators}
+indicators <- c("see", "hear")
+
+desc <- c(
+  "When can a child see?",
+  "When can a child hear?"
+)
+
+data.frame(indicators, desc) |>
+  knitr::kable(
+    col.names = c("Indicator variable", "Indicator description")
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = c("striped", "bordered"),
+    position = "center",
+    full_width = FALSE,
+    font_size = 16
+  )
+```
+
 ### Pica
+
+```r
+################################################################################
+#
+#'
+#' Recode pica
+#'
+#
+################################################################################
+
+## Recode responses to specific pica questions ---------------------------------
+
+pica_recode_var <- function(x, na_values) {
+  ifelse(x %in% na_values, NA, x)
+}
+
+## Recode responses to all pica questions --------------------------------------
+
+pica_recode_vars <- function(vars, .data, na_values) {
+  vars <- .data[vars]
+  
+  apply(
+    X = vars,
+    MARGIN = 2,
+    FUN = pica_recode_var,
+    na_values = na_values,
+    simplify = TRUE
+  ) |>
+    data.frame()
+}
+
+## Recode pica diagnosis -------------------------------------------------------
+
+pica_recode_diagnosis <- function(x) {
+  ifelse(x >= 3, 1, 0)
+}
+
+## Recode pica frequency -------------------------------------------------------
+
+pica_recode_frequency <- function(x) {
+  pica_frequencies <- spread_vector_to_columns(
+    x = x,
+    fill = 1:5,
+    na_rm = FALSE,
+    prefix = "pica_frequency"
+  )
+}
+
+## Recode the response to pica knowledge ---------------------------------------
+
+pica_recode_response <- function(x) {
+  pica_response <- spread_vector_to_columns(
+    x = x,
+    fill = 1:5,
+    na_rm = FALSE,
+    prefix = "pica_response"
+  )
+}
+
+## Overall recode function -----------------------------------------------------
+
+pica_recode <- function(vars, .data, na_values) {
+  core_vars <- get_core_variables(raw_data_clean = .data)
+  
+  pica_df <- pica_recode_vars(
+    vars = vars,
+    .data = .data,
+    na_values = na_values
+  )
+  
+  recoded_vars <- data.frame(
+    pica_probable = pica_recode_diagnosis(x = pica_df[[vars[1]]]),
+    pica_recode_frequency(x = pica_df[[vars[2]]]),
+    pica_recode_response(x = pica_df[[vars[2]]]),
+    pica_perception = pica_df[[vars[3]]]
+  )
+  
+  data.frame(core_vars, recoded_vars)
+}
+```
+
+The first two functions recodes the responses to the different pica indicator questions. The third function recodes responses for a potential pica diagnosis. The fourth question recodes responses to knowledge about pica. The final function provides overall recoding and concatenates the various pica indicators with the core variables.
+
+To get the final recoded pica dataset, the following call is performed:
+
+```{r pica_function, echo = TRUE, eval = FALSE}
+pica_recoded_data <- pica_recode(
+  vars = c("pica1", "pica2", "pica3"),
+  .data = raw_data_clean,
+  na_values = c(8, 9, 88, 99)
+)
+```
+
+which produces a data.frame with the core variables and the following recoded pica indicator values:
+
+```{r pica_indicators}
+indicators <- c(
+  paste0("pica_", c("probable", paste0("frequency_", 1:5), paste0("response_", 1:5), "perception"))
+)
+
+desc <- c(
+  "Pica diagnosis - probable",
+  "Pica frequency in a week - 0 times",
+  "Pica frequency in a week - <1 time per day",
+  "Pica frequency in a week - once per day",
+  "Pica frequency in a week - two to five times per day",
+  "Pica frequency in a week - more than five times per day",
+  "Pica response - stop child from putting dirt in their mouth",
+  "Pica response - remove dirt from the hands/mouth of the child",
+  "Pica response - wash hands of the child with water only",
+  "Pica response - wash hands of the child with water and soap/ash",
+  "Pica response - do not do anything",
+  "Pica perception - is it bad for children to eat dirt?"
+)
+
+data.frame(indicators, desc) |>
+  knitr::kable(
+    col.names = c("Indicator variable", "Indicator description")
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = c("striped", "bordered"),
+    position = "center",
+    full_width = FALSE,
+    font_size = 16
+  )
+```
 
 ### Childhood immunisation
 
 ### Vitamin A supplementation
 
+```r
+################################################################################
+#
+#'
+#' Recode vitamin A indicators
+#'
+#
+################################################################################
+
+## Recode responses to each vitamin A supplementation questions ----------------
+
+vita_recode <- function(.data) {
+  vita_at_least_once <- .data[["vas1"]] |>
+    (\(x) 
+      {
+        ifelse(x %in% 4:5, NA,
+          ifelse(
+            x == 3, 0, 1
+          )
+        )
+      }
+    )()
+  
+  vita2 <- .data[["vas2"]] |>
+    (\(x) 
+     {
+       ifelse(x %in% 4:5, NA,
+              ifelse(
+                x == 3, 0, 1
+              )
+       )
+    }
+    )() |>
+    spread_vector_to_columns(
+      fill = 0:2,
+      na_rm = FALSE, prefix = "vita"
+    )
+  
+  data.frame(vita_at_least_once, vita2)
+}
+
+## Recode responses to the deworming indicator question ------------------------
+
+worm_recode <- function(.data) {
+  ifelse(
+    .data[["vas3"]] == 8, NA,
+    ifelse(
+      .data[["vas3"]] == 2, 0, 1
+    )
+  )
+}
+
+## Recode both vitamin A and deworming indicators ------------------------------
+
+vas_recode <- function(.data) {
+  core_vars <- get_core_variables(raw_data_clean = .data)
+  
+  recoded_vars <- data.frame(
+    vita_recode(.data),
+    deworm = worm_recode(.data)
+  )
+  
+  data.frame(core_vars, recoded_vars)
+}
+```
+
+The first function recodes vitamin A supplementation coverage indicators. The second function recodes the deworming coverage indicators. The final function provides overall recoding and concatenates the vitamin A supplementation and deworming coverage indicators with the core variables.
+
+To get the final recoded vitamin A supplementation and deworming coverage dataset, the following call is performed:
+
+```{r vas_function, echo = TRUE, eval = FALSE}
+## VAS coverage
+vas_recoded_data <- vas_recode(.data = raw_data_clean)
+```
+
+which produces a data.frame with the core variables and the following recoded vitamin A supplementation and deworming coverage indicator values:
+
+```{r vas_indicators}
+indicators <- c(
+  "vita_at_least_once", "vita_0", "vita_1", "vita_2", "deworm"
+)
+
+desc <- c(
+  "Received at least one dose of vitamin A in the past 6 months",
+  "Received no vitamin A dose in the last 12 months",
+  "Received one vitamain A dose in the last 12 months",
+  "Received two vitamin A doses in the last 12 months",
+  "Received mebendazole/albendazole in the past 6 months"
+)
+
+data.frame(indicators, desc) |>
+  knitr::kable(
+    col.names = c("Indicator variable", "Indicator description")
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = c("striped", "bordered"),
+    position = "center",
+    full_width = FALSE,
+    font_size = 16
+  )
+```
+
 ### Childhood illnesses
+
+#### Fever
+
+```r
+################################################################################
+#
+#'
+#' Recode childhood illness - fever
+#' 
+#' FEVER1	Has **${child_random_name}** been ill with a fever at any time in the 
+#' last  two weeks?
+#' FEVER2	Did you seek advice or treatment for the fever? 
+#' FEVER3	Where did you seek advice or treatment?
+#' FEVER4	Was a malaria rapid diagnostic test (RDT) done to 
+#'   **${child_random_name}**?
+#' FEVER5	Was a laboratory test (blood smear) for diagnosing malaria done for 
+#'   **${child_random_name}**?
+#' FEVER6	Was the result (RDT/Blood smear) positive for malaria?
+#' FEVER6a	What treatment was given to **${child_random_name}**?
+#' FEVER7	Did **${child_random_name}** take the antimalarial treatment the same 
+#'   day or the day after the onset of the fever?
+#' 
+#'
+#
+################################################################################
+
+## Recode responses to specific fever indicator question -----------------------
+
+fever_recode_response <- function(x, na_values, binary = TRUE) {
+  na_type <- get_na_type(x)
+  
+  if (binary) {
+    ifelse(
+      x %in% na_values, na_type,
+      ifelse(x == 2, 0, 1)
+    )
+  } else {
+    ifelse(x %in% na_values, na_type, x)
+  }
+}
+
+## Recode responses to multiple fever indicator questions ----------------------
+
+fever_recode_responses <- function(vars, .data, 
+                                   na_values = c(8, 9, 88, 99, "88", "99"), 
+                                   binary = TRUE) {
+  x <- .data[vars]
+  
+  Map(
+    f = fever_recode_response,
+    x = as.list(x),
+    na_values = rep(list(na_values), length(vars)),
+    binary = c(
+      rep(list(binary), 2), FALSE, rep(list(binary), 3), FALSE, binary
+    ) 
+  ) |>
+    dplyr::bind_cols()
+}
+
+## Recode reported point-of-care for fever -------------------------------------
+
+fever_recode_poc <- function(vars, .data) {
+  x <- .data[[vars]]
+  
+  spread_vector_to_columns(
+    x = x,
+    fill = 1:6,
+    na_rm = FALSE,
+    prefix = "fever_poc"
+  )
+}
+
+## Recode responses to malaria treatment ---------------------------------------
+
+fever_recode_malaria <- function(vars, .data) {
+  x <- .data[[vars]]
+  
+  split_select_multiples(
+    x = x,
+    fill = 1:7,
+    na_rm = FALSE,
+    prefix = "fever_malaria"
+  )
+}
+
+## Overall recode funtion ------------------------------------------------------
+
+fever_recode <- function(vars, .data) {
+  core_vars <- get_core_variables(raw_data_clean = .data)
+  
+  fever_df <- fever_recode_responses(
+    vars = vars, .data = .data
+  )
+  
+  recoded_vars <- data.frame(
+    fever_episode = fever_df[[vars[1]]],
+    fever_treatment = fever_df[[vars[2]]],
+    fever_poc = fever_df[[vars[3]]],
+    fever_recode_poc(
+      vars = vars[3], .data = fever_df
+    ),
+    fever_rdt = fever_df[[vars[4]]],
+    fever_smear = fever_df[[vars[5]]],
+    fever_test = ifelse(
+      fever_df[[vars[4]]] == 1 | fever_df[[vars[5]]] == 1, 1, 0
+    ),
+    fever_test_result = fever_df[[vars[6]]],
+    fever_recode_malaria(
+      vars = vars[7], .data = fever_df
+    ),
+    fever_malaria_intake = fever_df[[vars[8]]]
+  )
+  
+  data.frame(core_vars, recoded_vars)
+}
+```
+
+The first two functions recodes the responses to each of the fever indicator questions. The third function recodes the point-of-care for fever treatment. The fourth function recodes the malaria treatment used. The final function provides overall recoding and concatenates the fever indicators with the core variables.
+
+To get the final recoded fever dataset, the following call is performed:
+
+```{r fever_function, echo = TRUE, eval = FALSE}
+## Treatment-seeking - fever
+fever_recoded_data <- fever_recode(
+  vars = c(paste0("fever", 1:6), "fever6a", "fever7"),
+  .data = raw_data_clean
+)
+```
+
+which produces a data.frame with the core variables and the following recoded fever indicator values:
+
+```{r fever_indicators}
+indicators <- c(
+  paste0("fever_", c("episode", "treatment", "poc", paste0("poc_", c(1:6)), "rdt", "smear", "test", "result", paste0("malaria_", 1:7), "malaria_intake"))
+)
+
+desc <- c(
+  "Fever - period prevalence",
+  "Fever - seek treatment",
+  "Fever point-of-care",
+  "Fever point-of-care - health facility",
+  "Fever point-of-care - traditional healer",
+  "Fever point-of-care - agente polivalente elementar",
+  "Fever point-of-care - family member",
+  "Fever point-of-care - pharmacy",
+  "Fever point-of-care - other",
+  "Fever - RDT for malaria administered",
+  "Fever - malaria smear test administered",
+  "Fever - any malaria test administered",
+  "Fever - malaria prevalence (test result)",
+  "Fever - malaria treatment - coartem (Al) CP",
+  "Fever - malaria treatment - Amodiaquina + Artesanato (ASAQ)",
+  "Fever - malaria treatment - fansidar CP",
+  "Fever - malaria treatment - quinino CP",
+  "Fever - malaria treatment - quinino INJ",
+  "Fever - malaria treatment - artesanato",
+  "Fever - malaria treatment - Paracetamol Comprimido/Xarope",
+  "Fever - malaria treatment intake"
+)
+
+data.frame(indicators, desc) |>
+  knitr::kable(
+    col.names = c("Indicator variable", "Indicator description")
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = c("striped", "bordered"),
+    position = "center",
+    full_width = FALSE,
+    font_size = 16
+  )
+```
+
+#### Diarrhoea
+
+```r
+################################################################################
+#
+#'
+#' Recode childhood illness - diarrhoea
+#' 
+#' ORT1	Has **${child_random_name}** had diarrhoea in the last two weeks?
+#' ORT1a	On the worst of the days, how many times did **${child_random_name}** 
+#'   defecate?
+#' ORT1b	How many days did the diarrhoea of **${child_random_name}** last?
+#' ORT1c	Does **${child_random_name}** still have diarrhoea?
+#' ORT2	Was there blood in the stool?
+#' ORT3	Did you seek treatment for the diarrhoea?
+#' ORT4	Where did you seek advice or treatment?
+#' ORT5a	Did you give **${child_random_name}** a drink made from a packet 
+#'   (oral rehydration salts) or oral mixture?
+#' ORT5b	Did you give **${child_random_name}** a home-made mixture of water, 
+#'   salt, and sugar?
+#' ORT5c	Did you give **${child_random_name}** an appropriate drink for 
+#'   treating diarrhoea (acquired in a pharmacy)?
+#' ORT5d	Was **${child_random_name}** given anything else to treat diarrhoea?
+#' ORT5e	What was given to treat diarrhoea?
+#' ORT5e_specify	Specify other treatment given
+#' ORT6	Did you give **${child_random_name}** the same amount of liquid, more 
+#'   or less than usual?
+#' ORT7	Did you give **${child_random_name}** the same amount of food, more or 
+#'   less than usual?
+#'
+#
+################################################################################
+
+## Recode responses to specific diarrhoea indicator question -------------------
+
+dia_recode_response <- function(x, na_values, binary = TRUE) {
+  na_type <- get_na_type(x)
+  
+  if (binary) {
+    ifelse(
+      x %in% na_values, na_type,
+      ifelse(x == 2, 0, 1)
+    )
+  } else {
+    ifelse(x %in% na_values, na_type, x)
+  }
+}
+
+## Recode responses to multiple diarrhoea indicator questions ------------------
+
+dia_recode_responses <- function(vars, .data, 
+                                 na_values = c(list(c(8, 9, 88, 99)),
+                                               rep(list(c(88, 99)), 2),
+                                               rep(list(c(8, 9, 88, 99)), 8),
+                                               list(c("88", "99")),
+                                               rep(list(c(8, 9, 88, 99)), 2)),
+                                 binary = TRUE) {
+  x <- .data[vars]
+  
+  Map(
+    f = dia_recode_response,
+    x = as.list(x),
+    na_values = na_values,
+    binary = c(
+      binary, rep(list(FALSE), 2), 
+      rep(list(binary), 3),
+      FALSE,
+      rep(list(binary), 4),
+      rep(list(FALSE), 3)
+    ) 
+  ) |>
+    dplyr::bind_cols()
+}
+
+
+################################################################################
+#
+#'
+#' Diagnose diarrhoea
+#'
+#
+################################################################################
+
+dia_recode_diagnosis <- function(vars = c(paste0("ort1", c("", letters[1:3])), 
+                                          "ort2"), 
+                                 .data) {
+  x <- .data[vars]
+  
+  ifelse(
+    x[[vars[1]]] == 1 & x[[vars[2]]] > 2 & 
+      (x[[vars[3]]] > 2 | x[[vars[4]]] == 1 | x[[vars[5]]] == 1), 1, 0
+  )
+}
+
+################################################################################
+#
+#'
+#' Diarrhoea treatment point of care
+#'
+#
+################################################################################
+
+dia_recode_poc <- function(vars = "ort4", .data) {
+  x <- .data[[vars]]
+  
+  spread_vector_to_columns(
+    x = x,
+    fill = 1:6,
+    na_rm = FALSE,
+    prefix = "diarrhoea_poc"
+  )
+}
+
+## Recode ORS use --------------------------------------------------------------
+
+dia_recode_ors <- function(vars = paste0("ort5", letters[1:3]), .data) {
+  x <- .data[vars]
+  
+  ifelse(x[[vars[1]]] == 1 | x[[vars[2]]] == 1 | x[[vars[3]]] == 1, 1, 0)
+}
+
+################################################################################
+#
+#'
+#' Diarrhoea treatment
+#'
+#
+################################################################################
+
+dia_recode_treatment <- function(vars = "ort5e", .data) {
+  x <- .data[[vars]]
+  
+  split_select_multiples(
+    x = x,
+    fill = 1:10,
+    na_rm = FALSE,
+    prefix = "diarrhoea_treatment"
+  )
+}
+
+################################################################################
+#
+#'
+#' Diarrhoea liquids intake
+#'
+#
+################################################################################
+
+dia_recode_liquids <- function(vars = "ort6", .data,
+                               label = c("nothing", "much_less", 
+                                         "less", "same", "more")) {
+  x <- .data[[vars]]
+  
+  data.frame(
+    diarrhoea_liquids = x,
+    diarrhoea_liquids_adequate = ifelse(x == 5, 1, 0),
+    spread_vector_to_columns(
+      x = x,
+      fill = 1:5,
+      na_rm = FALSE,
+      prefix = "diarrhoea_liquids"
+    ) |>
+      (\(x) { names(x) <- paste0("diarrhoea_liquids_", label); x } )()
+  )
+}
+
+################################################################################
+#
+#'
+#' Diarrhoea foods intake
+#'
+#
+################################################################################
+
+dia_recode_foods <- function(vars = "ort7", .data,
+                               label = c("nothing", "much_less", 
+                                         "less", "same", "more")) {
+  x <- .data[[vars]]
+  
+  data.frame(
+    diarrhoea_foods = x,
+    diarrhoea_foods_adequate = ifelse(x %in% 4:5, 1, 0),
+    spread_vector_to_columns(
+      x = x,
+      fill = 1:5,
+      na_rm = FALSE,
+      prefix = "diarrhoea_foods"
+    ) |>
+      (\(x) { names(x) <- paste0("diarrhoea_foods_", label); x } )()
+  )
+}
+
+################################################################################
+#
+#'
+#' Recode diarrhoea indicators
+#'
+#
+################################################################################
+
+dia_recode <- function(vars, .data) {
+  core_vars <- get_core_variables(raw_data_clean = .data)
+  
+  dia_df <- dia_recode_responses(
+    vars = vars, .data = .data
+  )
+  
+  recoded_vars <- data.frame(
+    diarrhoea_episode = dia_recode_diagnosis(.data = dia_df),
+    diarrhoea_treatment = dia_df[[vars[6]]],
+    dia_recode_poc(.data = dia_df),
+    diarroea_treatment_ors = dia_recode_ors(.data = dia_df),
+    dia_recode_treatment(.data = dia_df),
+    dia_recode_liquids(.data = dia_df),
+    dia_recode_foods(.data = dia_df)
+  )
+  
+  data.frame(core_vars, recoded_vars)
+}
+```
+
+The first two functions recodes responses to each of the diarrhoea indicator questions. The third function recodes respective questions to diagnose probable diarrhoea. The fourth function recodes point-of-care for diarrhoea treatment. The fifth function recodes use of oral rehydration solution (ORS). The sixth function recodes treatment modalities employed for diarrhoea. The seventh function recodes liquid intake behaviour during diarrhoea episode. The eighth function recodes food intake behaviour during diarrhoea episode. The final function provides overall recoding and concatenates the diarrhoea indicators with the core variables.
+
+To get the final recoded diarrhoea dataset, the following call is performed:
+
+```{r dia_function, echo = TRUE, eval = FALSE}
+## Treatment-seeking - diarrhoea
+diarrhoea_recoded_data <- dia_recode(
+  vars = c("ort1", paste0("ort1", letters[1:3]), paste0("ort", 2:4), 
+           paste0("ort5", letters[1:5]), "ort6", "ort7"),
+  .data = raw_data_clean
+)
+```
+
+which produces a data.frame with the core variables and the following recoded diarrhoea indicator values:
+
+```{r dia_indicators}
+indicators <- c(
+  paste0("diarrhoea_", c("episode", "treatment", paste0("poc_", 1:6), paste0("treatment_", c("ors", 1:10)), c("liquids", paste0("liquids_", c("adequate", "nothing", "much_less", "less", "same", "more")), c("foods", paste0("foods_", c("adequate", "nothing", "much_less", "less", "same", "more"))))))
+)
+
+desc <- c(
+  "Diarrhoea - period prevalence",
+  "Diarrhoea - seek treatment",
+  "Diarrhoea point-of-care - health facility",
+  "Diarrhoea point-of-care - traditional healer",
+  "Diarrhoea point-of-care - agente polivalente elementar",
+  "Diarrhoea point-of-care - family member",
+  "Diarrhoea point-of-care - pharmacy",
+  "Diarrhoea point-of-care - other",
+  "Diarrhoea treatment with ORS",
+  "Diarrhoea treatment - pills/syrup",
+  "Diarrhoea treatment - injections",
+  "Diarrhoea treatment - intravenous serum",
+  "Diarrhoea treatment - rice water",
+  "Diarrhoea treatment - cereal pap",
+  "Diarrhoea treatment - tea made of herbs and roots",
+  "Diarrhoea treatment - powdered fresh milk",
+  "Diarrhoea treatment - tea/fruit juice/coconut milk",
+  "Diarrhoea treatment - homemade remedy",
+  "Diarrhoea treatment - other",
+  "Diarrhoea - liquids intake",
+  "Diarrhoea - liquids intake - adequate",
+  "Diarrhoea - liquids intake - nothing",
+  "Diarrhoea - liquids intake - much less",
+  "Diarrhoea - liquids intake - less",
+  "Diarrhoea - liquids intake - same",
+  "Diarrhoea - liquids intake - more",
+  "Diarrhoea - foods intake",
+  "Diarrhoea - foods intake - adequate",
+  "Diarrhoea - foods intake - nothing",
+  "Diarrhoea - foods intake - much less",
+  "Diarrhoea - foods intake - less",
+  "Diarrhoea - foods intake - same",
+  "Diarrhoea - foods intake - more"
+)
+
+data.frame(indicators, desc) |>
+  knitr::kable(
+    col.names = c("Indicator variable", "Indicator description")
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = c("striped", "bordered"),
+    position = "center",
+    full_width = FALSE,
+    font_size = 16
+  )
+```
+
+#### Respiratory tract infection
+
+```r
+################################################################################
+#
+#'
+#' Recode childhood illness - respiratory tract infection
+#' 
+#' RI1	Has **${child_random_name}** had a cough or difficulty in breathing in 
+#'   the last two weeks?
+#' RI2	Did you seek advice or treatment for the breathing problem? 
+#' RI3	Where did you seek advice or treatment?
+#' CH1	Has **${child_random_name}** had a cough in the last two weeks?
+#' CH1a	When **${child_random_name}** had a cough was it accompanied by fever?
+#' CH2	When **${child_random_name}** had a cough, did he/she breathe more 
+#'   rapidly than usual, with short and rapid breaths?
+#' CH3	Did you seek advice or treatment for the cause of the cough?
+#' CH4	Where did you seek advice or treatment?
+#' CH5	Was **${child_random_name}** given any medicine to treat his/her 
+#'   illness?
+#' CH5a	What medicine was given to **${child_random_name}**
+#' CH5a_other	Specify other medicine given
+#'
+#
+################################################################################
+
+## Recode responses to individual questions ------------------------------------
+
+rti_recode_response <- function(x, na_values, binary = TRUE) {
+  na_type <- get_na_type(x)
+    
+  if (binary) {
+    ifelse(
+      x %in% na_values, na_type,
+      ifelse(x == 2, 0, 1)
+    )
+  } else {
+    ifelse(x %in% na_values, na_type, x)
+  }
+}
+
+## Recode responses to multiple questions --------------------------------------
+
+rti_recode_responses <- function(vars, .data, 
+                                 na_values = c(rep(list(c(8, 9)), 4),
+                                               list(c(88, 99)),
+                                               list(c(8, 9)),
+                                               list(c("88", "99"))),
+                                 binary = TRUE) {
+  x <- .data[vars]
+  
+  Map(
+    f = rti_recode_response,
+    x = as.list(x),
+    na_values = na_values,
+    binary = c(
+      rep(list(binary), 3), 
+      rep(list(FALSE), 2), binary, FALSE
+    ) 
+  ) |>
+    dplyr::bind_cols()
+}
+
+################################################################################
+#
+#'
+#' Diagnose respiratory tract infection
+#'
+#
+################################################################################
+
+rti_recode_diagnosis <- function(vars = c("ch1", "ch1a", "ch2"), 
+                                 .data) {
+  x <- .data[vars]
+  
+  ifelse(
+    x[[vars[1]]] == 1 & (x[[vars[2]]] == 1 | x[[vars[3]]] == 1), 1, 0
+  )
+}
+
+## Recode point-of-care --------------------------------------------------------
+
+rti_recode_poc <- function(vars = "ch4", .data) {
+  x <- .data[[vars]]
+  
+  spread_vector_to_columns(
+    x = x,
+    fill = 1:6,
+    na_rm = FALSE,
+    prefix = "rti_poc"
+  )
+}
+
+## Recode treatment ------------------------------------------------------------
+
+rti_recode_treatment <- function(vars = "ch5a", .data) {
+  x <- .data[[vars]]
+  
+  split_select_multiples(
+    x = x,
+    fill = 1:5,
+    na_rm = FALSE,
+    prefix = "rti_treatment"
+  )
+}
+
+## Overall recode function -----------------------------------------------------
+
+rti_recode <- function(vars, .data) {
+  core_vars <- get_core_variables(raw_data_clean = .data)
+  
+  rti_df <- rti_recode_responses(
+    vars = vars, .data = .data
+  )
+  
+  recoded_vars <- data.frame(
+    rti_episode = rti_recode_diagnosis(.data = rti_df),
+    rti_treatment = rti_df[[vars[4]]],
+    rti_recode_poc(.data = rti_df),
+    rti_recode_treatment(.data = rti_df)
+  )
+  
+  data.frame(core_vars, recoded_vars)
+}
+```
+
+The first two functions recodes the responses for each of the respiratory tract infection questions. The third function diagnoses probable respiratory tract infection. The fourth function recodes point-of-care for respiratory infection. The fifth function recodes treatment given/taken for respiratory tract infection. The final function provides overall recoding and concatenates the respiratory tract infection indicators with the core variables.
+
+To get the final recoded respiratory tract infection dataset, the following call is performed:
+
+```{r rti_function, echo = TRUE, eval = FALSE}
+## Treatment-seeking - respiratory tract infections
+rti_recoded_data <- rti_recode(
+  vars = c("ch1", "ch1a", paste0("ch", 2:5), "ch5a"),
+  .data = raw_data_clean
+)
+```
+
+which produces a data.frame with the core variables and the following recoded respiratory tract infection indicator values:
+
+```{r rti_indicators}
+indicators <- paste0(
+  "rti_", c("episode", "treatment", paste0("poc_", 1:6), paste0("treatment_", 1:5))
+)
+
+desc <- c(
+  "Respiratory tract infection - period prevalence",
+  "Respiratory tract infection - seek treatment",
+  "Respiratory tract infection point-of-care - health facility",
+  "Respiratory tract infection point-of-care - traditional healer",
+  "Respiratory tract infection point-of-care - agente polivalente elementar",
+  "Respiratory tract infection point-of-care - family member",
+  "Respiratory tract infection point-of-care - pharmacy",
+  "Respiratory tract infection point-of-care - other",
+  "Respiratory tract infection treatment - antibiotics",
+  "Respiratory tract infection treatment - Paracetamol/Panadol/Acetaminophen",
+  "Respiratory tract infection treatment - aspirin",
+  "Respiratory tract infection treatment - ibuprofen",
+  "Respiratory tract infection treatment - other"
+)
+
+data.frame(indicators, desc) |>
+  knitr::kable(
+    col.names = c("Indicator variable", "Indicator description")
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = c("striped", "bordered"),
+    position = "center",
+    full_width = FALSE,
+    font_size = 16
+  )
+```
 
 ### Infant and child feeding index
 
@@ -3425,7 +5130,7 @@ which produces a data.frame with the core variables and the following recoded fa
 
 ```{r fp_indicators}
 indicators <- c(
-  paste0("fp_", c("use", "wait", "wait_time", "wait_time_appropriate")),
+  paste0("fp_", c("use", "wait_time", "wait_time_appropriate")),
   paste0("benefit_next_", 1:7),
   paste0("benefit_first_", 1:9),
   paste0("multiparity_danger_", 1:9),
@@ -3433,7 +5138,36 @@ indicators <- c(
 )
 
 desc <- c(
-
+  "Use any family planning method",
+  "Knowledge of ideal waiting time before next pregnancy",
+  "Knowledge of ideal waiting time before next pregnancy is appropriate",
+  "Benefit of waiting before next pregnancy - less risk to the health of the mother",
+  "Benefit of waiting before next pregnancy - less risk to the health of the child",
+  "Benefit of waiting before next pregnancy - avoid poverty",
+  "Benefit of waiting before next pregnancy - more likely that children will be educated",
+  "Benefit of waiting before next pregnancy - other",
+  "Benefit of waiting before next pregnancy - none",
+  "Benefit of waiting before next pregnancy - growth and development of current child",
+  "Benefit of waiting until after 18 years of age - less risk to the health of the mother",
+  "Benefit of waiting until after 18 years of age - less risk to the health of the child",
+  "Benefit of waiting until after 18 years of age - avoid poverty",
+  "Benefit of waiting until after 18 years of age - more likely that children will be educated",
+  "Benefit of waiting until after 18 years of age - other",
+  "Benefit of waiting until after 18 years of age - none",
+  "Benefit of waiting until after 18 years of age - best chances of completing education",
+  "Benefit of waiting until after 18 years of age - avoid maternal mortality/morbidity",
+  "Benefit of waiting until after 18 years of age - give time for woman to grow and mature",
+  "Danger of having 4 children - maternal mortality",
+  "Danger of having 4 children - child mortality",
+  "Danger of having 4 children - poverty",
+  "Danger of having 4 children - decreased chances of children getting education",
+  "Danger of having 4 children - other",
+  "Danger of having 4 children - none",
+  "Danger of having 4 children - maternal morbidity",
+  "Danger of having 4 children - complicated pregnancies",
+  "Danger of having 4 children - it depends",
+  "Knowledge of ideal time to get pregnant after a spontaneous abortion",
+  "Knowledge of ideal time to get pregnant after a sponetaneous aborition is appropriate"
 )
 
 data.frame(indicators, desc) |>
@@ -3463,6 +5197,8 @@ data.frame(indicators, desc) |>
 [^5]: https://www.fao.org/3/i5486e/i5486e.pdf
 
 [^6]: Kroenke K, Spitzer RL, Williams JB. The PHQ-9: validity of a brief depression severity measure. J Gen Intern Med. 2001 Sep;16(9):606-13. doi: 10.1046/j.1525-1497.2001.016009606.x. PMID: 11556941; PMCID: PMC1495268.
+
+[^7]: https://washdata.org/monitoring/drinking-water
 
 <br/>
 <br/>

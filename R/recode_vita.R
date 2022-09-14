@@ -6,6 +6,8 @@
 #
 ################################################################################
 
+## Recode responses to each vitamin A supplementation questions ----------------
+
 vita_recode <- function(.data) {
   vita_at_least_once <- .data[["vas1"]] |>
     (\(x) 
@@ -36,6 +38,7 @@ vita_recode <- function(.data) {
   data.frame(vita_at_least_once, vita2)
 }
 
+## Recode responses to the deworming indicator question ------------------------
 
 worm_recode <- function(.data) {
   ifelse(
@@ -46,6 +49,7 @@ worm_recode <- function(.data) {
   )
 }
 
+## Recode both vitamin A and deworming indicators ------------------------------
 
 vas_recode <- function(.data) {
   core_vars <- get_core_variables(raw_data_clean = .data)
