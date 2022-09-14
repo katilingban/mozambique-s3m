@@ -20,6 +20,8 @@
 #
 ################################################################################
 
+## Recode responses to specific fever indicator question -----------------------
+
 fever_recode_response <- function(x, na_values, binary = TRUE) {
   na_type <- get_na_type(x)
   
@@ -32,6 +34,8 @@ fever_recode_response <- function(x, na_values, binary = TRUE) {
     ifelse(x %in% na_values, na_type, x)
   }
 }
+
+## Recode responses to multiple fever indicator questions ----------------------
 
 fever_recode_responses <- function(vars, .data, 
                                    na_values = c(8, 9, 88, 99, "88", "99"), 
@@ -49,6 +53,7 @@ fever_recode_responses <- function(vars, .data,
     dplyr::bind_cols()
 }
 
+## Recode reported point-of-care for fever -------------------------------------
 
 fever_recode_poc <- function(vars, .data) {
   x <- .data[[vars]]
@@ -61,6 +66,7 @@ fever_recode_poc <- function(vars, .data) {
   )
 }
 
+## Recode responses to malaria treatment ---------------------------------------
 
 fever_recode_malaria <- function(vars, .data) {
   x <- .data[[vars]]
@@ -73,6 +79,7 @@ fever_recode_malaria <- function(vars, .data) {
   )
 }
 
+## Overall recode funtion ------------------------------------------------------
 
 fever_recode <- function(vars, .data) {
   core_vars <- get_core_variables(raw_data_clean = .data)

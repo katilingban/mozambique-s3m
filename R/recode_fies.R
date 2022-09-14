@@ -38,6 +38,8 @@
 #
 ################################################################################
 
+## Recode responses to individual FIES question --------------------------------
+
 fies_recode_response <- function(x, na_values, binary = TRUE) {
   na_type <- get_na_type(x)
   
@@ -51,6 +53,7 @@ fies_recode_response <- function(x, na_values, binary = TRUE) {
   }
 }
 
+## Recode responses to multiple FIES questions ---------------------------------
 
 fies_recode_responses <- function(vars, .data, 
                                   na_values = c(8, 9), 
@@ -66,6 +69,7 @@ fies_recode_responses <- function(vars, .data,
     dplyr::bind_cols()
 }
 
+## Calculate FIES score --------------------------------------------------------
 
 fies_calculate_score <- function(fies_df, na_rm = FALSE, add = TRUE) {
   fies_score <- rowSums(fies_df, na.rm = na_rm)
@@ -78,6 +82,8 @@ fies_calculate_score <- function(fies_df, na_rm = FALSE, add = TRUE) {
   
   fies_score
 }
+
+## Overall recode function -----------------------------------------------------
 
 fies_recode <- function(vars = paste0("fies0", 1:8), 
                         .data, 

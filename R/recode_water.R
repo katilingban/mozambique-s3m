@@ -82,9 +82,13 @@
 #
 ################################################################################
 
+## Recode responses from a specific question -----------------------------------
+
 water_recode_response <- function(x, na_values) {
   ifelse(x %in% na_values, NA, x)
 }
+
+## Recode responses from multiple questions ------------------------------------
 
 water_recode_responses <- function(vars, .data, na_values) {
   x <- .data[vars]
@@ -108,11 +112,16 @@ water_recode_responses <- function(vars, .data, na_values) {
   water_df
 }
 
-
 ################################################################################
 #
 #'
 #' Recode JMP ladder indicators
+#' 
+#'   surface water
+#'   unimproved water source
+#'   improved but limited water source
+#'   basic water source
+#'   sufficient water source
 #'
 #
 ################################################################################
@@ -204,8 +213,6 @@ water_recode_sufficiency <- function(vars, .data,
   )
 }
 
-
-
 ################################################################################
 #
 #'
@@ -220,6 +227,7 @@ water_recode_filter <- function(vars, .data) {
   ifelse(x %in% c(1:3, 5:6), 1, 0)
 }
 
+## Overall recode function -----------------------------------------------------
 
 water_recode <- function(vars, .data, na_values) {
   core_vars <- get_core_variables(raw_data_clean = .data)

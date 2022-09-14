@@ -50,7 +50,7 @@ cat(
   targets::tar_mermaid(
     targets_only = TRUE, 
     names = tidyselect::starts_with(
-      c("hdds", "fcs", "rcsi", "wdds", "mddw", "lcsi", "fies")
+      c("hdds", "fcs", "rcsi", "wdds", "mddw", "lcsi", "fies", "stock")
     )
   ),
   "```",
@@ -165,6 +165,76 @@ cat(
   targets::tar_mermaid(
     targets_only = TRUE, 
     names = tidyselect::starts_with(c("fever", "dia", "rti"))
+  ),
+  "```",
+  sep = "\n"
+)
+```
+
+## Women's diet workflow
+
+```{r women_diet_workflow, echo = FALSE, message = FALSE, results = 'asis'}
+cat(
+  "```mermaid",
+  targets::tar_mermaid(
+    targets_only = TRUE, 
+    names = tidyselect::starts_with(c("mddw", "wdds"))
+  ),
+  "```",
+  sep = "\n"
+)
+```
+
+## Income and occupation workflow
+
+```{r income_workflow, echo = FALSE, message = FALSE, results = 'asis'}
+cat(
+  "```mermaid",
+  targets::tar_mermaid(
+    targets_only = TRUE, 
+    names = tidyselect::starts_with("work")
+  ),
+  "```",
+  sep = "\n"
+)
+```
+
+## Women's empowerment and decision-making
+
+```{r wem_workflow, echo = FALSE, message = FALSE, results = 'asis'}
+cat(
+  "```mermaid",
+  targets::tar_mermaid(
+    targets_only = TRUE, 
+    names = tidyselect::starts_with("wem")
+  ),
+  "```",
+  sep = "\n"
+)
+```
+
+## Water, sanitation, and hygiene workflow
+
+```{r wash_workflow, echo = FALSE, message = FALSE, results = 'asis'}
+cat(
+  "```mermaid",
+  targets::tar_mermaid(
+    targets_only = TRUE, 
+    names = tidyselect::starts_with(c("water", "san", "hygiene"))
+  ),
+  "```",
+  sep = "\n"
+)
+```
+
+## Reproductive health workflow
+
+```{r rh_workflow, echo = FALSE, message = FALSE, results = 'asis'}
+cat(
+  "```mermaid",
+  targets::tar_mermaid(
+    targets_only = TRUE, 
+    names = tidyselect::starts_with(c("rh", "pmtct", "nc", "preg", "fp"))
   ),
   "```",
   sep = "\n"

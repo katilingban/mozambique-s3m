@@ -19,6 +19,8 @@
 #
 ################################################################################
 
+## Recode responses to individual reproductive health questions ----------------
+
 rh_recode_response <- function(x, na_values, binary = TRUE) {
   na_type <- get_na_type(x)
   
@@ -31,6 +33,8 @@ rh_recode_response <- function(x, na_values, binary = TRUE) {
     ifelse(x %in% na_values, na_type, x)
   }
 }
+
+## Recode responses to multiple reproductive health questions ------------------
 
 rh_recode_responses <- function(vars, .data,
                                 na_values = rep(list(c(8, 9, 88, 99)), 7),
@@ -47,10 +51,7 @@ rh_recode_responses <- function(vars, .data,
     dplyr::bind_cols()
 }
 
-
-# vars <- c(paste0("chm", 1:2), 
-#           paste0("fansidar", 1:2), "fol1", 
-#           paste0("tt", 1:2))
+## Recode responses to malaria during pregnancy indicators ---------------------
 
 rh_recode_malaria <- function(vars, .data) {
   x <- .data[vars]
@@ -64,6 +65,7 @@ rh_recode_malaria <- function(vars, .data) {
   )
 }
 
+## Recode responses to tetanus toxoid coverage during pregnancy indicators -----
 
 rh_recode_tetanus <- function(vars, .data) {
   x <- .data[vars]
@@ -74,6 +76,7 @@ rh_recode_tetanus <- function(vars, .data) {
   data.frame(tt_any, tt_two_more)
 }
 
+## Overall recode function -----------------------------------------------------
 
 rh_recode <- function(vars, .data) {
   core_vars <- get_core_variables(raw_data_clean = .data)

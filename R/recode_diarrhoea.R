@@ -28,6 +28,8 @@
 #
 ################################################################################
 
+## Recode responses to specific diarrhoea indicator question
+
 dia_recode_response <- function(x, na_values, binary = TRUE) {
   na_type <- get_na_type(x)
   
@@ -40,6 +42,8 @@ dia_recode_response <- function(x, na_values, binary = TRUE) {
     ifelse(x %in% na_values, na_type, x)
   }
 }
+
+## Recode responses to multiple diarrhoea indicator questions
 
 dia_recode_responses <- function(vars, .data, 
                                  na_values = c(list(c(8, 9, 88, 99)),
@@ -56,16 +60,13 @@ dia_recode_responses <- function(vars, .data,
     na_values = na_values,
     binary = c(
       binary, rep(list(FALSE), 2), 
-      rep(list(binary), 8), 
+      rep(list(binary), 3),
+      FALSE,
+      rep(list(binary), 4),
       rep(list(FALSE), 3)
     ) 
   ) |>
     dplyr::bind_cols()
-}
-
-
-dia_recode_other <- function(vars, .data) {
-  
 }
 
 

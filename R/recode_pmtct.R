@@ -12,6 +12,8 @@
 #
 ################################################################################
 
+## Recode resposes to a specific PMTCT indicator question ----------------------
+
 pmtct_recode_response <- function(x, na_values, binary = TRUE) {
   na_type <- get_na_type(x)
   
@@ -25,6 +27,7 @@ pmtct_recode_response <- function(x, na_values, binary = TRUE) {
   }
 }
 
+## Recode responses to multiple PMTCT indicator questions ----------------------
 
 pmtct_recode_responses <- function(vars, .data,
                                    na_values = c(8, 9),
@@ -40,6 +43,7 @@ pmtct_recode_responses <- function(vars, .data,
     dplyr::bind_cols()
 }
 
+## Overall recode function -----------------------------------------------------
 
 pmtct_recode <- function(vars, .data) {
   core_vars <- get_core_variables(raw_data_clean = .data)

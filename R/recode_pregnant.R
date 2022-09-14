@@ -24,6 +24,8 @@
 #
 ################################################################################
 
+## Recode responses to a specific pregnancy indicator question -----------------
+
 preg_recode_response <- function(x, na_values, binary = TRUE) {
   na_type <- get_na_type(x)
   
@@ -37,6 +39,7 @@ preg_recode_response <- function(x, na_values, binary = TRUE) {
   }
 }
 
+## Recode responses to multiple pregnancy indicator question -------------------
 
 preg_recode_responses <- function(vars, .data, 
                                   na_values = c(rep(list(c(8, 9)), 2), 
@@ -55,6 +58,7 @@ preg_recode_responses <- function(vars, .data,
     dplyr::bind_cols()
 }
 
+## Recode responses to card retention indicator --------------------------------
 
 preg_recode_card <- function(vars, .data) {
   x <- .data[[vars]]
@@ -66,6 +70,8 @@ preg_recode_card <- function(vars, .data) {
     prefix = "pnc_card"
   )
 }
+
+## Recode responses to pregnancy danger signs indicators -----------------------
 
 preg_recode_danger <- function(vars, .data, na_rm = TRUE, prefix = "danger") {
   x <- .data[[vars]]
@@ -84,6 +90,7 @@ preg_recode_danger <- function(vars, .data, na_rm = TRUE, prefix = "danger") {
   data.frame(danger_df, danger_all, danger_prop)
 }
 
+## Recode responses to what respondent would do if she goes into labour --------
 
 preg_recode_labor <- function(vars, .data, na_rm = FALSE, prefix = "labor") {
   x <- .data[[vars]]
@@ -96,6 +103,8 @@ preg_recode_labor <- function(vars, .data, na_rm = FALSE, prefix = "labor") {
   )
 }
 
+## Recode responses to danger signs for newborn --------------------------------
+
 preg_recode_newborn <- function(vars, .data, na_rm = TRUE, prefix = "newborn") {
   x <- .data[[vars]]
   
@@ -107,6 +116,7 @@ preg_recode_newborn <- function(vars, .data, na_rm = TRUE, prefix = "newborn") {
   )
 }
 
+## Overall recode function -----------------------------------------------------
 
 preg_recode <- function(vars, .data) {
   core_vars <- get_core_variables(raw_data_clean = .data)

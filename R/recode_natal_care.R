@@ -33,6 +33,8 @@
 #
 ################################################################################
 
+## Recode responses to an individual natal care question -----------------------
+
 nc_recode_response <- function(x, na_values, binary = TRUE) {
   na_type <- get_na_type(x)
   
@@ -45,6 +47,8 @@ nc_recode_response <- function(x, na_values, binary = TRUE) {
     ifelse(x %in% na_values, na_type, x)
   }
 }
+
+## Recode responses to multiple natal care questions ---------------------------
 
 nc_recode_responses <- function(vars, .data,
                                 na_values = c(rep(list(c(88, 99)), 2),
@@ -66,10 +70,7 @@ nc_recode_responses <- function(vars, .data,
     dplyr::bind_cols()
 }
 
-# vars <- c(paste0("spc", 1:2), paste0("spc2", letters[1:2]),
-#           paste0("spc", 3:5), "spc6", paste0("spc6", letters[1:2]),
-#           "spc7", paste0("spc7", letters[1:2]), "ther1")
-
+## Recode responses for where most recent birth happened -----------------------
 
 nc_recode_location <- function(vars, .data, 
                                fill = 1:5, na_rm = FALSE, 
@@ -87,6 +88,8 @@ nc_recode_location <- function(vars, .data,
   )
 }
 
+## Recode antenatal care coverage ----------------------------------------------
+
 nc_recode_anc <- function(vars, .data) {
   x <- .data[[vars]]
   
@@ -98,15 +101,18 @@ nc_recode_anc <- function(vars, .data) {
   anc_four
 }
 
+## Recode responses to who assisted in delivery of child -----------------------
 
 nc_recode_assist <- function(vars, .data, 
                              fill = 1:9, na_rm = FALSE, 
                              prefix = "delivery_assist") {
   x <- .data[[vars]]
   
+  x <- stringr::str_remove_all(x, pattern = " 88|88| 99|99")
+  
   data.frame(
     delivery_assist = x,
-    spread_vector_to_columns(
+    split_select_multiples(
       x = x,
       fill = fill,
       na_rm = na_rm,
@@ -115,6 +121,7 @@ nc_recode_assist <- function(vars, .data,
   )
 }
 
+## Recode responses to difficulties during delivery ----------------------------
 
 nc_recode_difficulties <- function(vars, .data,
                                    fill = 1:6, na_rm = FALSE,
@@ -131,6 +138,8 @@ nc_recode_difficulties <- function(vars, .data,
     )
   )
 }
+
+## Recode post-natal care indicators -------------------------------------------
 
 nc_recode_pnc <- function(vars, .data, prefix) {
   x <- .data[vars]
@@ -164,6 +173,7 @@ nc_recode_pnc <- function(vars, .data, prefix) {
   )
 }
 
+## Overall recode function -----------------------------------------------------
 
 nc_recode <- function(vars, .data) {
   core_vars <- get_core_variables(raw_data_clean = .data)

@@ -7,6 +7,8 @@
 #
 ################################################################################
 
+## Recode responses to a food stock indicator question -------------------------
+
 stock_recode_response <- function(x, na_values, binary = TRUE) {
   na_type <- get_na_type(x)
   
@@ -20,6 +22,7 @@ stock_recode_response <- function(x, na_values, binary = TRUE) {
   }
 }
 
+## Recode responses to specific food stock indicator questions -----------------
 
 stock_recode_responses <- function(vars, .data, 
                                    na_values = c(5, 6, 8, 9), 
@@ -35,6 +38,7 @@ stock_recode_responses <- function(vars, .data,
     dplyr::bind_cols()
 }
 
+## Recode responses to amounts of stock for specific food item -----------------
 
 stock_recode_amount <- function(vars, .data, prefix) {
   x <- .data[[vars[2]]]
@@ -52,6 +56,8 @@ stock_recode_amount <- function(vars, .data, prefix) {
     (\(x) { names(x)[1] <- paste0(prefix, "_reserve"); x })()
 }
 
+## Recode responses to amounts of stock for multiple food items ----------------
+
 stock_recode_amounts <- function(vars, .data, 
                                  prefix = c("corn", "rice", "millet", 
                                             "sorghum", "cassava", "sweet_potato", 
@@ -67,6 +73,7 @@ stock_recode_amounts <- function(vars, .data,
     dplyr::bind_cols()
 }
 
+## Overall recode function -----------------------------------------------------
 
 stock_recode <- function(vars, .data, 
                          na_values = c(5, 6, 8, 9), 

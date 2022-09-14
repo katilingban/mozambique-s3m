@@ -10,6 +10,8 @@
 #
 ################################################################################
 
+## Recode responses to the different mosquito net questions --------------------
+
 net_recode_response <- function(x, na_values) {
   ## Net responses with NAs
   net <- ifelse(x %in% na_values, NA, x)
@@ -38,6 +40,7 @@ net_recode_response <- function(x, na_values) {
   )
 }
 
+## Overall recode function -----------------------------------------------------
 
 net_recode <- function(vars, .data, na_values) {
   core_vars <- get_core_variables(raw_data_clean = .data)
