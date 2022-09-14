@@ -11,6 +11,8 @@
 #
 ################################################################################
 
+## Recode responses to pregnancy net indicator ---------------------------------
+
 pnet_recode_response <- function(x, na_values, binary = TRUE) {
   na_type <- get_na_type(x)
   
@@ -24,6 +26,7 @@ pnet_recode_response <- function(x, na_values, binary = TRUE) {
   }
 }
 
+## Recode responses to pregnancy net indicators --------------------------------
 
 pnet_recode_responses <- function(vars, .data,
                                   na_values = c(8, 9),
@@ -39,6 +42,7 @@ pnet_recode_responses <- function(vars, .data,
     dplyr::bind_cols()
 }
 
+## Overall recode function -----------------------------------------------------
 
 pnet_recode <- function(vars, .data) {
   core_vars <- get_core_variables(raw_data_clean = .data)
