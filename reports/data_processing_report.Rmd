@@ -4893,9 +4893,560 @@ data.frame(indicators, desc) |>
 
 ### Food insecurity experience scale
 
+```r
+################################################################################
+#
+#' 
+#' Process and recode Food Insecurity Experience Scale (FIES) data/indicators
+#'
+#' Relevant variables:
+#'
+#'   fies01 You or others in your household worried about not having enough 
+#'     food to eat because of a lack of money or other resources? 1=Yes; 2=No
+#'
+#'   fies02 Still thinking about the last 30 DAYS, was there a time when you 
+#'     or others in your household were unable to eat healthy and nutritious 
+#'     food because of a lack of money or other resources? 1=Yes; 2=No
+#'
+#'   fies03 Was there a time when you or others in your household ate only a 
+#'     few kinds of foods because of a lack of money or other resources?
+#'    1=Yes; 2=No
+#'
+#'   fies04 Was there a time when you or others in your household had to skip 
+#'     a meal because there was not enough money or other resources to get food?
+#'     1=Yes; 2=No
+#'
+#'   fies05 Still thinking about the last 30 DAYS, was there a time when you or 
+#'     others in your household ate less than you thought you should because of 
+#'     a lack of money or other resources? 1=Yes; 2=No
+#'
+#'   fies06 Was there a time when your household ran out of food because of a 
+#'     lack of money or other resources? 1=Yes; 2=No
+#'
+#'   fies07 Was there a time when you or others in your household were hungry 
+#'    but did not eat because there was not enough money or other resources for 
+#'    food? 1=Yes; 2=No
+#'
+#'   fies08 Was there a time when you or others in your hou sehold went without 
+#'     eating for a whole day because of a lack of money or other resources?
+#'     1=Yes; 2=No
+#'     
+#
+################################################################################
+
+## Recode responses to individual FIES question --------------------------------
+
+fies_recode_response <- function(x, na_values, binary = TRUE) {
+  na_type <- get_na_type(x)
+  
+  if (binary) {
+    ifelse(
+      x %in% na_values, na_type,
+      ifelse(x == 2, 0, 1)
+    )
+  } else {
+    ifelse(x %in% na_values, na_type, x)
+  }
+}
+
+## Recode responses to multiple FIES questions ---------------------------------
+
+fies_recode_responses <- function(vars, .data, 
+                                  na_values = c(8, 9), 
+                                  binary = TRUE) {
+  x <- .data[vars]
+  
+  Map(
+    f = fies_recode_response,
+    x = as.list(x),
+    na_values = rep(list(na_values), length(vars)),
+    binary = rep(list(binary), length(vars)) 
+  ) |>
+    dplyr::bind_cols()
+}
+
+## Calculate FIES score --------------------------------------------------------
+
+fies_calculate_score <- function(fies_df, na_rm = FALSE, add = TRUE) {
+  fies_score <- rowSums(fies_df, na.rm = na_rm)
+  
+  if (add) {
+    fies_score <- data.frame(fies_df, fies_score)
+  } else {
+    fies_score
+  }
+  
+  fies_score
+}
+
+## Overall recode function -----------------------------------------------------
+
+fies_recode <- function(vars = paste0("fies0", 1:8), 
+                        .data, 
+                        na_values = c(8, 9), 
+                        na_rm = TRUE) {
+  core_vars <- get_core_variables(raw_data_clean = .data)
+  
+  recoded_vars <- fies_recode_responses(
+    vars = vars,
+    .data = .data,
+    na_values = na_values,
+    binary = TRUE
+  ) |>
+    fies_calculate_score(na_rm = na_rm, add = TRUE)
+  
+  data.frame(core_vars, recoded_vars)
+}
+```
+
+The first two functions recodes responses to the different FIES questions. The third function calculates the overall FIES score. The final function provides overall recoding and concatenates the FIES indicators with the core variables.
+
+To get the final recoded FIES dataset, the following call is performed:
+
+```{r fies_function, echo = TRUE, eval = FALSE}
+## FIES
+fies_recoded_data <- fies_recode(
+  vars = paste0("fies0", 1:8),
+  .data = raw_data_clean
+)
+```
+
+which produces a data.frame with the core variables and the following recoded FIES indicator values:
+
+```{r fies_indicators}
+indicators <- paste0(
+  "fies_0", c(1:8, "score")
+)
+
+desc <- c(
+  "FIES - not having enough food to eat because of lack of money",
+  "FIES - unable to eat healthy and nutritious food because of lack of money",
+  "FIES - ate only a few kinds of foods because of lack of money",
+  "FIES - skip a meal because of lack of money",
+  "FIES - ate less than you should because of lack of money",
+  "FIES - ran out of food because of lack of money",
+  "FIES - hungry but did not eat because of lack of money",
+  "FIES - went without eating for a whole day because of lack of money",
+  "FIES score"
+)
+
+data.frame(indicators, desc) |>
+  knitr::kable(
+    col.names = c("Indicator variable", "Indicator description")
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = c("striped", "bordered"),
+    position = "center",
+    full_width = FALSE,
+    font_size = 16
+  )
+```
+
 ### Food stocks
 
+```r
+################################################################################
+#
+#'
+#' Recode food stocks indicators/data
+#'
+#
+################################################################################
+
+## Recode responses to a food stock indicator question -------------------------
+
+stock_recode_response <- function(x, na_values, binary = TRUE) {
+  na_type <- get_na_type(x)
+  
+  if (binary) {
+    ifelse(
+      x %in% na_values, na_type,
+      ifelse(x == 2, 0, 1)
+    )
+  } else {
+    ifelse(x %in% na_values, na_type, x)
+  }
+}
+
+## Recode responses to specific food stock indicator questions -----------------
+
+stock_recode_responses <- function(vars, .data, 
+                                   na_values = c(5, 6, 8, 9), 
+                                   binary = TRUE) {
+  x <- .data[vars]
+  
+  Map(
+    f = stock_recode_response,
+    x = as.list(x),
+    na_values = rep(list(na_values), length(vars)),
+    binary = as.list(rep(c(binary, FALSE), length(vars) / 2)) 
+  ) |>
+    dplyr::bind_cols()
+}
+
+## Recode responses to amounts of stock for specific food item -----------------
+
+stock_recode_amount <- function(vars, .data, prefix) {
+  x <- .data[[vars[2]]]
+  
+  x <- ifelse(.data[[vars[1]]] == 0, 0, x)
+  
+  reserve_df <- spread_vector_to_columns(
+    x = x,
+    fill = 0:4,
+    na_rm = FALSE,
+    prefix = prefix
+  )
+  
+  data.frame(x, reserve_df) |>
+    (\(x) { names(x)[1] <- paste0(prefix, "_reserve"); x })()
+}
+
+## Recode responses to amounts of stock for multiple food items ----------------
+
+stock_recode_amounts <- function(vars, .data, 
+                                 prefix = c("corn", "rice", "millet", 
+                                            "sorghum", "cassava", "sweet_potato", 
+                                            "legumes")) {
+  Map(
+    f = stock_recode_amount,
+    vars = c(list(vars[1:2]), list(vars[3:4]), list(vars[5:6]), 
+             list(vars[7:8]), list(vars[9:10]), list(vars[11:12]), 
+             list(vars[13:14])),
+    .data = rep(list(.data), length(prefix)),
+    prefix = as.list(prefix)
+  ) |>
+    dplyr::bind_cols()
+}
+
+## Overall recode function -----------------------------------------------------
+
+stock_recode <- function(vars, .data, 
+                         na_values = c(5, 6, 8, 9), 
+                         binary = TRUE,
+                         prefix = c("corn", "rice", "millet", 
+                                    "sorghum", "cassava", "sweet_potato", 
+                                    "legumes")) {
+  core_vars <- get_core_variables(raw_data_clean = .data)
+  
+  stock_df <- stock_recode_responses(
+    vars = vars,
+    .data = .data
+  )
+  
+  recoded_vars <- stock_recode_amounts(
+    vars = vars,
+    .data = stock_df
+  )
+  
+  data.frame(core_vars, recoded_vars)
+}
+```
+
+The first two functions recode responses to questions on whether household has stocks of a set of foods. The next two functions recode responses to questions on the amount of stocks of a set of foods the household keeps. The final function provides overall recoding and concatenates the food stocks indicators with the core variables.
+
+To get the final recoded food stocks dataset, the following call is performed:
+
+```{r stock_function, echo = TRUE, eval = FALSE}
+## Food stocks
+stock_recoded_data <- stock_recode(
+  vars = c("reserve1", "reserve1a", "reserve2", "reserve2a", 
+           "reserve3", "reserve3a", "reserve4", "reserve4a", 
+           "reserve5", "reserve5a", "reserve6", "reserve6a", 
+           "reserve7", "reserve7a"),
+  .data = raw_data_clean
+)
+```
+
+which produces a data.frame with the core variables and the following recoded food stocks indicator values:
+
+```{r stock_indicators}
+indicators <- c(
+  paste0("corn_", c("reserve", 0:4)),
+  paste0("rice_", c("reserve", 0:4)),
+  paste0("millet_", c("reserve", 0:4)),
+  paste0("sorghum_", c("reserve", 0:4)),
+  paste0("cassava_", c("reserve", 0:4)),
+  paste0("sweet_potato_", c("reserve", 0:4)),
+  paste0("legumes_", c("reserve", 0:4))
+)
+
+desc <- c(
+  "Corn stocked",
+  "Corn stock amount - no stock",
+  "Corn stock amount - less than a month",
+  "Corn stock amount - 1-3 months",
+  "Corn stock amount - 4-6 months",
+  "Corn stock amount - more than 6 months",
+  "Rice stocked",
+  "Rice stock amount - no stock",
+  "Rice stock amount - less than a month",
+  "Rice stock amount - 1-3 months",
+  "Rice stock amount - 4-6 months",
+  "Rice stock amount - more than 6 months",
+  "Millet stocked",
+  "Millet stock amount - no stock",
+  "Millet stock amount - less than a month",
+  "Millet stock amount - 1-3 months",
+  "Millet stock amount - 4-6 months",
+  "Millet stock amount - more than 6 months",
+  "Sorghum stocked",
+  "Sorghum stock amount - no stock",
+  "Sorghum stock amount - less than a month",
+  "Sorghum stock amount - 1-3 months",
+  "Sorghum stock amount - 4-6 months",
+  "Sorghum stock amount - more than 6 months",
+  "Cassava stocked",
+  "Cassava stock amount - no stock",
+  "Cassava stock amount - less than a month",
+  "Cassava stock amount - 1-3 months",
+  "Cassava stock amount - 4-6 months",
+  "Cassava stock amount - more than 6 months",
+  "Sweet potato stocked",
+  "Sweet potato stock amount - no stock",
+  "Sweet potato stock amount - less than a month",
+  "Sweet potato stock amount - 1-3 months",
+  "Sweet potato stock amount - 4-6 months",
+  "Sweet potato stock amount - more than 6 months",
+  "Legumes stocked",
+  "Legumes stock amount - no stock",
+  "Legumes stock amount - less than a month",
+  "Legumes stock amount - 1-3 months",
+  "Legumes stock amount - 4-6 months",
+  "Legumes stock amount - more than 6 months"
+)
+
+data.frame(indicators, desc) |>
+  knitr::kable(
+    col.names = c("Indicator variable", "Indicator description")
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = c("striped", "bordered"),
+    position = "center",
+    full_width = FALSE,
+    font_size = 16
+  )
+```
+
+
 ### Pregnancy
+
+```r
+################################################################################
+#
+#'
+#' Recode pregnant women indicators
+#' 
+#' WH1	Are you currently pregnant?
+#' WH2	Do you have a prenatal card?
+#' WH3	Please, can you hand me the card?
+#' WH4	During this pregnancy did you have malaria?
+#' WH5	During this pregnancy did you have anaemia?
+#' WH6	During this pregnancy did you exclude some type of food from your 
+#'   routine diet?
+#' WH6a	Specify types of food excluded from routine diet
+#' WH7	During this pregnancy did you include some type of food from your 
+#'   routine diet?
+#' WH7a	Specify types of food included from routine diet
+#' WH8	After this pregnancy do you want to have more children?
+#' PREG1	Can you please tell me what symptoms are warning signs during 
+#'   pregnancy?
+#' PREG2	What will you do when labor pain begins?
+#' PREG3	Can you tell me what symptoms indicate danger to the health of a 
+#' newborn child?
+#'
+#
+################################################################################
+
+## Recode responses to a specific pregnancy indicator question -----------------
+
+preg_recode_response <- function(x, na_values, binary = TRUE) {
+  na_type <- get_na_type(x)
+  
+  if (binary) {
+    ifelse(
+      x %in% na_values, na_type,
+      ifelse(x == 2, 0, 1)
+    )
+  } else {
+    ifelse(x %in% na_values, na_type, x)
+  }
+}
+
+## Recode responses to multiple pregnancy indicator question -------------------
+
+preg_recode_responses <- function(vars, .data, 
+                                  na_values = c(rep(list(c(8, 9)), 2), 
+                                                list(c(88, 99)), 
+                                                rep(list(c(8, 9)), 5), 
+                                                rep(list(c(88, 99)), 3)), 
+                                  binary = TRUE) {
+  x <- .data[vars]
+  
+  Map(
+    f = preg_recode_response,
+    x = as.list(x),
+    na_values = na_values,
+    binary = as.list(c(rep(binary, 2), FALSE, rep(binary, 5), rep(FALSE, 3)))
+  ) |>
+    dplyr::bind_cols()
+}
+
+## Recode responses to card retention indicator --------------------------------
+
+preg_recode_card <- function(vars, .data) {
+  x <- .data[[vars]]
+  
+  spread_vector_to_columns(
+    x = x,
+    fill = 1:3,
+    na_rm= FALSE, 
+    prefix = "pnc_card"
+  )
+}
+
+## Recode responses to pregnancy danger signs indicators -----------------------
+
+preg_recode_danger <- function(vars, .data, na_rm = TRUE, prefix = "danger") {
+  x <- .data[[vars]]
+  
+  danger_df <- split_select_multiples(
+    x = x,
+    fill = 1:10,
+    na_rm = na_rm,
+    prefix = prefix
+  )
+  
+  danger_all <- rowSums(danger_df, na.rm = FALSE)
+  
+  danger_prop <- ifelse(danger_all == 10, 1, 0)
+  
+  data.frame(danger_df, danger_all, danger_prop)
+}
+
+## Recode responses to what respondent would do if she goes into labour --------
+
+preg_recode_labor <- function(vars, .data, na_rm = FALSE, prefix = "labor") {
+  x <- .data[[vars]]
+  
+  spread_vector_to_columns(
+    x = x,
+    fill = 1:6,
+    na_rm = na_rm,
+    prefix = prefix
+  )
+}
+
+## Recode responses to danger signs for newborn --------------------------------
+
+preg_recode_newborn <- function(vars, .data, na_rm = TRUE, prefix = "newborn") {
+  x <- .data[[vars]]
+  
+  split_select_multiples(
+    x = x,
+    fill = 1:8,
+    na_rm = na_rm,
+    prefix = prefix
+  )
+}
+
+## Overall recode function -----------------------------------------------------
+
+preg_recode <- function(vars, .data) {
+  core_vars <- get_core_variables(raw_data_clean = .data)
+  
+  preg_df <- preg_recode_responses(
+    vars = vars, .data = .data
+  )
+  
+  recoded_vars <- data.frame(
+    preg_card = preg_df[[vars[2]]],
+    preg_recode_card(vars = vars[3], .data = preg_df),
+    preg_malaria = preg_df[[vars[4]]],
+    preg_anaemia = preg_df[[vars[5]]],
+    preg_exclude = preg_df[[vars[6]]],
+    preg_include = preg_df[[vars[7]]],
+    preg_more = preg_df[[vars[8]]],
+    preg_recode_danger(vars = vars[9], .data = preg_df),
+    preg_recode_labor(vars = vars[10], .data = preg_df),
+    preg_recode_newborn(vars = vars[11], .data = preg_df)
+  )
+  
+  data.frame(core_vars, recoded_vars)
+}
+```
+
+The first two functions recode responses to each pregnancy indicator questions. The third function recodes whether respondent has a prenatal card. The fourth function recodes responses to pregnancy danger signs indicators. The fifth function recodes responses to what the respondent would do if she goes into labour. The sixth function recodes responses to newborn danger signs. The final function provides overall recoding and concatenates the pregnancy indicators with the core variables.
+
+To get the final recoded pregnancy dataset, the following call is performed:
+
+```{r preg_function, echo = TRUE, eval = FALSE}
+## Pregnancy
+preg_recoded_data <- preg_recode(
+  vars = c("wh1", "wh2", "wh3", "wh4", "wh5", "wh6", "wh7", 
+           "wh8", "preg1", "preg2", "preg3"),
+  .data = raw_data_clean
+)
+```
+
+which produces a data.frame with the core variables and the following recoded pregnancy indicator values:
+
+```{r preg_indicators}
+indicators <- c(
+  "preg_card", paste0("pnc_card_", 1:3), "preg_malaria", "preg_anaemia", "preg_exclude",
+  "preg_include", "preg_more", paste0("danger_", c(1:10, "all", "prop")), paste0("labor_", 1:6),
+  paste0("newborn", 1:8)
+)
+
+desc <- c(
+  "Pregnancy - prenatal card",
+  "Pregnancy - prenatal card - yes",
+  "Pregnancy - prenatal card - yes, but did not hand the card over",
+  "Pregnancy - prenatal card - no",
+  "Pregnancy - had malaria",
+  "Pregnancy - had anaemia",
+  "Pregnancy - exclude any foods",
+  "Pregnancy - include any foods",
+  "Pregnancy - eat more foods",
+  "Pregnancy - danger sign - bleeding or vaginal fluid",
+  "Pregnancy - danger sign - severe headache",
+  "Pregnancy - danger sign - blurry vision",
+  "Pregnancy - danger sign - swollen hands and feet",
+  "Pregnancy - danger sign - convulsions",
+  "Pregnancy - danger sign - fever",
+  "Pregnancy - danger sign - intense abdominal pain",
+  "Pregnancy - danger sign - loss of consciousness",
+  "Pregnancy - danger sign - fatigue",
+  "Pregnancy - danger sign - accelerated/diminished fetal movement",
+  "Pregnancy - danger sign - reported all danger signs",
+  "Pregnancy - danger sign - reported 8 of 10 danger signs",
+  "Pregnancy - labor - go to the closest hospital",
+  "Pregnancy - labor - aks a nearby relative/family member/neighbour to come help",
+  "Pregnancy - labor - call a traditional birth attendant",
+  "Pregnancy - labor - stay alone with your husband/partner",
+  "Pregnancy - labor - stay all alone",
+  "Pregnancy - labor - other",
+  "Pregnancy - newborn danger sign - difficulty breathing",
+  "Pregnancy - newborn danger sign - jaundice",
+  "Pregnancy - newborn danger sign - poor feeding",
+  "Pregnancy - newborn danger sign - fever",
+  "Pregnancy - newborn danger sign - cold body",
+  "Pregnancy - newborn danger sign - convulsions",
+  "Pregnancy - newborn danger sign - vomiting",
+  "Pregnancy - newborn danger sign - lack of stooling"
+)
+
+data.frame(indicators, desc) |>
+  knitr::kable(
+    col.names = c("Indicator variable", "Indicator description")
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = c("striped", "bordered"),
+    position = "center",
+    full_width = FALSE,
+    font_size = 16
+  )
+```
 
 ### Pre- and post-natal care
 
