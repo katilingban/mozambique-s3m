@@ -4150,6 +4150,401 @@ data.frame(indicators, desc) |>
 
 ### Childhood immunisation
 
+```r
+################################################################################
+#
+#'
+#' Recode immunisation card indicators
+#'
+#'
+#
+################################################################################
+
+## Recode responses to card retention question ---------------------------------
+
+imm_recode_card <- function(.data) {
+  imm_card1 <- .data[["imm1"]] |>
+    (\(x)
+      {
+        ifelse(
+          x %in% c(8, 9), NA,
+            ifelse(
+            x == 2, 0, x 
+          )
+        )
+      }
+     )()  
+  
+  imm_card2 <- .data[["imm2"]] |>
+    (\(x) 
+      {
+        ifelse(
+          x %in% c(88, 99), NA,
+          ifelse(
+            x == 1, 1, 0
+          )
+        )
+      }
+    )()  |>
+    (\(x) ifelse(imm_card1 == 1 & x == 1, 1, 0))()
+
+  data.frame(imm_card1, imm_card2)
+}
+
+
+################################################################################
+#
+#'
+#' Recode immunisation indicators
+#'
+#
+################################################################################
+
+## Recode responses per vaccine ------------------------------------------------
+
+imm_recode_vaccine <- function(vars, .data, imm_label = NULL) {
+  x <- .data[[vars]]
+  
+  imm1 <- x |>
+    (\(x) 
+      {
+        ifelse(
+          x %in% 4:5, NA,
+          ifelse(
+            x == 3, 0, 1
+          )
+        )
+      }
+    )()
+  
+  imm2 <- x |>
+    (\(x) 
+     {
+       ifelse(
+         x %in% 4:5, NA,
+         ifelse(
+           x == 1, 1, 0
+         )
+       )
+    }
+    )()
+  
+  if (!is.null(imm_label)) {
+    imm_label <- paste(imm_label, c("card_recall", "card_only"), sep = "_")
+  } else {
+    imm_label <- paste(vars, c("card_recall", "card_only"), sep = "_")
+  }
+  
+  data.frame(imm1, imm2) |>
+    (\(x) { names(x) <- imm_label; x })()
+}
+
+## Recode responses across multiple vaccines -----------------------------------
+
+imm_recode_vaccines <- function(vars, .data,
+                                imm_label = c("bcg", 
+                                              "opv1", "opv2", "opv3", "opv4",
+                                              "dpt1", "dpt2", "dpt3",
+                                              "rub1", "rub2",
+                                              "pcv1", "pcv2", "pcv3",
+                                              "vorh1", "vorh2")) {
+  imm_df <- lapply(
+    X = vars,
+    FUN = imm_recode_vaccine,
+    .data = .data,
+    imm_label = NULL
+  ) |>
+    dplyr::bind_cols()
+  
+  names(imm_df) <- lapply(
+    X = imm_label, 
+    FUN = paste, 
+    c("card_recall", "card_only"), 
+    sep = "_"
+  ) |>
+    unlist()
+  
+  imm_df
+}
+
+## Recode immunisation coverage indicators -------------------------------------
+
+imm_recode_full <- function(vars, .data) {
+  imm_df <- data.frame(
+    age_months = .data[["age_months"]],
+    imm_recode_vaccines(vars = vars, .data = .data)
+  )
+  
+  imm_full_recall <- with(
+    imm_df,
+    ifelse(
+      age_months < 12 & age_months > 24, NA,
+      ifelse(
+        bcg_card_recall == 1 & 
+          opv3_card_recall == 1 & 
+          dpt3_card_recall == 1 &
+          rub2_card_recall == 1 & 
+          pcv3_card_recall == 1 &
+          vorh2_card_recall == 1, 1, 0
+      )
+    )
+  )
+      
+  imm_full_card <- with(
+    imm_df,
+    ifelse(
+      age_months < 12 & age_months > 24, NA,
+      ifelse(
+        bcg_card_only == 1 & 
+          opv3_card_only == 1 & 
+          dpt3_card_only == 1 &
+          rub2_card_only == 1 & 
+          pcv3_card_only == 1 &
+          vorh2_card_only == 1, 1, 0          
+      )
+    )
+  )
+      
+  imm_appropriate_recall <- with(
+    imm_df,
+    ifelse(
+      age_months >= 0 & age_months < 1.5 & 
+        bcg_card_recall == 1 & opv1_card_recall == 1, 1,
+      ifelse(
+        age_months >= 1.5 & age_months < 2.5 & 
+          bcg_card_recall == 1 & opv1_card_recall == 1 &
+          opv2_card_recall == 1 & dpt1_card_recall == 1 & 
+          pcv1_card_recall == 1 & vorh1_card_recall == 1, 1,
+        ifelse(
+          age_months >= 2.5 & age_months < 3.5 & 
+            bcg_card_recall == 1 & opv1_card_recall == 1 &
+            opv2_card_recall == 1 & opv3_card_recall == 1 &
+            dpt1_card_recall == 1 & dpt2_card_recall == 1 &
+            pcv1_card_recall == 1 & pcv2_card_recall == 1 &
+            vorh1_card_recall == 1 & vorh2_card_recall == 1, 1,
+          ifelse(
+            age_months >= 3.5 & age_months < 9 &
+              bcg_card_recall == 1 & opv1_card_recall == 1 &
+              opv2_card_recall == 1 & opv3_card_recall == 1 & 
+              opv4_card_recall == 1 &
+              dpt1_card_recall == 1 & dpt2_card_recall == 1 &
+              dpt3_card_recall == 1 &
+              pcv1_card_recall == 1 & pcv2_card_recall == 1 &
+              pcv3_card_recall == 1 &
+              vorh1_card_recall == 1 & vorh2_card_recall == 1, 1,
+            ifelse(
+              age_months >= 9 & age_months < 18 & 
+                bcg_card_recall == 1 & opv1_card_recall == 1 &
+                opv2_card_recall == 1 & opv3_card_recall == 1 & 
+                opv4_card_recall == 1 &
+                dpt1_card_recall == 1 & dpt2_card_recall == 1 &
+                dpt3_card_recall == 1 &
+                pcv1_card_recall == 1 & pcv2_card_recall == 1 &
+                pcv3_card_recall == 1 &
+                vorh1_card_recall == 1 & vorh2_card_recall == 1 &
+                rub1_card_recall == 1, 1,
+              ifelse(
+                age_months >= 18 & 
+                  bcg_card_recall == 1 & opv1_card_recall == 1 &
+                  opv2_card_recall == 1 & opv3_card_recall == 1 & 
+                  opv4_card_recall == 1 &
+                  dpt1_card_recall == 1 & dpt2_card_recall == 1 &
+                  dpt3_card_recall == 1 &
+                  pcv1_card_recall == 1 & pcv2_card_recall == 1 &
+                  pcv3_card_recall == 1 &
+                  vorh1_card_recall == 1 & vorh2_card_recall == 1 &
+                  rub1_card_recall == 1 & rub2_card_recall == 1, 1, 0
+              )
+            )
+          )
+        )
+      )
+    )
+  )
+      
+  imm_appropriate_card <- with(
+    imm_df,
+    ifelse(
+      age_months >= 0 & age_months < 1.5 & 
+        bcg_card_only == 1 & opv1_card_only == 1, 1,
+      ifelse(
+        age_months >= 1.5 & age_months < 2.5 &
+          bcg_card_only == 1 & opv1_card_only == 1 &
+          opv2_card_only == 1 & dpt1_card_only == 1 & 
+          pcv1_card_only == 1 & vorh1_card_only == 1, 1,
+        ifelse(
+          age_months >= 2.5 & age_months < 3.5 & 
+            bcg_card_only == 1 & opv1_card_only == 1 &
+            opv2_card_only == 1 & opv3_card_only == 1 &
+            dpt1_card_only == 1 & dpt2_card_only == 1 &
+            pcv1_card_only == 1 & pcv2_card_only == 1 &
+            vorh1_card_only == 1 & vorh2_card_only == 1, 1,
+          ifelse(
+            age_months >= 3.5 & age_months < 9 &
+              bcg_card_only == 1 & opv1_card_only == 1 &
+              opv2_card_only == 1 & opv3_card_only == 1 & 
+              opv4_card_only == 1 &
+              dpt1_card_only == 1 & dpt2_card_only == 1 &
+              dpt3_card_only == 1 &
+              pcv1_card_only == 1 & pcv2_card_only == 1 &
+              pcv3_card_only == 1 &
+              vorh1_card_only == 1 & vorh2_card_only == 1, 1,
+            ifelse(
+              age_months >= 9 & age_months < 18 &
+                bcg_card_only == 1 & opv1_card_only == 1 &
+                opv2_card_only == 1 & opv3_card_only == 1 & 
+                opv4_card_only == 1 &
+                dpt1_card_only == 1 & dpt2_card_only == 1 &
+                dpt3_card_only == 1 &
+                pcv1_card_only == 1 & pcv2_card_only == 1 &
+                pcv3_card_only == 1 &
+                vorh1_card_only == 1 & vorh2_card_only == 1 &
+                rub1_card_only == 1, 1,
+              ifelse(
+                age_months >= 18 & 
+                  bcg_card_only == 1 & opv1_card_only == 1 &
+                  opv2_card_only == 1 & opv3_card_only == 1 & 
+                  opv4_card_only == 1 &
+                  dpt1_card_only == 1 & dpt2_card_only == 1 &
+                  dpt3_card_only == 1 &
+                  pcv1_card_only == 1 & pcv2_card_only == 1 &
+                  pcv3_card_only == 1 &
+                  vorh1_card_only == 1 & vorh2_card_only == 1 &
+                  rub1_card_only == 1 & rub2_card_only == 1, 1, 0
+              )
+            )
+          )
+        )
+      )
+    )
+  )
+
+  data.frame(
+    imm_full_recall, imm_full_card, 
+    imm_appropriate_recall, imm_appropriate_card
+  )
+}
+
+################################################################################
+#
+#'
+#' Overall immunisation recode
+#'
+#
+################################################################################
+
+imm_recode <- function(vars, .data, 
+                       imm_label = c("bcg", "opv1", "opv2", "opv3", "opv4",
+                                     "dpt1", "dpt2", "dpt3", "rub1", "rub2",
+                                     "pcv1", "pcv2", "pcv3", "vorh1", "vorh2")) {
+  core_vars <- get_core_variables(raw_data_clean = .data)
+  
+  imm_card_df <- imm_recode_card(.data = .data)
+  
+  imm_vaccines_df <- imm_recode_vaccines(
+    vars = vars,
+    .data = .data,
+    imm_label = imm_label
+  )
+  
+  imm_coverage_df <- imm_recode_full(
+    vars = vars, .data = .data
+  )
+  
+  data.frame(core_vars, imm_card_df, imm_vaccines_df, imm_coverage_df)
+}
+```
+
+The first function recodes the immunisation card retention indicator. The next two functions recode respones to each childhood immunisation dose in the Mozambique national EPI schedule. The fourth function recodes the indicators on full immunisation for children between 1 - 2 years old (by recall and by card), and age-appropriate immunisation for all children in the sample. The final function provides overall recoding and concatenates the various childhood immunisation indicators with the core variables.
+
+To get the final recoded childhood immunisation dataset, the following call is performed:
+
+```{r epi_function, echo = TRUE, eval = FALSE}
+## Immunisation
+imm_recoded_data <- imm_recode(
+  vars = c(
+    "imm3a", "imm3b", "imm3c", "imm3d", "imm3e", "imm4a", "imm4b", "imm4c", 
+    "imm5", "imm5a", "imm6a", "imm6b", "imm6c", "imm7a", "imm7b"
+  ),
+  .data = raw_data_clean
+)
+```
+
+which produces a data.frame with the core variables and the following recoded childhood immunisation indicator values:
+
+```{r epi_indicators}
+indicators <- c(
+  paste0("imm_card", 1:2), 
+  paste0("bcg_card_", c("recall", "only")),
+  paste0("opv1_card_", c("recall", "only")),
+  paste0("opv2_card_", c("recall", "only")),
+  paste0("opv3_card_", c("recall", "only")),
+  paste0("opv4_card_", c("recall", "only")),
+  paste0("dpt1_card_", c("recall", "only")),
+  paste0("dpt2_card_", c("recall", "only")),
+  paste0("dpt3_card_", c("recall", "only")),
+  paste0("rub1_card_", c("recall", "only")),
+  paste0("rub2_card_", c("recall", "only")),
+  paste0("pcv1_card_", c("recall", "only")),
+  paste0("pcv2_card_", c("recall", "only")),
+  paste0("pcv3_card_", c("recall", "only")),
+  paste0("vorh1_card_", c("recall", "only")),
+  paste0("vorh2_card_", c("recall", "only")),
+  paste0("imm_full_", c("recall", "card")),
+  paste0("imm_appropriate_", c("recall", "card"))
+)
+
+desc <- c(
+  "Ever had an EPI card",
+  "EPI card retention",
+  "Age-appropriate BCG immunisation by card and recall",
+  "Age-appropriate BCG immunisation by card",
+  "Age-appropriate OPV dose 1 immunisaiton by card and recall",
+  "Age-appropriate OPV dose 1 immunisaiton by card",
+  "Age-appropriate OPV dose 2 immunisaiton by card and recall",
+  "Age-appropriate OPV dose 2 immunisaiton by card",
+  "Age-appropriate OPV dose 3 immunisaiton by card and recall",
+  "Age-appropriate OPV dose 3 immunisaiton by card",
+  "Age-appropriate OPV dose 4 immunisaiton by card and recall",
+  "Age-appropriate OPV dose 4 immunisaiton by card",
+  "Age-appropriate DPT dose 1 immunisaiton by card and recall",
+  "Age-appropriate DPT dose 1 immunisaiton by card",
+  "Age-appropriate DPT dose 2 immunisaiton by card and recall",
+  "Age-appropriate DPT dose 2 immunisaiton by card",
+  "Age-appropriate DPT dose 3 immunisaiton by card and recall",
+  "Age-appropriate DPT dose 3 immunisaiton by card",
+  "Age-appropriate measles dose 1 immunisaiton by card and recall",
+  "Age-appropriate measles dose 1 immunisaiton by card",
+  "Age-appropriate measles dose 2 immunisaiton by card and recall",
+  "Age-appropriate measles dose 2 immunisaiton by card",
+  "Age-appropriate PCV dose 1 immunisaiton by card and recall",
+  "Age-appropriate PCV dose 1 immunisaiton by card",
+  "Age-appropriate PCV dose 2 immunisaiton by card and recall",
+  "Age-appropriate PCV dose 2 immunisaiton by card",
+  "Age-appropriate PCV dose 3 immunisaiton by card and recall",
+  "Age-appropriate PCV dose 3 immunisaiton by card",
+  "Age-appropriate VORH dose 1 immunisaiton by card and recall",
+  "Age-appropriate VORH dose 1 immunisaiton by card",
+  "Age-appropriate VORH dose 2 immunisaiton by card and recall",
+  "Age-appropriate VORH dose 2 immunisaiton by card",
+  "Fully immunised children by 1 year by card and recall",
+  "Fully immunised children by 1 year by card",
+  "Age-appropriate immunisation by card and recall",
+  "Age-appropriate immunisation by card"
+)
+
+data.frame(indicators, desc) |>
+  knitr::kable(
+    col.names = c("Indicator variable", "Indicator description")
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = c("striped", "bordered"),
+    position = "center",
+    full_width = FALSE,
+    font_size = 16
+  )
+```
+
 ### Vitamin A supplementation
 
 ```r
