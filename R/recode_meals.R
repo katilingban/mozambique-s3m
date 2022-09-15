@@ -9,6 +9,8 @@
 #
 ################################################################################
 
+## Recode responses to specific child meals question ---------------------------
+
 meal_recode_response <- function(x, na_values, binary = TRUE) {
   na_type <- get_na_type(x)
   
@@ -22,6 +24,7 @@ meal_recode_response <- function(x, na_values, binary = TRUE) {
   }  
 }
 
+## Recode responses to multiple child meals questions --------------------------
 
 meal_recode_responses <- function(vars, .data, 
                                   na_values = 9,
@@ -45,6 +48,7 @@ meal_recode_responses <- function(vars, .data,
     )()
 }
 
+## Recode meal frequency component of ICFI -------------------------------------
 
 meal_calculate_icfi <- function(age_months, meal_frequency) {
   icfi_group <- cut(
@@ -63,6 +67,8 @@ meal_calculate_icfi <- function(age_months, meal_frequency) {
     )
   )
 }
+
+## Overall recode function -----------------------------------------------------
 
 meal_recode <- function(vars, .data) {
   core_vars <- get_core_variables(raw_data_clean = .data)

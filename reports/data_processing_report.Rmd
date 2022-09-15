@@ -4455,7 +4455,7 @@ imm_recode <- function(vars, .data,
 }
 ```
 
-The first function recodes the immunisation card retention indicator. The next two functions recode respones to each childhood immunisation dose in the Mozambique national EPI schedule. The fourth function recodes the indicators on full immunisation for children between 1 - 2 years old (by recall and by card), and age-appropriate immunisation for all children in the sample. The final function provides overall recoding and concatenates the various childhood immunisation indicators with the core variables.
+The first function recodes the immunisation card retention indicator. The next two functions recode respones to each childhood immunisation dose in the Mozambique national EPI schedule. The fourth function recodes the indicators on full immunisation for children between 1 - 2 years old (by recall and by card), and age-appropriate immunisation for all children in the sample based on official WHO guidance[^9]. The final function provides overall recoding and concatenates the various childhood immunisation indicators with the core variables.
 
 To get the final recoded childhood immunisation dataset, the following call is performed:
 
@@ -5285,6 +5285,675 @@ data.frame(indicators, desc) |>
 ```
 
 ### Infant and child feeding index
+
+#### Breastfeeding
+
+```r
+################################################################################
+#
+#'
+#' Recode ICFI - breastfeeding indicators
+#' 
+#' ebf_ever	Was **${child_random_name}** ever breastfed?
+#' ebf_eibf	How long after birth was **${child_random_name}** first put to the 
+#'   breast?
+#' ebf_eibf_hr	Please record "Hours"
+#' ebf_eibf_day	Please record "Days"
+#' ebf_oth_liquid	In the first two days after delivery, was 
+#'   **${child_random_name}** given anything other than breast milk to eat or 
+#'   drink – anything at all like water, infant formula?
+#' bf_yest	Was **${child_random_name}** breastfed yesterday during the day or 
+#'   at night?
+#' bf_bottle	"Did **${child_random_name}** drink anything from a bottle with 
+#'   a nipple yesterday during the day or at night?"
+#' liquid_water	Plain water?
+#' liquid_bms	Infant formula, such as ...?
+#' liquid_bms_num	If “yes”: How many times did **${child_random_name}** drink 
+#'   formula?
+#' liquid_yogurt	Yogurt drinks such as ...?
+#' liquid_yogur_num	If “yes”: How many times did **${child_random_name}** 
+#'   drink yogurt?
+#' liquid_yogurt_sweet	If “yes”: Was the yogurt or were any of the yogurt 
+#'   drinks a sweet or flavoured type of yogurt drink?
+#' liquid_chocolate	Chocolate-flavoured drinks including those made from syrups 
+#'   or powders?
+#' liquid_juice	Fruit juice or fruit-flavoured drinks including those made from 
+#'   syrups or powders?
+#' liquid_drink	Sodas, malt drinks, sports drinks or energy drinks?
+#' liquid_tea	Tea, coffee, or herbal drinks?
+#' liquid_tea_sweet	If “yes”: Was the drink/ Were any of these drinks sweetened?
+#' liquid_broth	Clear broth or clear soup?
+#' liquid_other	Any other liquids?
+#' liquid_other_specify	If “yes”: what was the liquid or what were the liquids?
+#' liquid_other_sweet	If “yes”: Was the drink or were any of these drinks 
+#'   sweetened?
+#'   
+#'
+#
+################################################################################
+
+## Recode responses for specific breastfeeding indicator question --------------
+
+bf_recode_response <- function(x, na_values, binary = TRUE) {
+  na_type <- get_na_type(x)
+  
+  if (binary) {
+    ifelse(
+      x %in% na_values, na_type,
+      ifelse(x == 2, 0, 1)
+    )
+  } else {
+    ifelse(x %in% na_values, na_type, x)
+  }
+}
+
+## Recode responses for multiple breastfeeding indicator questions -------------
+
+bf_recode_responses <- function(vars, .data, 
+                                na_values = c(rep(list(c(8, 9)), 2),
+                                              rep(list(c("88", "99")), 2),
+                                              rep(list(c(8, 9)), 5),
+                                              list(c("88", "99")),
+                                              list(c(8, 9)),
+                                              list(c("88", "99")),
+                                              rep(list(c(8, 9)), 9)),
+                                binary = TRUE) {
+  x <- .data[vars]
+  
+  Map(
+    f = bf_recode_response,
+    x = as.list(x),
+    na_values = na_values,
+    binary = c(
+      list(binary), rep(list(FALSE), 3), rep(list(binary), 5), list(FALSE),
+      list(binary), list(FALSE), rep(list(binary), 9)
+    ) 
+  ) |>
+    dplyr::bind_cols() |>
+    (\(x) 
+      {
+        data.frame(
+          age_months = .data[["age_months"]],
+          x
+        ) 
+      } 
+    )()
+}
+
+## Map breastfeeding indicator variables ---------------------------------------
+
+bf_map_vars <- function(survey_codebook) {
+  survey_codebook |>
+    subset(
+      subset = stringr::str_detect(vars, "ebf_|bf_|liquid_"),
+      select = vars
+    ) |>
+    (\(x) x[["vars"]] )() |>
+    (\(x) x[x != "liquid_other_specify"])()
+}
+
+bf_recode_liquids <- function(vars, .data) {
+  x <- .data[vars]
+  
+  rowSums(x, na.rm = TRUE)
+}
+
+################################################################################
+#
+#'
+#' Recode breastfeeding - Exlusive breastfeeding
+#'
+#
+################################################################################
+
+bf_recode_exclusive <- function(vars = bf_vars_map[c(1, 6:21)], .data) {
+  x <- .data[vars]
+  
+  n_liquids <- x |>
+    subset(select = c(-age_months, -bf_yest)) |>
+    rowSums(na.rm = TRUE)
+  
+  ifelse(
+    x[[vars[1]]] >= 6, NA,
+    ifelse(
+      x[[vars[3]]] == 1 & n_liquids == 0, 1, 0
+    )
+  )
+}
+
+################################################################################
+#
+#'
+#' Recode breastfeeding - continuing breastfeeding
+#'
+#
+################################################################################
+
+bf_recode_continuing <- function(vars = c("age_months", "bf_yest"), .data) {
+  x <- .data[vars]
+  
+  ifelse(
+    x[[vars[1]]] < 6, NA, x[[vars[2]]]
+  )
+}
+
+################################################################################
+#
+#'
+#' Recode breastfeeding - early initiation of breastfeeding
+#'
+#
+################################################################################
+
+bf_recode_early <- function(vars = c("age_months", "ebf_eibf", 
+                                     "ebf_eibf_hr", "ebf_eibf_day"), 
+                            .data) {
+  x <- .data[vars]
+  
+  ifelse(
+    x[[vars[1]]] > 24, NA,
+    ifelse(
+      x[[vars[2]]] == 0 | x[[vars[3]]] <= 1, 1, 0
+    )
+  )
+}
+
+## Recode breastfeeding indicator for ICFI -------------------------------------
+
+bf_calculate_icfi <- function(vars = c("age_months", "bf_yest"), .data) {
+  x <- .data[vars]
+  
+  bf_continuing <- ifelse(
+    x[[vars[1]]] < 6, NA, x[[vars[2]]]
+  )
+  
+  icfi_group <- cut(
+    x[[vars[1]]], breaks = c(0, 5, 8, 11, 24), include.lowest = TRUE
+  ) |>
+    as.numeric()
+  
+  bf_icfi <- ifelse(icfi_group %in% 2:3, bf_continuing * 2, bf_continuing)
+  
+  bf_icfi
+}
+
+################################################################################
+#
+#'
+#' Recode breastfeeding
+#'
+#
+################################################################################
+
+bf_recode <- function(vars = bf_vars_map, .data) {
+  core_vars <- get_core_variables(raw_data_clean = .data)
+  
+  bf_df <- bf_recode_responses(vars = vars, .data = .data)
+  
+  vars <- c("age_months", vars)
+  
+  recoded_vars <- data.frame(
+    bf_ever = bf_df[[vars[2]]],
+    bf_early = bf_recode_early(.data = bf_df),
+    bf_exclusive = bf_recode_exclusive(
+      vars = vars[c(1, 6:21)], .data = bf_df
+    ),
+    bf_continuing = bf_recode_continuing(.data = bf_df),
+    bf_icfi = bf_calculate_icfi(.data = bf_df)
+  )
+  
+  data.frame(core_vars, recoded_vars)
+}
+```
+
+The first two functions recode responses to the different breastfeeding indicators questions. The third function maps the variables to each of the breastfeeding indicators. The fourth function recodes exclusive breastfeeding. The fifth function recodes continuing breastfeeding. The sixth function recodes early initiation of breastfeeding. The seventh function recodes the breastfeeding component of the ICFI. The final function provides overall recoding and concatenates the breastfeeding indicators with the core variables.
+
+To get the final recoded child breastfeeding dataset, the following call is performed:
+
+```{r bf_function, echo = TRUE, eval = FALSE}
+## Breastfeeding
+bf_vars_map <- bf_map_vars(survey_codebook),
+bf_recoded_data <- bf_recode(vars = bf_vars_map, .data = raw_data_clean)
+```
+
+which produces a data.frame with the core variables and the following recoded child breastfeeding indicator values:
+
+```{r bf_indicators}
+indicators <- paste0(
+  "bf_", c("ever", "early", "exclusive", "continuing", "icfi")
+)
+
+desc <- c(
+  "Breastfeeding - ever",
+  "Breastfeeding - early initiation",
+  "Breastfeeding - exclusive",
+  "Breastfeeding - continuing",
+  "Breastfeeding - ICFI"
+)
+
+data.frame(indicators, desc) |>
+  knitr::kable(
+    col.names = c("Indicator variable", "Indicator description")
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = c("striped", "bordered"),
+    position = "center",
+    full_width = FALSE,
+    font_size = 16
+  )
+```
+
+#### Dietary diversity (food groups)
+
+```r
+################################################################################
+#
+#'
+#' Recode ICFI - food groups
+#'
+#' food_yogurt	Yogurt, other than yogurt drinks?
+#' food_yogurt_num	If “yes”: How many times did **${child_random_name}** eat 
+#'   yogurt?
+#' food_rice	Potatoes, chima, bread, rice, spaghetti, crackers, or other food 
+#'   made from cereals
+#' food_pumpkin	Yellow or orange squash, carrot, or sweet potato
+#' food_potatoes	White pulp potato, white yam, manioc or any other tuber
+#' food_green_veg	Any greens of dark green leaves (beans, cassava leaves, kale, 
+#'   sweet potato leaves,, Tseke (Nhewe)
+#' food_oth_veg	Any other vegetables?
+#' food_mango	Ripe mango, ripe papaya, guava red pulp or other fruit rich in 
+#'   vitamin A
+#' food_oth_fruit	Any other fruits (banana, apple, tomato, lemon, orange, 
+#'   tangerine, grapes)
+#' food_liver	Liver, kidney, heart or other organs
+#' food_proc_meat	Sausages, hot dogs/frankfurters, ham, bacon, salami, 
+#'   canned meat or ...?
+#' food_meat	Any meat, such as beef, pork, sheep, kid or duck, mouse or 
+#'   other game meat
+#' food_egg	Eggs
+#' food_fish	Fresh or dried fish or shellfish
+#' food_bean	Any food made with beans, peas, lentils, almonds or seeds
+#' food_cheese	Cheese or other products made from milk
+#' food_sweet	Sweet foods such as chocolates, candies, pastries, cakes, 
+#'   biscuits, or frozen treats like ice cream and popsicles?
+#' food_fast	Chips, crisps, puffs, French fries, fried dough, instant noodles?
+#' food_solid	Any other solid, semi-solid or soft food?
+#' food_solid_oth	If “yes”: What was the food?
+#' food_yest	Did **${child_random_name}** eat any solid, semi-solid or soft 
+#'   food yesterday during the day or at night?
+#' food_num	How many times did **${child_random_name}** eat any solid, 
+#'   semi-solid or soft foods yesterday during the day or night?
+#'
+#'
+#
+################################################################################
+
+## Recode responses to specific food group -------------------------------------
+
+fg_recode_response <- function(x, na_values, binary = TRUE) {
+  na_type <- get_na_type(x)
+  
+  if (binary) {
+    ifelse(
+      x %in% na_values, na_type,
+      ifelse(x == 2, 0, 1)
+    )
+  } else {
+    ifelse(x %in% na_values, na_type, x)
+  }  
+}
+
+## Recode responses to multiple food groups ------------------------------------
+
+fg_recode_responses <- function(vars, .data, 
+                                na_values = rep(list(9), 19),
+                                binary = TRUE) {
+  x <- .data[vars]
+  
+  Map(
+    f = fg_recode_response,
+    x = as.list(x),
+    na_values = na_values,
+    binary = as.list(c(TRUE, FALSE, rep(TRUE, 16), FALSE))
+  ) |>
+    dplyr::bind_cols() |>
+    (\(x) 
+     {
+       data.frame(
+         age_months = .data[["age_months"]],
+         x
+       ) 
+    } 
+    )()
+}
+
+## Map food intake variables to child-specific food groups ---------------------
+
+fg_map_vars <- function(dairy, starch, vita, other_fruit_veg, 
+                        legumes, meat, eggs) {
+  list(
+    dairy = dairy, 
+    starch = starch,
+    vita = vita,
+    other_fruit_veg = other_fruit_veg,
+    legumes = legumes,
+    meat = meat,
+    eggs = eggs
+  )
+} 
+
+## Recode responses to food items for sepcific food group ----------------------
+
+fg_recode_group <- function(vars,
+                            .data,
+                            food_group = c("dairy", "starch", "vita", 
+                                           "other_fruit_veg", "legumes", 
+                                           "meat", "eggs")) {
+  food_group <- match.arg(food_group)
+  
+  if (length(vars) > 1) {
+    if (food_group %in% c("eggs", "legumes")) {
+      warning(
+        paste0(
+          "More than one food group variable specified. Please make sure that
+          these variables are specific for the ", food_group, " food group."
+        )
+      )
+    } 
+    
+    ## Get variables
+    df <- .data[vars]
+    
+    ## Recode each variable to 1 and 0
+    # for (i in vars) {
+    #   df[i] <- recode_yes_no(df[[i]], na_values = c("8", "9"))
+    # }
+    
+    ## Recode food group to 1 and 0
+    fg <- recode_yes_no(x = rowSums(df, na.rm = TRUE), detect = "no")
+  } else {
+    if (!food_group %in% c("eggs", "legumes")) {
+      warning(
+        paste0(
+          "Only one food group variable specified. Please make sure that
+          there are no other variables that are specific for the ", food_group, 
+          " food group."
+        )
+      )
+    }    
+    
+    ## Calculate indicator
+    fg <- .data[[vars]]
+  }
+  
+  ## Return
+  fg
+}
+
+## Recode responses to food itmes for multiple food groups ---------------------
+
+fg_recode_groups <- function(vars,
+                             .data,
+                             food_group = c("dairy", "starch", "vita", 
+                                            "other_fruit_veg", "legumes", 
+                                            "meat", "eggs")) {
+  .data_list <- rep(list(.data), 7)
+  
+  ## Check that length of vars is the same as length of food_group
+  if (length(vars) != length(food_group)) {
+    stop(
+      "Number of variables/variable groups not the same as the number of
+      specified food groups. Please verify specified variables."
+    )
+  }
+  
+  Map(
+    f = fg_recode_group, 
+    vars = vars, 
+    .data = .data_list, 
+    food_group = food_group
+  ) |>
+    (\(x) { names(x) <- paste0("fg_", food_group); x })() |>
+    dplyr::bind_rows()
+}
+
+## Calculate food group score --------------------------------------------------
+
+fg_calculate_score <- function(fg_df, add = TRUE) {
+  ## Check that fg_df has 7 columns
+  if (ncol(fg_df) != 7) {
+    stop(
+      "The food group data.frame needs to have 7 columns for each of the
+      ICFI food groups. Please verify your dataset."
+    )
+  }
+  
+  fg_score <- rowSums(fg_df, na.rm = TRUE)
+  
+  if (add) {
+    data.frame(
+      fg_df,
+      fg_score = fg_score
+    )
+  } else {
+    fg_score
+  }
+}
+
+## Calculate food group component of ICFI --------------------------------------
+
+fg_calculate_icfi <- function(age_months, fg_score) {
+  icfi_group <- cut(
+    age_months, breaks = c(0, 5, 8, 11, 24), include.lowest = TRUE
+  ) |>
+    as.numeric()
+  
+  ifelse(
+    icfi_group == 2, (fg_score == 1) + (fg_score > 1) * 2,
+    ifelse(
+      icfi_group == 3, (fg_score %in% 1:2) + (fg_score > 2) * 2,
+      ifelse(
+        icfi_group == 4, (fg_score %in% 2:3) + (fg_score > 3) * 2, NA
+      )
+    )
+  )
+}
+
+## Overall recode function------------------------------------------------------
+
+fg_recode <- function(vars,
+                      .data,
+                      food_group = c("dairy", "starch", "vita", 
+                                     "other_fruit_veg", "legumes", 
+                                     "meat", "eggs")) {
+  core_vars <- get_core_variables(raw_data_clean = .data)
+  
+  recoded_vars <- fg_recode_groups(
+    vars = vars, .data = .data, food_group = food_group
+  ) |>
+    fg_calculate_score(add = TRUE)
+  
+  fg_icfi <- fg_calculate_icfi(
+    age_months = .data[["age_months"]], 
+    fg_score = recoded_vars[["fg_score"]]
+  )
+  
+  data.frame(core_vars, recoded_vars, fg_icfi)
+}
+```
+
+The first two functions recode responses for food item questions. The third function maps food items questions to specific child food group variables. The next two functions recode responses to food items questions for the different child food groups. The sixth function calculates the food group score while the seventh function recodes the food group score to the food groups component of the ICFI. The final function provides overall recoding and concatenates the dietary diversity indicators with the core variables.
+
+To get the final recoded child dietary diversity dataset, the following call is performed:
+
+```{r fg_function, echo = TRUE, eval = FALSE}
+## Food groups
+fg_vars_map <- fg_map_vars(
+  dairy = c("food_yogurt", "food_cheese"), 
+  starch = c("food_rice", "food_potatoes"),
+  vita = c("food_pumpkin", "food_mango"),
+  other_fruit_veg = c("food_oth_veg", "food_oth_fruit"),
+  legumes = "food_bean",
+  meat = c("food_liver", "food_proc_meat", "food_meat", "food_fish"),
+  eggs = "food_egg"
+)
+
+fg_recoded_data <- fg_recode(
+  vars = fg_vars_map, .data = raw_data_clean
+)
+```
+
+which produces a data.frame with the core variables and the following recoded child dietary diversity indicator values:
+
+```{r fg_indicators}
+indicators <- paste0(
+  "fg_", c("dairy", "starch", "vita", "other_fruit_veg", "legumes", "meat", "eggs", "score", "icfi")
+)
+
+desc <- c(
+  "Food group - dairy",
+  "Food group - starchy staples",
+  "Food group - vitamin A rich fruits and vegetables",
+  "Food group - other fruits and vegetables",
+  "Food group - legumes, nuts, and seeds",
+  "Food group - meat and fish",
+  "Food group - eggs",
+  "Food group score",
+  "Food group - ICFI"
+)
+
+data.frame(indicators, desc) |>
+  knitr::kable(
+    col.names = c("Indicator variable", "Indicator description")
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = c("striped", "bordered"),
+    position = "center",
+    full_width = FALSE,
+    font_size = 16
+  )
+```
+
+#### Meal frequency
+
+```r
+################################################################################
+#
+#'
+#' Recode ICFI - meals
+#' 
+#' food_num	How many times did **${child_random_name}** eat any solid, 
+#'   semi-solid or soft foods yesterday during the day or night?
+#'
+#
+################################################################################
+
+## Recode responses to specific child meals question ---------------------------
+
+meal_recode_response <- function(x, na_values, binary = TRUE) {
+  na_type <- get_na_type(x)
+  
+  if (binary) {
+    ifelse(
+      x %in% na_values, na_type,
+      ifelse(x == 2, 0, 1)
+    )
+  } else {
+    ifelse(x %in% na_values, na_type, x)
+  }  
+}
+
+## Recode responses to multiple child meals questions --------------------------
+
+meal_recode_responses <- function(vars, .data, 
+                                  na_values = 9,
+                                  binary = FALSE) {
+  x <- .data[vars]
+  
+  Map(
+    f = meal_recode_response,
+    x = x,
+    na_values = na_values,
+    binary = binary
+  ) |>
+    dplyr::bind_cols() |>
+    (\(x) 
+     {
+       data.frame(
+         age_months = .data[["age_months"]],
+         x
+       ) 
+    } 
+    )()
+}
+
+## Recode meal frequency component of ICFI -------------------------------------
+
+meal_calculate_icfi <- function(age_months, meal_frequency) {
+  icfi_group <- cut(
+    age_months, breaks = c(0, 5, 8, 11, 24), include.lowest = TRUE
+  ) |>
+    as.numeric()
+  
+  ifelse(
+    icfi_group == 2, (meal_frequency == 1) + (meal_frequency > 1) * 2,
+    ifelse(
+      icfi_group == 3, (meal_frequency %in% 1:2) + (meal_frequency > 2) * 2,
+      ifelse(
+        icfi_group == 4, (meal_frequency == 2) + 
+          (meal_frequency == 3) * 2 + (meal_frequency > 3) * 3, NA
+      )
+    )
+  )
+}
+
+## Overall recode function -----------------------------------------------------
+
+meal_recode <- function(vars, .data) {
+  core_vars <- get_core_variables(raw_data_clean = .data)
+  
+  meal_frequency <- meal_recode_response(
+    x = .data[[vars]], na_values = 9, binary = FALSE
+  )
+  
+  meal_icfi <- meal_calculate_icfi(
+    .data[["age_months"]], meal_frequency
+  )
+  
+  data.frame(core_vars, meal_frequency, meal_icfi)
+}
+```
+
+The first two functions recode responses to the child meal frequency indicator question. The next function recodes the child meal frequency component of the ICFI. The final function provides overall recoding and concatenates the child meal frequency indicators with the core variables.
+
+To get the final recoded child meal frequency dataset, the following call is performed:
+
+```{r meal_function, echo = TRUE, eval = FALSE}
+## Meals
+meal_recoded_data <- meal_recode(vars = "food_num", .data = raw_data_clean)
+```
+
+which produces a data.frame with the core variables and the following recoded child meal frequency indicator values:
+
+```{r meal_indicators}
+indicators <- c("meal_frequency", "meal_icfi")
+
+desc <- c(
+  "Meal frequency",
+  "Meal frequency for ICFI"
+)
+
+data.frame(indicators, desc) |>
+  knitr::kable(
+    col.names = c("Indicator variable", "Indicator description")
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = c("striped", "bordered"),
+    position = "center",
+    full_width = FALSE,
+    font_size = 16
+  )
+```
 
 ### Food insecurity experience scale
 
@@ -6760,6 +7429,9 @@ data.frame(indicators, desc) |>
 [^7]: https://washdata.org/monitoring/drinking-water
 
 [^8]: https://www.who.int/data/gho/indicator-metadata-registry/imr-details/80
+
+[^9]: World Health Organization. (‎2018)‎. World Health Organization vaccination coverage cluster surveys: reference manual. World Health Organization. https://apps.who.int/iris/handle/10665/272820. License: CC BY-NC-SA 3.0 IGO
+  
 
 <br/>
 <br/>

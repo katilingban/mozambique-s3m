@@ -40,6 +40,8 @@
 #
 ################################################################################
 
+## Recode responses to specific food group -------------------------------------
+
 fg_recode_response <- function(x, na_values, binary = TRUE) {
   na_type <- get_na_type(x)
   
@@ -53,6 +55,7 @@ fg_recode_response <- function(x, na_values, binary = TRUE) {
   }  
 }
 
+## Recode responses to multiple food groups ------------------------------------
 
 fg_recode_responses <- function(vars, .data, 
                                 na_values = rep(list(9), 19),
@@ -76,16 +79,7 @@ fg_recode_responses <- function(vars, .data,
     )()
 }
 
-
-# fg_map_vars <- function(survey_codebook) {
-#   survey_codebook |>
-#     subset(
-#       subset = stringr::str_detect(vars, "food_"),
-#       select = vars
-#     ) |>
-#     (\(x) x[["vars"]] )()
-# }
-
+## Map food intake variables to child-specific food groups ---------------------
 
 fg_map_vars <- function(dairy, starch, vita, other_fruit_veg, 
                         legumes, meat, eggs) {
@@ -100,6 +94,7 @@ fg_map_vars <- function(dairy, starch, vita, other_fruit_veg,
   )
 } 
 
+## Recode dairy food group -----------------------------------------------------
 
 fg_recode_dairy <- function(vars = c("food_yogurt", "food_cheese"), 
                             .data) {
@@ -108,6 +103,7 @@ fg_recode_dairy <- function(vars = c("food_yogurt", "food_cheese"),
   ifelse(x[[vars[1]]] == 1 | x[[vars[2]]] == 1, 1, 0)
 }
 
+## Recode starch food group ----------------------------------------------------
 
 fg_recode_starch <- function(vars = c("food_rice", "food_potatoes"), 
                             .data) {
@@ -116,7 +112,7 @@ fg_recode_starch <- function(vars = c("food_rice", "food_potatoes"),
   ifelse(x[[vars[1]]] == 1 | x[[vars[2]]] == 1, 1, 0)
 }
 
-
+## Recode responses to food items for sepcific food group
 
 fg_recode_group <- function(vars,
                             .data,
@@ -164,7 +160,7 @@ fg_recode_group <- function(vars,
   fg
 }
 
-
+## Recode responses to food itmes for multiple food groups ---------------------
 
 fg_recode_groups <- function(vars,
                              .data,
@@ -191,6 +187,7 @@ fg_recode_groups <- function(vars,
     dplyr::bind_rows()
 }
 
+## Calculate food group score --------------------------------------------------
 
 fg_calculate_score <- function(fg_df, add = TRUE) {
   ## Check that fg_df has 7 columns
@@ -213,6 +210,8 @@ fg_calculate_score <- function(fg_df, add = TRUE) {
   }
 }
 
+## Calculate food group component of ICFI --------------------------------------
+
 fg_calculate_icfi <- function(age_months, fg_score) {
   icfi_group <- cut(
     age_months, breaks = c(0, 5, 8, 11, 24), include.lowest = TRUE
@@ -229,6 +228,8 @@ fg_calculate_icfi <- function(age_months, fg_score) {
     )
   )
 }
+
+## Overall recode function------------------------------------------------------
 
 fg_recode <- function(vars,
                       .data,
