@@ -41,6 +41,8 @@
 #
 ################################################################################
 
+## Recode responses for specific breastfeeding indicator question --------------
+
 bf_recode_response <- function(x, na_values, binary = TRUE) {
   na_type <- get_na_type(x)
   
@@ -54,6 +56,7 @@ bf_recode_response <- function(x, na_values, binary = TRUE) {
   }
 }
 
+## Recode responses for multiple breastfeeding indicator questions -------------
 
 bf_recode_responses <- function(vars, .data, 
                                 na_values = c(rep(list(c(8, 9)), 2),
@@ -86,6 +89,7 @@ bf_recode_responses <- function(vars, .data,
     )()
 }
 
+## Map breastfeeding indicator variables ---------------------------------------
 
 bf_map_vars <- function(survey_codebook) {
   survey_codebook |>
@@ -165,6 +169,7 @@ bf_recode_early <- function(vars = c("age_months", "ebf_eibf",
   )
 }
 
+## Recode breastfeeding indicator for ICFI -------------------------------------
 
 bf_calculate_icfi <- function(vars = c("age_months", "bf_yest"), .data) {
   x <- .data[vars]
@@ -182,8 +187,6 @@ bf_calculate_icfi <- function(vars = c("age_months", "bf_yest"), .data) {
   
   bf_icfi
 }
-
-
 
 ################################################################################
 #
