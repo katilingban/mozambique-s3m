@@ -24,9 +24,9 @@ knitr::opts_chunk$set(
 suppressPackageStartupMessages(source("packages.R"))
 for (f in list.files(here::here("R"), full.names = TRUE)) source (f)
 
-targets::tar_load(
-  c()
-)
+# targets::tar_load(
+#   c()
+# )
 ```
 
 <style type="text/css">
