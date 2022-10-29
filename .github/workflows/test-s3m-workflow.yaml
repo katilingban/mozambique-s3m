@@ -46,6 +46,6 @@ jobs:
         
       - name: Run workflow
         run: |
-          targets::tar_make(dplyr::contains("recoded"))
+          targets::tar_make(raw_data_clean)
         shell: Rscript {0}
           
