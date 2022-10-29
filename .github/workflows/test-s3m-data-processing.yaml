@@ -16,7 +16,7 @@ jobs:
     env:
       GIT_CRYPT_KEY64: ${{ secrets.GIT_CRYPT_KEY64 }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       
       - name: Install system dependencies
         run: |
@@ -34,7 +34,7 @@ jobs:
           
       - name: Install packages from renv.lock (with cache)
         if: ${{ !env.ACT }}  
-        uses: r-lib/actions/setup-renv@master
+        uses: r-lib/actions/setup-renv@v2
         with:
           cache-version: 2
 
@@ -46,14 +46,6 @@ jobs:
         
       - name: Run workflow
         run: |
-          #targets::tar_make(raw_data)
-          #targets::tar_make(raw_data_clean)
-          #targets::tar_make(raw_data_clean_translated)
-          targets::tar_make(hdds_recoded_data)
-          targets::tar_make(fcs_recoded_data)
-          targets::tar_make(rcsi_recoded_data)
-          targets::tar_make(wdds_recoded_data)
-          targets::tar_make(mddw_recoded_data)
-          targets::tar_make(lcsi_recoded_data)
+          targets::tar_make(data_processing_report)
         shell: Rscript {0}
           
