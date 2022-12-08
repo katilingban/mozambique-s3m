@@ -616,7 +616,7 @@ data_processed <- tar_plan(
   ),
   ## Primary health questionnaire - depression
   phq_recoded_data = phq_recode(
-    vars = paste0("ment", 1:9),
+    vars = paste0("ment", 1:8),
     .data = raw_data_clean,
     na_values = c(88, 99)
   ),
