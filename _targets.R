@@ -788,6 +788,8 @@ data_processed <- tar_plan(
     vars = c("pf1", "bs1", "bs1a", "bs2", "bs3", "bs4", "abor1", "abor1a"),
     .data = raw_data_clean_translated
   ),
+  ## Housing characteristics
+  house_recoded_data = housing_recode(.data = raw_data_clean),
   ## Concatenate recoded datasets
   recoded_data = merge_recoded_dataset(
     df_list = list(
@@ -801,7 +803,7 @@ data_processed <- tar_plan(
       rti_recoded_data, bf_recoded_data, fg_recoded_data, meal_recoded_data, 
       iycf_recoded_data, fies_recoded_data, stock_recoded_data, 
       preg_recoded_data, pmtct_recoded_data, pnet_recoded_data, nc_recoded_data,
-      rh_recoded_data, fp_recoded_data
+      rh_recoded_data, fp_recoded_data, house_recoded_data
     )
   ) |>
     dplyr::mutate(

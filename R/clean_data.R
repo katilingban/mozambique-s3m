@@ -75,6 +75,9 @@ clean_raw_data <- function(raw_data, survey_codebook, survey_questions) {
   
   x[ , c("bs1a", "abor1a")] <- x[ , c("bs1a", "abor1a")] |>
     apply(MARGIN = 2, FUN = function(x) as.integer(x))
+  
+  x[ , c("sdh3", "sdh4", "sdh5")] <- x[ , c("sdh3", "sdh4", "sdh5")] |>
+    apply(MARGIN = 2, FUN = function(x) as.integer(x))
     
   ## Return
   x
