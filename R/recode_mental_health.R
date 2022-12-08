@@ -98,8 +98,10 @@ phq_calculate_score <- function(phq_df, add = TRUE) {
 
 
 phq_classify <- function(phq, add = FALSE, spread = FALSE) {
-  breaks <- c(1, 4, 9, 14, 19, 27)
-  labels <- c("minimal", "mild", "moderate", "moderate severe", "severe")
+  #breaks <- c(1, 4, 9, 14, 19, 27)
+  #labels <- c("minimal", "mild", "moderate", "moderate severe", "severe")
+  breaks <- c(1, 10, 20, 24)
+  labels <- c("minimal to mild", "major", "severe")
   
   phq_class <- cut(
     x = phq,
@@ -109,17 +111,12 @@ phq_classify <- function(phq, add = FALSE, spread = FALSE) {
   ) |>
     as.character() |>
     (\(x) ifelse(is.na(x), "no depression", x))() |>
-    factor(
-      levels = c(
-        "no depression", "minimal", "mild", 
-        "moderate", "moderately severe", "severe"
-      )
-    )
+    factor(levels = c("no depression", "minimal to mild", "major", "severe"))
   
   if (spread) {
     phq_class <- data.frame(
       phq_class = phq_class,
-      spread_vector_to_columns(x = phq_class, prefix = "rcsi")
+      spread_vector_to_columns(x = phq_class, prefix = "phq")
     )
   }
   
@@ -130,6 +127,15 @@ phq_classify <- function(phq, add = FALSE, spread = FALSE) {
   }
   
   phq_class
+}
+
+## Recode alcohol frequency
+
+alcohol_recode_frequency <- function(x, na_values,
+                                     fill = 1:5, 
+                                     prefix = "alcohol_frequency") {
+  ifelse(x %in% na_values, NA, x) |>
+    spread_vector_to_columns(fill = 1:5, na_rm = FALSE, prefix = prefix)
 }
 
 
@@ -150,9 +156,13 @@ phq_recode <- function(vars,
     vars = vars, .data = .data, na_values = na_values
   )
   
+  alcohol_frequency <- alcohol_recode_frequency(
+    x = .data[["ment9"]], na_values = na_values
+  )
+  
   recoded_vars |>
     phq_calculate_score(add = FALSE) |>
     phq_classify(add = TRUE, spread = TRUE) |>
-    (\(x) data.frame(core_vars, recoded_vars, x))()
+    (\(x) data.frame(core_vars, recoded_vars, x, alcohol_frequency))()
 }
 
