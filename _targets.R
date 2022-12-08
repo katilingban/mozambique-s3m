@@ -792,6 +792,8 @@ data_processed <- tar_plan(
   house_recoded_data = housing_recode(.data = raw_data_clean),
   ## Associations
   association_recoded_data = association_recode(.data = raw_data_clean),
+  ## Household assets
+  asset_recoded_data = asset_recode(.data = raw_data_clean),
   ## Concatenate recoded datasets
   recoded_data = merge_recoded_dataset(
     df_list = list(
@@ -806,7 +808,7 @@ data_processed <- tar_plan(
       iycf_recoded_data, fies_recoded_data, stock_recoded_data, 
       preg_recoded_data, pmtct_recoded_data, pnet_recoded_data, nc_recoded_data,
       rh_recoded_data, fp_recoded_data, house_recoded_data,
-      association_recoded_data
+      association_recoded_data, asset_recoded_data
     )
   ) |>
     dplyr::mutate(
