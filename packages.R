@@ -32,7 +32,8 @@ library(spatialsampler)
 library(mapboxapi)
 library(osmdata)
 library(sf)
-
+library(gstat)
+library(sp)
 
 
 ################################################################################
