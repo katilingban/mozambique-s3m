@@ -46,6 +46,6 @@ jobs:
         
       - name: Run workflow
         run: |
-          targets::tar_make(dplyr::contains("anthro_recoded"))
+          targets::tar_make(recoded_data)
         shell: Rscript {0}
           
