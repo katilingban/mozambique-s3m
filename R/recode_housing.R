@@ -60,7 +60,8 @@ housing_recode <- function(.data) {
   )
   
   data.frame(
-    core_vars, roof_type, floor_type, overcrowded, persons_per_overcrowded,
+    core_vars, hh_size = .data$hh_size,
+    roof_type, floor_type, overcrowded, persons_per_overcrowded,
     own_home, electricity, cooking_fuel, lighting_fuel, cooking_location,
     separate_kitchen
   )
