@@ -10,7 +10,12 @@ staging/
 .Ruserdata
 data
 !data/.gitkeep
+!data/Dados_ Populacao _ Area de enumeracao _Sofala_180922.pdf
+!data/Dados_ Populacao _ distrito _Sofala 180922.pdf
 outputs
 !outputs/.gitkeep
+!outputs/data_processing_report.html
+!outputs/s3m_recoded_data.csv
+!outputs.s3m_recoded_data.xlsx
 _targets
 Rplots.pdf

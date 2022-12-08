@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-# Load packages (in packages.R) and load project-specific functions in R folder
+# Load packages and load project-specific functions in R folder ----------------
 suppressPackageStartupMessages(source("packages.R"))
 for (f in list.files(here::here("R"), full.names = TRUE)) source (f)
 
@@ -162,7 +162,7 @@ spatial_sample <- tar_plan(
 )
 
 
-## Form/questionnaire development
+## Form/questionnaire development ----------------------------------------------
 questionnaire <- tar_plan(
   ## Create survey enumerator list
   survey_enumerator_list_file = download_googledrive(
@@ -218,7 +218,7 @@ survey_plan <- tar_plan(
 )
 
 
-## Read raw data
+## Read raw data ---------------------------------------------------------------
 data_raw <- tar_plan(
   tar_target(
     name = raw_data,
@@ -245,6 +245,30 @@ data_raw <- tar_plan(
     (\(x) translate_df_variable(var = "ort5e_specify", df = x))() |>
     (\(x) translate_df_variable(var = "ch5a_other", df = x))() |>
     (\(x) translate_df_variable(var = "liquid_other_specify", df = x))()
+)
+
+
+## Read reference data ---------------------------------------------------------
+data_reference <- tar_plan(
+  ### Read Sofala population PDF datasets --------------------------------------
+  sofala_district_population_pdf = pdftools::pdf_data(
+    pdf = "data/Dados_ Populacao _ distrito _Sofala 180922.pdf"
+  ),
+  sofala_ea_population_pdf_data = pdftools::pdf_data(
+    pdf = "data/Dados_ Populacao _ Area de enumeracao _Sofala_180922.pdf"
+  ),
+  sofala_ea_population_pdf_text = pdftools::pdf_text(
+    pdf = "data/Dados_ Populacao _ Area de enumeracao _Sofala_180922.pdf"
+  ) |>
+    stringr::str_split(pattern = "\n"),
+  ### Sofala district population -----------------------------------------------
+  sofala_district_population = create_sofala_district_population(
+    sofala_district_population_pdf
+  ),
+  sofala_ea_population = create_sofala_ea_population(
+    pdf_data = sofala_ea_population_pdf_data, 
+    pdf_text = sofala_ea_population_pdf_text
+  )
 )
 
 
@@ -507,10 +531,11 @@ data_checks <- tar_plan(
 )
 
 
-## Process data
+## Process data ----------------------------------------------------------------
 data_processed <- tar_plan(
   ## Anthropometric data
-  mother_anthro = recode_anthro_mother(raw_data_clean),
+  child_anthro_recoded_data = recode_anthro_child(.data = raw_data_clean),
+  mother_anthro_recoded_data = recode_anthro_mother(.data = raw_data_clean),
   ## Household dietary diversity score
   hdds_vars_map = hdds_map_fg_vars(
     cereals = "hdds1", 
@@ -762,13 +787,39 @@ data_processed <- tar_plan(
   fp_recoded_data = fp_recode(
     vars = c("pf1", "bs1", "bs1a", "bs2", "bs3", "bs4", "abor1", "abor1a"),
     .data = raw_data_clean_translated
-  )
+  ),
+  ## Concatenate recoded datasets
+  recoded_data = merge_recoded_dataset(
+    df_list = list(
+      mother_anthro_recoded_data, child_anthro_recoded_data, 
+      hdds_recoded_data, fcs_recoded_data, rcsi_recoded_data, wdds_recoded_data,
+      mddw_recoded_data, lcsi_recoded_data, phq_recoded_data, ccare_recoded_data,
+      imm_recoded_data, vas_recoded_data, dev_recoded_data, carer_recoded_data, 
+      wem_recoded_data, work_recoded_data, travel_recoded_data, 
+      play_recoded_data, net_recoded_data, water_recoded_data, san_recoded_data, 
+      hygiene_recoded_data, fever_recoded_data, diarrhoea_recoded_data, 
+      rti_recoded_data, bf_recoded_data, fg_recoded_data, meal_recoded_data, 
+      iycf_recoded_data, fies_recoded_data, stock_recoded_data, 
+      preg_recoded_data, pmtct_recoded_data, pnet_recoded_data, nc_recoded_data,
+      rh_recoded_data, fp_recoded_data
+    )
+  ) |>
+    dplyr::mutate(
+      spid = as.integer(spid)
+    )
 )
 
 
 ## Analysis
 analysis <- tar_plan(
-  ##
+  ### Bootstrap ----------------------------------------------------------------
+  bootstrap_test = boot_estimates(
+    .data = recoded_data,
+    w = sofala_ea_population,
+    vars = "hdds",
+    labs = "Household dietary diversity score",
+    replicates = 399
+  ),
   
 )
 
@@ -857,6 +908,12 @@ outputs <- tar_plan(
     x = survey_codebook,
     file = "outputs/sofala_s3m_codebook.xlsx",
     overwrite = TRUE
+  ),
+  recoded_data_csv = write.csv(
+    x = recoded_data |>
+      subset(select = -geolocation),
+    file = "data/sofala_recoded_data.csv",
+    row.names = FALSE
   )
 )
 
@@ -973,6 +1030,7 @@ list(
   questionnaire,
   survey_plan,
   data_raw,
+  data_reference,
   data_checks,
   data_processed,
   analysis,
