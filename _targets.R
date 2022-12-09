@@ -14,7 +14,7 @@ for (f in list.files(here::here("R"), full.names = TRUE)) source (f)
 
 # Groups of targets ------------------------------------------------------------
 
-## Sampling design
+## Sampling design -------------------------------------------------------------
 spatial_sample <- tar_plan(
   moz_country = get_country(),
   moz_provinces = get_provinces(),
@@ -164,7 +164,7 @@ spatial_sample <- tar_plan(
 
 ## Form/questionnaire development ----------------------------------------------
 questionnaire <- tar_plan(
-  ## Create survey enumerator list
+  ### Create survey enumerator list --------------------------------------------
   survey_enumerator_list_file = download_googledrive(
     filename = "Lista das Equipes  do E.BASE SOFALA-FINAL.xls", overwrite = TRUE
   ),
@@ -196,11 +196,11 @@ questionnaire <- tar_plan(
        x
      )
     )(),
-  ## Retrieve Sofala S3M XLSForm
+  ### Retrieve Sofala S3M XLSForm ----------------------------------------------
   sofala_xlsform_file = download_googledrive(
     filename = "sofala_s3m_2022041401.xlsx", overwrite = TRUE
   ),
-  ## Create codebook
+  ### Create codebook ----------------------------------------------------------
   survey_questions = readxl::read_xlsx(
     path = sofala_xlsform_file$local_path, sheet = "survey"
   ),
@@ -212,7 +212,8 @@ questionnaire <- tar_plan(
   )
 )
 
-## Survey plan
+
+## Survey plan -----------------------------------------------------------------
 survey_plan <- tar_plan(
   
 )
@@ -272,9 +273,9 @@ data_reference <- tar_plan(
 )
 
 
-## Data quality checks
+## Data quality checks ---------------------------------------------------------
 data_checks <- tar_plan(
-  ## Tallies for survey progress
+  ### Tallies for survey progress ----------------------------------------------
   table_sp_total = tally_sp_total(raw_data, selected_ea_complete),
   table_sp_date_total = tally_sp_date_total(
     raw_data, selected_ea_complete
@@ -308,7 +309,7 @@ data_checks <- tar_plan(
     unique() |>
     lapply(FUN = check_ea_table, raw_data, complete_ea_sf, check = "out") |>
     dplyr::bind_rows(), 
-  ## Detect univariate outliers for mother anthropometric data
+  ### Detect univariate outliers for mother anthropometric data ----------------
   outlier_weight_mother = raw_data_clean |>
     (\(x) x[outliersUV(x$mweight), ])(),
   outlier_height_mother = raw_data_clean |>
@@ -533,10 +534,10 @@ data_checks <- tar_plan(
 
 ## Process data ----------------------------------------------------------------
 data_processed <- tar_plan(
-  ## Anthropometric data
+  ### Anthropometric data ------------------------------------------------------
   child_anthro_recoded_data = recode_anthro_child(.data = raw_data_clean),
   mother_anthro_recoded_data = recode_anthro_mother(.data = raw_data_clean),
-  ## Household dietary diversity score
+  ### Household dietary diversity score ----------------------------------------
   hdds_vars_map = hdds_map_fg_vars(
     cereals = "hdds1", 
     tubers = "hdds2", 
@@ -552,7 +553,7 @@ data_processed <- tar_plan(
   ),
   hdds_recoded_data = hdds_vars_map |>
     hdds_recode(.data = raw_data_clean),
-  ## Food consumption score
+  ### Food consumption score ---------------------------------------------------
   fcs_vars_map = fcs_map_fg_vars(
     staples = paste0("fcs", 1:4), 
     pulses = "fcs5", 
@@ -566,13 +567,13 @@ data_processed <- tar_plan(
   ),
   fcs_recoded_data = fcs_vars_map |>
     fcs_recode(.data = raw_data_clean),
-  ## Reduced coping strategies index (rCSI)
+  ### Reduced coping strategies index (rCSI) -----------------------------------
   rcsi_recoded_data = rcsi_recode(
     vars = paste0("rcsi", 1:5),
     .data = raw_data_clean,
     na_values = c(88, 99)
   ),
-  ## Women's dietary diversity score (WDDS)
+  ### Women's dietary diversity score (WDDS) -----------------------------------
   wdds_vars_map = wdds_map_fg_vars(
     staples = c("nutmul1", "nutmul2"),
     grean_leafy = "nutmul10",
@@ -588,7 +589,7 @@ data_processed <- tar_plan(
     vars = wdds_vars_map,
     .data = raw_data_clean
   ),
-  ## Minimum dietary diversity - women (MDD-W)
+  ### Minimum dietary diversity - women (MDD-W) --------------------------------
   mddw_vars_map = mddw_map_fg_vars(
     staples = c("nutmul1", "nutmul2"),
     pulses = "nutmul3",
@@ -605,7 +606,7 @@ data_processed <- tar_plan(
     vars = mddw_vars_map,
     .data = raw_data_clean
   ),
-  ## Livelihoods coping strategy index (LCSI)
+  ### Livelihoods coping strategy index (LCSI) ---------------------------------
   lcsi_recoded_data = lcsi_recode(
     vars = c(
       "lcs01", "lcs02", "lcs03", "lcs04", "lcs05", "lcs06", "lcs07", 
@@ -614,15 +615,15 @@ data_processed <- tar_plan(
     .data = raw_data_clean,
     na_values = c(5, 8, 9)
   ),
-  ## Primary health questionnaire - depression
+  ### Primary health questionnaire - depression --------------------------------
   phq_recoded_data = phq_recode(
     vars = paste0("ment", 1:8),
     .data = raw_data_clean,
     na_values = c(88, 99)
   ),
-  ## Childcare practices
+  ### Childcare practices ------------------------------------------------------
   ccare_recoded_data = ccare_recode(.data = raw_data_clean),
-  ## Immunisation
+  ### Immunisation -------------------------------------------------------------
   imm_recoded_data = imm_recode(
     vars = c(
       "imm3a", "imm3b", "imm3c", "imm3d", "imm3e", "imm4a", "imm4b", "imm4c", 
@@ -630,30 +631,30 @@ data_processed <- tar_plan(
     ),
     .data = raw_data_clean
   ),
-  ## VAS coverage
+  ### VAS coverage -------------------------------------------------------------
   vas_recoded_data = vas_recode(.data = raw_data_clean),
-  ## Development milestones
+  ### Development milestones ---------------------------------------------------
   dev_recoded_data = dev_recode(
     vars = c("des1", "des2"),
     .data = raw_data_clean,
     na_values = c(88, 99)
   ),
-  ## Pica
+  ### Pica ---------------------------------------------------------------------
   pica_recoded_data = pica_recode(
     vars = c("pica1", "pica2", "pica3"),
     .data = raw_data_clean,
     na_values = c(8, 9, 88, 99)
   ),
-  ## Carer characteristics
+  ### Carer characteristics ----------------------------------------------------
   carer_recoded_data = carer_recode(
     .data = raw_data_clean, 
     age_na_values = c(1:14, 88, 99, 100:1000), 
     marital_na_values = c(88, 99),
     education_na_values = c(88, 99)
   ),
-  ## Women's empowerment and decision-makin
+  ### Women's empowerment and decision-making ----------------------------------
   wem_recoded_data = wem_recode(raw_data_clean),
-  ## Income and occupation
+  ### Income and occupation ----------------------------------------------------
   work_recoded_data = work_recode(
     vars = c("ig1", "q08", "igs1", "igs2"),
     .data = raw_data_clean,
@@ -669,58 +670,58 @@ data_processed <- tar_plan(
     ),
     label = rep(list(NULL), length(vars))
   ),
-  ## Time-to-travel
+  ### Time-to-travel -----------------------------------------------------------
   travel_recoded_data = travel_recode(raw_data_clean),
-  ## Play
+  ### Play ---------------------------------------------------------------------
   play_recoded_data = play_recode(
     vars = paste0("play", c(paste0(1, letters[1:7]), 2, paste0(3, letters[1:6]))),
     .data = raw_data_clean,
     na_values = c(8, 9)
   ),
-  ## Mosquito net
+  ### Mosquito net -------------------------------------------------------------
   net_recoded_data = net_recode(
     vars = "cdcg13", 
     .data = raw_data_clean,
     na_values = c(88, 99)
   ),
-  ## Water
+  ### Water --------------------------------------------------------------------
   water_recoded_data = water_recode(
     vars = c("wt2", "wt3", "wt3a", "wt3b", "wt4", "wt4a", "wt5", "wt6"),
     .data = raw_data_clean,
     na_values = c(88, 99, 888, 999)
   ),
-  ## Sanitation
+  ### Sanitation
   san_recoded_data = san_recode(
     vars = paste0("lusd", 1:8),
     .data = raw_data_clean,
     na_values = c(8, 9, 88, 99, 888, 999)
   ),
-  ## Hygiene
+  ### Hygiene
   hygiene_recoded_data = hygiene_recode(
     vars = c(paste0("caha", 1:3), paste0("lusd", 9:11)),
     .data = raw_data_clean,
     na_values = c(8, 9, 88, 99)
   ),
-  ## Treatment-seeking - fever
+  ### Treatment-seeking - fever
   fever_recoded_data = fever_recode(
     vars = c(paste0("fever", 1:6), "fever6a", "fever7"),
     .data = raw_data_clean
   ),
-  ## Treatment-seeking - diarrhoea
+  ### Treatment-seeking - diarrhoea
   diarrhoea_recoded_data = dia_recode(
     vars = c("ort1", paste0("ort1", letters[1:3]), paste0("ort", 2:4), 
              paste0("ort5", letters[1:5]), "ort6", "ort7"),
     .data = raw_data_clean
   ),
-  ## Treatment-seeking - respiratory tract infections
+  ### Treatment-seeking - respiratory tract infections
   rti_recoded_data = rti_recode(
     vars = c("ch1", "ch1a", paste0("ch", 2:5), "ch5a"),
     .data = raw_data_clean
   ),
-  ## Breastfeeding
+  ### Breastfeeding
   bf_vars_map = bf_map_vars(survey_codebook),
   bf_recoded_data = bf_recode(vars = bf_vars_map, .data = raw_data_clean),
-  ## Food groups
+  ### Food groups
   fg_vars_map = fg_map_vars(
     dairy = c("food_yogurt", "food_cheese"), 
     starch = c("food_rice", "food_potatoes"),
@@ -733,19 +734,19 @@ data_processed <- tar_plan(
   fg_recoded_data = fg_recode(
     vars = fg_vars_map, .data = raw_data_clean
   ),
-  ## Meals
+  ### Meals
   meal_recoded_data = meal_recode(vars = "food_num", .data = raw_data_clean),
-  ## IYCF
+  ### IYCF
   iycf_recoded_data = iycf_recode(
     .data = raw_data_clean,
     bf_recoded_data, fg_recoded_data, meal_recoded_data
   ),
-  ## FIES
+  ### FIES
   fies_recoded_data = fies_recode(
     vars = paste0("fies0", 1:8),
     .data = raw_data_clean
   ),
-  ## Food stocks
+  ### Food stocks
   stock_recoded_data = stock_recode(
     vars = c("reserve1", "reserve1a", "reserve2", "reserve2a", 
              "reserve3", "reserve3a", "reserve4", "reserve4a", 
@@ -753,48 +754,48 @@ data_processed <- tar_plan(
              "reserve7", "reserve7a"),
     .data = raw_data_clean
   ),
-  ## Pregnancy
+  ### Pregnancy
   preg_recoded_data = preg_recode(
     vars = c("wh1", "wh2", "wh3", "wh4", "wh5", "wh6", "wh7", 
              "wh8", "preg1", "preg2", "preg3"),
     .data = raw_data_clean
   ),
-  ## PMTCT
+  ### PMTCT
   pmtct_recoded_data = pmtct_recode(
     vars = paste0("pmtct", 1:3),
     .data = raw_data_clean
   ),
-  ## Pregnancy - mosquito net
+  ### Pregnancy - mosquito net
   pnet_recoded_data = pnet_recode(
     vars = paste0("idk", 1:2),
     .data = raw_data_clean
   ),
-  ## Pre- and post-natal check
+  ### Pre- and post-natal check
   nc_recoded_data = nc_recode(
     vars = c(paste0("spc", 1:2), paste0("spc2", letters[1:2]),
              paste0("spc", 3:5), "spc5a", "spc6", paste0("spc6", letters[1:2]),
              "spc7", paste0("spc7", letters[1:2]), "ther1"),
     .data = raw_data_clean
   ),
-  ## Other RH
+  ### Other RH
   rh_recoded_data = rh_recode(
     vars = c(paste0("chm", 1:2), 
              paste0("fansidar", 1:2), "fol1", 
              paste0("tt", 1:2)),
     .data = raw_data_clean
   ),
-  ## Family planning
+  ### Family planning
   fp_recoded_data = fp_recode(
     vars = c("pf1", "bs1", "bs1a", "bs2", "bs3", "bs4", "abor1", "abor1a"),
     .data = raw_data_clean_translated
   ),
-  ## Housing characteristics
+  ### Housing characteristics
   house_recoded_data = housing_recode(.data = raw_data_clean),
-  ## Associations
+  ### Associations
   association_recoded_data = association_recode(.data = raw_data_clean),
   ## Household assets
   asset_recoded_data = asset_recode(.data = raw_data_clean),
-  ## Concatenate recoded datasets
+  ### Concatenate recoded datasets
   recoded_data = merge_recoded_dataset(
     df_list = list(
       mother_anthro_recoded_data, child_anthro_recoded_data, 
@@ -817,8 +818,8 @@ data_processed <- tar_plan(
 )
 
 
-## Analysis
-analysis <- tar_plan(
+## Analysis - estimation -------------------------------------------------------
+analysis_bootstrap <- tar_plan(
   ### Bootstrap ----------------------------------------------------------------
   bootstrap_test = boot_estimates(
     .data = recoded_data,
@@ -826,12 +827,22 @@ analysis <- tar_plan(
     vars = "hdds",
     labs = "Household dietary diversity score",
     replicates = 399
-  ),
+  )
   
 )
 
 
-## Outputs
+## Analysis - spatial interpolation --------------------------------------------
+analysis_spatial <- tar_plan(
+  ### Base interpolation grid --------------------------------------------------
+  sofala_int_points = sp::spsample(
+    x = sf::as_Spatial(sofala_province), n = 10000, type = "hexagonal"
+  ),
+  sofala_int_grid = sp::HexPoints2SpatialPolygons(sofala_int_points)
+)
+
+
+## Outputs ---------------------------------------------------------------------
 outputs <- tar_plan(
   cidade_da_beira_sample_csv = write.csv(
     x = data.frame(
@@ -925,7 +936,7 @@ outputs <- tar_plan(
 )
 
 
-## Reports
+## Reports ---------------------------------------------------------------------
 reports <- tar_plan(
   tar_render(
     name = sample_scenarios_report,
@@ -951,37 +962,37 @@ reports <- tar_plan(
     output_dir = "outputs",
     knit_root_dir = here::here()
   ),
-  ## Render survey progress report
+  ### Render survey progress report --------------------------------------------
   tar_render(
     name = survey_progress_report,
     path = "reports/sofala_survey_progress.Rmd",
     output_dir = "outputs",
     knit_root_dir = here::here()
   ),
-  ## Archive survey progress report
+  ### Archive survey progress report -------------------------------------------
   survey_progress_report_archive = archive_progress_report(
     from = survey_progress_report[1]
   ),
-  ## Render data quality report
+  ### Render data quality report -----------------------------------------------
   tar_render(
     name = data_quality_report,
     path = "reports/sofala_data_quality.Rmd",
     output_dir = "outputs",
     knit_root_dir = here::here()
   ),
-  ## Archive data quality report
+  ### Archive data quality report ----------------------------------------------
   data_quality_report_archive = archive_quality_report(
     from = data_quality_report[1]
   ),
-  ## Email message for sending survey progress report
+  ### Email message for sending survey progress report -------------------------
   email_progress_message = blastula::render_email(
     input = "reports/email_progress_report.Rmd"
   ),
-  ## Email message for sending survey data quality report
+  ### Email message for sending survey data quality report ---------------------
   email_quality_message = blastula::render_email(
     input = "reports/email_quality_report.Rmd"
   ),
-  ## Data processing report
+  ### Data processing report ---------------------------------------------------
   tar_render(
     name = data_processing_report,
     path = "reports/data_processing_report.Rmd",
@@ -990,36 +1001,36 @@ reports <- tar_plan(
   )
 )
 
-## Deploy targets
+## Deploy targets --------------------------------------------------------------
 deploy <- tar_plan(
-  ## Deploy daily progress report
+  ### Deploy daily progress report ---------------------------------------------
   survey_progress_deployed = deploy_progress_report(
     from = survey_progress_report[1],
     to = "docs/survey_progress_report.html"
   ),
-  ## Deploy daily report archive
+  ### Deploy daily report archive ----------------------------------------------
   survey_progress_archive_deployed = archive_progress_report(
     from = survey_progress_deployed, 
     to = paste0("docs/", Sys.Date(), "/progress/index.html") 
   ),
-  ## Deploy daily quality report
+  ### Deploy daily quality report ----------------------------------------------
   data_quality_deployed = deploy_quality_report(
     from = data_quality_report[1],
     to = "docs/data_quality_report.html"
   ),
-  ## Deploy daily report archive
+  ### Deploy daily report archive ----------------------------------------------
   data_quality_archive_deployed = archive_quality_report(
     from = data_quality_deployed, 
     to = paste0("docs/", Sys.Date(), "/quality/index.html") 
   ),
-  ## Email daily progress report to recipients
+  ### Email daily progress report to recipients --------------------------------
   progress_report_emailed = email_progress_report(
     message = email_progress_message,
     attachment = survey_progress_report[1],
     sender = Sys.getenv("GMAIL_USERNAME"),
     recipient = eval(parse(text = Sys.getenv("REPORT_RECIPIENTS")))
   ),
-  ## Email daily quality report to recipients
+  ### Email daily quality report to recipients ---------------------------------
   quality_report_emailed = email_quality_report(
     message = email_quality_message,
     attachment = data_quality_report[1],
@@ -1028,8 +1039,10 @@ deploy <- tar_plan(
   )
 )
 
-## Set seed
+
+## Set seed --------------------------------------------------------------------
 set.seed(1977)
+
 
 # Concatenate targets ----------------------------------------------------------
 list(
@@ -1040,7 +1053,8 @@ list(
   data_reference,
   data_checks,
   data_processed,
-  analysis,
+  analysis_bootstrap,
+  analysis_spatial,
   outputs,
   reports,
   deploy

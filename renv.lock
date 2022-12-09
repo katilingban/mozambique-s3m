@@ -1744,6 +1744,17 @@
         "numDeriv"
       ]
     },
+    "pdftools": {
+      "Package": "pdftools",
+      "Version": "3.3.2",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Hash": "70a559fc1523ab9cdd554bbcc4e34ddc",
+      "Requirements": [
+        "Rcpp",
+        "qpdf"
+      ]
+    },
     "pillar": {
       "Package": "pillar",
       "Version": "1.6.4",
@@ -1943,6 +1954,18 @@
       "Requirements": [
         "magrittr",
         "rlang"
+      ]
+    },
+    "qpdf": {
+      "Package": "qpdf",
+      "Version": "1.3.0",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Hash": "c483a5cbb08463128f1bd714e6e9e914",
+      "Requirements": [
+        "Rcpp",
+        "askpass",
+        "curl"
       ]
     },
     "quantreg": {
