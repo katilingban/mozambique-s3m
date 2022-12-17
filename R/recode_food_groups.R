@@ -57,26 +57,27 @@ fg_recode_response <- function(x, na_values, binary = TRUE) {
 
 ## Recode responses to multiple food groups ------------------------------------
 
-fg_recode_responses <- function(vars, .data, 
-                                na_values = rep(list(9), 19),
+fg_recode_responses <- function(vars, 
+                                .data, 
+                                na_values = c(8,9),
                                 binary = TRUE) {
   x <- .data[vars]
   
   Map(
     f = fg_recode_response,
     x = as.list(x),
-    na_values = na_values,
-    binary = as.list(c(TRUE, FALSE, rep(TRUE, 16), FALSE))
+    na_values = rep(list(na_values), length(x)),
+    binary = binary
   ) |>
-    dplyr::bind_cols() |>
-    (\(x) 
-     {
-       data.frame(
-         age_months = .data[["age_months"]],
-         x
-       ) 
-    } 
-    )()
+    dplyr::bind_cols() #|>
+    #(\(x) 
+    # {
+    #   data.frame(
+    #     age_months = .data[["age_months"]],
+    #     x
+    #   ) 
+    #} 
+    #)()
 }
 
 ## Map food intake variables to child-specific food groups ---------------------
@@ -131,16 +132,14 @@ fg_recode_group <- function(vars,
       )
     } 
     
-    ## Get variables
-    df <- .data[vars]
+    x <- fg_recode_responses(vars = vars, .data = .data, na_values = c(8, 9)) |>
+      rowSums(na.rm = TRUE)
     
-    ## Recode each variable to 1 and 0
-    # for (i in vars) {
-    #   df[i] <- recode_yes_no(df[[i]], na_values = c("8", "9"))
-    # }
-    
-    ## Recode food group to 1 and 0
-    fg <- recode_yes_no(x = rowSums(df, na.rm = TRUE), detect = "no")
+    fg <- ifelse(
+      .data[["age_months"]] < 6 | .data[["age_months"]] >= 24,
+      NA, x
+    ) |>
+      recode_yes_no(detect = "no")
   } else {
     if (!food_group %in% c("eggs", "legumes")) {
       warning(
@@ -153,7 +152,15 @@ fg_recode_group <- function(vars,
     }    
     
     ## Calculate indicator
-    fg <- .data[[vars]]
+    x <- fg_recode_responses(
+      vars = vars, .data = .data, na_values = c(8, 9)
+    )
+    
+    fg <- ifelse(
+      .data[["age_months"]] < 6 | .data[["age_months"]] >= 24,
+      NA, x[[vars]]
+    ) |>
+      recode_yes_no(detect = "no")
   }
   
   ## Return
@@ -181,7 +188,7 @@ fg_recode_groups <- function(vars,
     f = fg_recode_group, 
     vars = vars, 
     .data = .data_list, 
-    food_group = food_group
+    food_group = as.list(food_group)
   ) |>
     (\(x) { names(x) <- paste0("fg_", food_group); x })() |>
     dplyr::bind_rows()

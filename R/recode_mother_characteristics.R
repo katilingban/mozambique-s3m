@@ -74,6 +74,9 @@ carer_recode <- function(.data,
     x = .data[["mother_age"]], na_values = age_na_values
   )
   
+  carer_sex <- .data[["mother_carer_sex"]] |>
+    spread_vector_to_columns(fill = 1:2, prefix = "carer_sex")
+  
   carer_marital_status <- carer_recode_marital_status(
     x = .data[["resp_marital_status"]], 
     na_values = marital_na_values,
@@ -104,7 +107,7 @@ carer_recode <- function(.data,
   )
   
   data.frame(
-    core_vars, carer_age, carer_marital_status, carer_education,
+    core_vars, carer_age, carer_sex, carer_marital_status, carer_education,
     carer_with_partner, partner_age, partner_education
   )
 }

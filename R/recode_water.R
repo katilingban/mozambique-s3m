@@ -126,6 +126,20 @@ water_recode_responses <- function(vars, .data, na_values) {
 #
 ################################################################################
 
+water_recode_sources <- function(.data) {
+  .data |>
+    dplyr::mutate(
+      wt2 = ifelse(
+        wt2 == 13 & 
+          wt2_other %in% c("Debaixo da ponte", "Debaixo da ponte "), 7,
+        ifelse(
+          wt2 == 13 & 
+            wt2_other == "Pequenas bacias nas machambas de arroz na época chuvosa.", 10, wt2
+        )
+      )
+    )
+}
+
 water_recode_surface <- function(vars, .data) {
   x <- .data[[vars]]
   
@@ -143,7 +157,8 @@ water_recode_limited <- function(vars, .data) {
   x <- .data[vars]
   
   ifelse(
-    x[[vars[1]]] %in% c(1:6, 8, 10, 12) & x[[vars[2]]] > 30, 1, 0
+    x[[vars[1]]] %in% c(1:6, 8, 10, 12) & 
+      x[[vars[2]]] > 30, 1, 0
   )
 }
 
@@ -151,7 +166,9 @@ water_recode_basic <- function(vars, .data) {
   x <- .data[vars]
   
   ifelse(
-    x[[vars[1]]] %in% c(1:6, 8, 10, 12) & x[[vars[2]]] <= 30, 1, 0
+    x[[vars[1]]] %in% c(1:6, 8, 10, 12) & 
+      x[[vars[2]]] <= 30 &
+      x[[vars[3]]] == 1, 1, 0
   )
 }
 
@@ -159,7 +176,9 @@ water_recode_sufficient <- function(vars, .data) {
   x <- .data[vars]
   
   ifelse(
-    x[[vars[1]]] %in% 1:2 & x[[vars[2]]] == 1, 1, 0
+    x[[vars[1]]] %in% c(1:6, 8, 10, 12) & 
+      x[[vars[2]]] <= 30 &
+      x[[vars[3]]] != 1, 1, 0
   )
 }
 
@@ -249,10 +268,10 @@ water_recode <- function(vars, .data, na_values) {
       vars = c("wt2", "wt3a"), .data = water_df
     ),
     water_basic = water_recode_basic(
-      vars = c("wt2", "wt3a"), .data = water_df
+      vars = c("wt2", "wt3a", "wt4"), .data = water_df
     ),
     water_sufficient = water_recode_sufficient(
-      vars = c("wt2", "wt4"), .data = water_df
+      vars = c("wt2", "wt3a", "wt4"), .data = water_df
     ),
     water_recode_sufficiency(
       vars = c("wt4", "wt4a"), .data = water_df

@@ -662,7 +662,7 @@ data_processed <- tar_plan(
       c(88, 99), c(88, 99), 
       c(88, 99), c(7, 88, 99)
     ),
-    fill = list(1:6, 1:9, 1:6, 1:6),
+    fill = list(1:6, 1:9, 1:6, 1:7),
     na_rm = rep(list(FALSE), length(vars)),
     prefix = list(
       "income_source", "income_amount", 
@@ -671,7 +671,12 @@ data_processed <- tar_plan(
     label = rep(list(NULL), length(vars))
   ),
   ### Time-to-travel -----------------------------------------------------------
-  travel_recoded_data = travel_recode(raw_data_clean),
+  travel_recoded_data = travel_recode(
+    raw_data_clean |>
+      dplyr::mutate(
+        gi1 = travel_recode_mode_other(x = gi1, y = gi1_other)
+      )
+  ),
   ### Play ---------------------------------------------------------------------
   play_recoded_data = play_recode(
     vars = paste0("play", c(paste0(1, letters[1:7]), 2, paste0(3, letters[1:6]))),
@@ -687,43 +692,44 @@ data_processed <- tar_plan(
   ### Water --------------------------------------------------------------------
   water_recoded_data = water_recode(
     vars = c("wt2", "wt3", "wt3a", "wt3b", "wt4", "wt4a", "wt5", "wt6"),
-    .data = raw_data_clean,
-    na_values = c(88, 99, 888, 999)
+    .data = raw_data_clean |>
+      water_recode_sources(),
+    na_values = c(88, 99, 888, 999, 885, 8884, 8889)
   ),
-  ### Sanitation
+  ### Sanitation ---------------------------------------------------------------
   san_recoded_data = san_recode(
     vars = paste0("lusd", 1:8),
     .data = raw_data_clean,
     na_values = c(8, 9, 88, 99, 888, 999)
   ),
-  ### Hygiene
+  ### Hygiene ------------------------------------------------------------------
   hygiene_recoded_data = hygiene_recode(
     vars = c(paste0("caha", 1:3), paste0("lusd", 9:11)),
     .data = raw_data_clean,
     na_values = c(8, 9, 88, 99)
   ),
-  ### Treatment-seeking - fever
+  ### Treatment-seeking - fever ------------------------------------------------
   fever_recoded_data = fever_recode(
     vars = c(paste0("fever", 1:6), "fever6a", "fever7"),
     .data = raw_data_clean
   ),
-  ### Treatment-seeking - diarrhoea
+  ### Treatment-seeking - diarrhoea --------------------------------------------
   diarrhoea_recoded_data = dia_recode(
     vars = c("ort1", paste0("ort1", letters[1:3]), paste0("ort", 2:4), 
              paste0("ort5", letters[1:5]), "ort6", "ort7"),
     .data = raw_data_clean
   ),
-  ### Treatment-seeking - respiratory tract infections
+  ### Treatment-seeking - respiratory tract infections -------------------------
   rti_recoded_data = rti_recode(
     vars = c("ch1", "ch1a", paste0("ch", 2:5), "ch5a"),
     .data = raw_data_clean
   ),
-  ### Breastfeeding
+  ### Breastfeeding ------------------------------------------------------------
   bf_vars_map = bf_map_vars(survey_codebook),
   bf_recoded_data = bf_recode(vars = bf_vars_map, .data = raw_data_clean),
-  ### Food groups
+  ### Food groups --------------------------------------------------------------
   fg_vars_map = fg_map_vars(
-    dairy = c("food_yogurt", "food_cheese"), 
+    dairy = c("liquid_milk", "liquid_milk_sweet", "food_yogurt", "food_cheese"), 
     starch = c("food_rice", "food_potatoes"),
     vita = c("food_pumpkin", "food_mango"),
     other_fruit_veg = c("food_oth_veg", "food_oth_fruit"),
@@ -734,19 +740,19 @@ data_processed <- tar_plan(
   fg_recoded_data = fg_recode(
     vars = fg_vars_map, .data = raw_data_clean
   ),
-  ### Meals
+  ### Meals --------------------------------------------------------------------
   meal_recoded_data = meal_recode(vars = "food_num", .data = raw_data_clean),
-  ### IYCF
+  ### IYCF ---------------------------------------------------------------------
   iycf_recoded_data = iycf_recode(
     .data = raw_data_clean,
     bf_recoded_data, fg_recoded_data, meal_recoded_data
   ),
-  ### FIES
+  ### FIES ---------------------------------------------------------------------
   fies_recoded_data = fies_recode(
     vars = paste0("fies0", 1:8),
     .data = raw_data_clean
   ),
-  ### Food stocks
+  ### Food stocks --------------------------------------------------------------
   stock_recoded_data = stock_recode(
     vars = c("reserve1", "reserve1a", "reserve2", "reserve2a", 
              "reserve3", "reserve3a", "reserve4", "reserve4a", 
@@ -754,48 +760,48 @@ data_processed <- tar_plan(
              "reserve7", "reserve7a"),
     .data = raw_data_clean
   ),
-  ### Pregnancy
+  ### Pregnancy ----------------------------------------------------------------
   preg_recoded_data = preg_recode(
     vars = c("wh1", "wh2", "wh3", "wh4", "wh5", "wh6", "wh7", 
              "wh8", "preg1", "preg2", "preg3"),
     .data = raw_data_clean
   ),
-  ### PMTCT
+  ### PMTCT --------------------------------------------------------------------
   pmtct_recoded_data = pmtct_recode(
     vars = paste0("pmtct", 1:3),
     .data = raw_data_clean
   ),
-  ### Pregnancy - mosquito net
+  ### Pregnancy - mosquito net -------------------------------------------------
   pnet_recoded_data = pnet_recode(
     vars = paste0("idk", 1:2),
     .data = raw_data_clean
   ),
-  ### Pre- and post-natal check
+  ### Pre- and post-natal check ------------------------------------------------
   nc_recoded_data = nc_recode(
     vars = c(paste0("spc", 1:2), paste0("spc2", letters[1:2]),
              paste0("spc", 3:5), "spc5a", "spc6", paste0("spc6", letters[1:2]),
              "spc7", paste0("spc7", letters[1:2]), "ther1"),
     .data = raw_data_clean
   ),
-  ### Other RH
+  ### Other RH -----------------------------------------------------------------
   rh_recoded_data = rh_recode(
     vars = c(paste0("chm", 1:2), 
              paste0("fansidar", 1:2), "fol1", 
              paste0("tt", 1:2)),
     .data = raw_data_clean
   ),
-  ### Family planning
+  ### Family planning ----------------------------------------------------------
   fp_recoded_data = fp_recode(
     vars = c("pf1", "bs1", "bs1a", "bs2", "bs3", "bs4", "abor1", "abor1a"),
     .data = raw_data_clean_translated
   ),
-  ### Housing characteristics
+  ### Housing characteristics --------------------------------------------------
   house_recoded_data = housing_recode(.data = raw_data_clean),
-  ### Associations
+  ### Associations -------------------------------------------------------------
   association_recoded_data = association_recode(.data = raw_data_clean),
-  ## Household assets
+  ## Household assets ----------------------------------------------------------
   asset_recoded_data = asset_recode(.data = raw_data_clean),
-  ### Concatenate recoded datasets
+  ### Concatenate recoded datasets ---------------------------------------------
   recoded_data = merge_recoded_dataset(
     df_list = list(
       mother_anthro_recoded_data, child_anthro_recoded_data, 
@@ -809,36 +815,134 @@ data_processed <- tar_plan(
       iycf_recoded_data, fies_recoded_data, stock_recoded_data, 
       preg_recoded_data, pmtct_recoded_data, pnet_recoded_data, nc_recoded_data,
       rh_recoded_data, fp_recoded_data, house_recoded_data,
-      association_recoded_data, asset_recoded_data
+      association_recoded_data, asset_recoded_data, pica_recoded_data
     )
   ) |>
     dplyr::mutate(
       spid = as.integer(spid)
-    )
+    ),
+  ### Indicator lists ----------------------------------------------------------
+  household_indicators_list = create_indicator_list(id = "household"),
+  carer_indicators_list = create_indicator_list(id = "carer"),
+  woman_indicators_list = create_indicator_list(id = "woman"),
+  child_indicators_list = create_indicator_list(id = "child")
 )
-
 
 ## Analysis - estimation -------------------------------------------------------
 analysis_bootstrap <- tar_plan(
-  ### Bootstrap ----------------------------------------------------------------
-  bootstrap_test = boot_estimates(
+  ### Household indicators -----------------------------------------------------
+  bootstrap_household_indicators = boot_estimates_household(
     .data = recoded_data,
     w = sofala_ea_population,
-    vars = "hdds",
-    labs = "Household dietary diversity score",
-    replicates = 399
+    replicates = 999,
+    indicator_list = household_indicators_list
+  ),
+  province_household_indicators = calculate_province_estimates(
+    results_table = bootstrap_household_indicators,
+    pop = sofala_district_population
+  ),
+  ### Carer indicators ---------------------------------------------------------
+  bootstrap_carer_indicators = boot_estimates_carer(
+    .data = recoded_data,
+    w = sofala_ea_population,
+    replicates = 999,
+    indicator_list = carer_indicators_list
+  ),
+  province_carer_indicators = calculate_province_estimates(
+    results_table = bootstrap_carer_indicators,
+    pop = sofala_district_population
+  ),
+  ### Women indicators -----------------------------------------------
+  bootstrap_woman_indicators = boot_estimates_woman(
+    .data = recoded_data,
+    w = sofala_ea_population,
+    replicates = 999,
+    indicator_list = woman_indicators_list
+  ),
+  province_woman_indicators = calculate_province_estimates(
+    results_table = bootstrap_woman_indicators,
+    pop = sofala_district_population
+  ),
+  ### Child indicators -----------------------------------------------
+  bootstrap_child_indicators = boot_estimates_child(
+    .data = recoded_data,
+    w = sofala_ea_population,
+    replicates = 999,
+    indicator_list = child_indicators_list
+  ),
+  province_child_indicators = calculate_province_estimates(
+    results_table = bootstrap_child_indicators,
+    pop = sofala_district_population
+  ),
+  ### Child anthropometry indicators -------------------------------------------
+  bootstrap_stunting_probit_indicators = boot_probits_stunting(
+    .data = recoded_data,
+    w = sofala_ea_population,
+    replicates = 999
+  ),
+  bootstrap_underweight_probit_indicators = boot_probits_underweight(
+    .data = recoded_data,
+    w = sofala_ea_population,
+    replicates = 999
+  ),
+  bootstrap_whz_probit_indicators = boot_probits_whz(
+    .data = recoded_data,
+    w = sofala_ea_population,
+    replicates = 999
+  ),
+  bootstrap_muac_probit_indicators = boot_probits_muac(
+    .data = recoded_data,
+    w = sofala_ea_population,
+    replicates = 999
+  ),
+  bootstrap_child_anthro_probit_indicators = rbind(
+    bootstrap_stunting_probit_indicators, 
+    bootstrap_underweight_probit_indicators,
+    bootstrap_whz_probit_indicators, 
+    bootstrap_muac_probit_indicators
+  ) |>
+    (\(x) x[order(x$district), ])(),
+  province_child_anthro_indicators = calculate_province_estimates(
+    results_table = bootstrap_child_anthro_probit_indicators,
+    pop = sofala_district_population
   )
-  
 )
-
+  
 
 ## Analysis - spatial interpolation --------------------------------------------
 analysis_spatial <- tar_plan(
   ### Base interpolation grid --------------------------------------------------
-  sofala_int_points = sp::spsample(
-    x = sf::as_Spatial(sofala_province), n = 10000, type = "hexagonal"
+  sofala_int_grid = sf::st_make_grid(
+    sofala_province, cellsize = 0.008, square = FALSE, flat_topped = TRUE,
+  ) |> 
+    (\(x) x[sofala_province])() |>
+    sf::st_transform(crs = 4326),
+  sofala_int_points = sf::st_centroid(sofala_int_grid) |>
+    sf::st_transform(crs = 4326),
+  ### Convert recoded data to sp class -----------------------------------------
+  recoded_data_sf = create_sf_data(recoded_data),
+  interpolation_test = interpolate_indicators(
+    var = c("global_stunting", "moderate_stunting"), 
+    sf_data = recoded_data_sf, 
+    int_points = sofala_int_points
   ),
-  sofala_int_grid = sp::HexPoints2SpatialPolygons(sofala_int_points)
+  ### Interpolate household indicators -----------------------------------------
+  interpolation_household_indicators = interpolate_indicators(
+    sf_data = recoded_data_sf, int_points = sofala_int_points,
+    indicator_list = household_indicators_list
+  ),
+  interpolation_carer_indicators = interpolate_indicators(
+    sf_data = recoded_data_sf, int_points = sofala_int_points,
+    indicator_list = carer_indicators_list
+  ),
+  interpolation_woman_indicators = interpolate_indicators(
+    sf_data = recoded_data_sf, int_points = sofala_int_points,
+    indicator_list = woman_indicators_list
+  ),
+  interpolation_child_indicators = interpolate_indicators(
+    sf_data = recoded_data_sf, int_points = sofala_int_points,
+    indicator_list = child_indicators_list
+  )
 )
 
 
@@ -932,6 +1036,250 @@ outputs <- tar_plan(
       subset(select = -geolocation),
     file = "data/sofala_recoded_data.csv",
     row.names = FALSE
+  ),
+  ### Indicator lists CSV
+  tar_target(
+    name = household_indicators_list_csv,
+    command = write.csv(
+      x = household_indicators_list,
+      file = "outputs/household_indicators_list.csv",
+      row.names = FALSE
+    ),
+    cue = tar_cue("always")
+  ),
+  tar_target(
+    name = carer_indicators_list_csv,
+    command = write.csv(
+      x = carer_indicators_list,
+      file = "outputs/carer_indicators_list.csv",
+      row.names = FALSE
+    ),
+    cue = tar_cue("always")
+  ),
+  tar_target(
+    name = woman_indicators_list_csv,
+    command = write.csv(
+      x = woman_indicators_list,
+      file = "outputs/woman_indicators_list.csv",
+      row.names = FALSE
+    ),
+    cue = tar_cue("always")
+  ),
+  tar_target(
+    name = child_indicators_list_csv,
+    command = write.csv(
+      x = child_indicators_list,
+      file = "outputs/child_indicators_list.csv",
+      row.names = FALSE
+    ),
+    cue = tar_cue("always")
+  ),
+  ### Create formatted indicator results tables --------------------------------
+  household_indicators_results_table = create_results_table_by_district(
+    results_table = bootstrap_household_indicators, format = TRUE
+  ),
+  carer_indicators_results_table = create_results_table_by_district(
+    results_table = bootstrap_carer_indicators, format = TRUE
+  ),
+  woman_indicators_results_table = create_results_table_by_district(
+    results_table = bootstrap_woman_indicators, format = TRUE
+  ),
+  child_indicators_results_table = create_results_table_by_district(
+    results_table = bootstrap_child_indicators, format = TRUE
+  ),
+  child_anthro_probit_results_table = create_results_table_by_district(
+    results_table = bootstrap_child_anthro_probit_indicators, format = TRUE
+  ),
+  indicator_results_districts_xlsx = create_results_xlsx(
+    path = "outputs/indicator_results_districts.xlsx",
+    household = household_indicators_results_table,
+    carer = carer_indicators_results_table,
+    woman = woman_indicators_results_table,
+    child = child_indicators_results_table,
+    child_anthro = child_anthro_probit_results_table
+  ),
+  indicator_results_overall_xlsx = create_results_xlsx(
+    path = "outputs/indicator_results_overall.xlsx",
+    household = province_household_indicators |>
+      dplyr::mutate(
+        estimate = ifelse(
+          stringr::str_detect(indicator, "Mean"), 
+          round(estimate, digits = 3), 
+          round(estimate * 100, 2)
+        ),
+        lcl = ifelse(
+          stringr::str_detect(indicator, "Mean"), 
+          round(lcl, digits = 3), 
+          round(lcl * 100, 2)
+        ),
+        ucl = ifelse(
+          stringr::str_detect(indicator, "Mean"), 
+          round(ucl, digits = 3), 
+          round(ucl * 100, 2)
+        )
+      ),
+    carer = province_carer_indicators |>
+      dplyr::mutate(
+        estimate = ifelse(
+          stringr::str_detect(indicator, "Mean"), 
+          round(estimate, digits = 3), 
+          round(estimate * 100, 2)
+        ),
+        lcl = ifelse(
+          stringr::str_detect(indicator, "Mean"), 
+          round(lcl, digits = 3), 
+          round(lcl * 100, 2)
+        ),
+        ucl = ifelse(
+          stringr::str_detect(indicator, "Mean"), 
+          round(ucl, digits = 3), 
+          round(ucl * 100, 2)
+        )
+      ),
+    woman = province_woman_indicators |>
+      dplyr::mutate(
+        estimate = ifelse(
+          stringr::str_detect(indicator, "Mean"), 
+          round(estimate, digits = 3), 
+          round(estimate * 100, 2)
+        ),
+        lcl = ifelse(
+          stringr::str_detect(indicator, "Mean"), 
+          round(lcl, digits = 3), 
+          round(lcl * 100, 2)
+        ),
+        ucl = ifelse(
+          stringr::str_detect(indicator, "Mean"), 
+          round(ucl, digits = 3), 
+          round(ucl * 100, 2)
+        )
+      ),
+    child = province_child_indicators |>
+      dplyr::mutate(
+        estimate = ifelse(
+          stringr::str_detect(indicator, "Mean"), 
+          round(estimate, digits = 3), 
+          round(estimate * 100, 2)
+        ),
+        lcl = ifelse(
+          stringr::str_detect(indicator, "Mean"), 
+          round(lcl, digits = 3), 
+          round(lcl * 100, 2)
+        ),
+        ucl = ifelse(
+          stringr::str_detect(indicator, "Mean"), 
+          round(ucl, digits = 3), 
+          round(ucl * 100, 2)
+        )
+      ),
+    child_anthro = province_child_anthro_indicators |>
+      dplyr::mutate(
+        estimate = ifelse(
+          stringr::str_detect(indicator, "Mean"), 
+          round(estimate, digits = 3), 
+          round(estimate * 100, 2)
+        ),
+        lcl = ifelse(
+          stringr::str_detect(indicator, "Mean"), 
+          round(lcl, digits = 3), 
+          round(lcl * 100, 2)
+        ),
+        ucl = ifelse(
+          stringr::str_detect(indicator, "Mean"), 
+          round(ucl, digits = 3), 
+          round(ucl * 100, 2)
+        )
+      )
+  ),
+  ### Create formatted indicator results tables for mapping --------------------
+  household_indicators_map_table = create_tables_by_indicator(
+    #household_indicators_results_table
+    bootstrap_household_indicators
+  ),
+  carer_indicators_map_table = create_tables_by_indicator(
+    #carer_indicators_results_table
+    bootstrap_carer_indicators
+  ),
+  woman_indicators_map_table = create_tables_by_indicator(
+    #woman_indicators_results_table
+    bootstrap_woman_indicators
+  ),
+  child_indicators_map_table = create_tables_by_indicator(
+    #child_indicators_results_table
+    bootstrap_child_indicators
+  ),
+  ### Mapping outputs ----------------------------------------------------------
+  household_interpolation_maps = plot_qual_maps(
+    int_sf = interpolation_household_indicators |>
+      format_interpolation_results(household_indicators_list),
+    base_map = sofala_province,
+    n = 101,
+    pal = viridis::viridis(n = 101, alpha = 0.6),
+    breaks = "equal",
+    indicator_list = household_indicators_list
+  ),
+  household_choropleth_maps = plot_choropleth_maps(
+    var = household_indicators_list$indicator_variable,
+    results_map = merge(
+      sofala_district, household_indicators_map_table,
+      by.x = "ADM2_PT", by.y = "district"
+    ),
+    n = 5, pal = viridis::viridis(n = 5), breaks = "equal",
+    indicator_list = household_indicators_list
+  ),
+  carer_interpolation_maps = plot_qual_maps(
+    int_sf = interpolation_carer_indicators |>
+      format_interpolation_results(carer_indicators_list),
+    base_map = sofala_province,
+    n = 101,
+    pal = viridis::viridis(n = 101, alpha = 0.6),
+    breaks = "equal",
+    indicator_list = carer_indicators_list
+  ),
+  carer_choropleth_maps = plot_choropleth_maps(
+    var = carer_indicators_list$indicator_variable,
+    results_map = merge(
+      sofala_district, carer_indicators_map_table,
+      by.x = "ADM2_PT", by.y = "district"
+    ),
+    n = 5, pal = viridis::viridis(n = 5), breaks = "equal",
+    indicator_list = carer_indicators_list
+  ),
+  woman_interpolation_maps = plot_qual_maps(
+    int_sf = interpolation_woman_indicators |>
+      format_interpolation_results(woman_indicators_list),
+    base_map = sofala_province,
+    n = 101,
+    pal = viridis::viridis(n = 101, alpha = 0.6),
+    breaks = "equal",
+    indicator_list = woman_indicators_list
+  ),
+  woman_choropleth_maps = plot_choropleth_maps(
+    var = woman_indicators_list$indicator_variable,
+    results_map = merge(
+      sofala_district, woman_indicators_map_table,
+      by.x = "ADM2_PT", by.y = "district"
+    ),
+    n = 5, pal = viridis::viridis(n = 5), breaks = "equal",
+    indicator_list = woman_indicators_list
+  ),
+  child_interpolation_maps = plot_qual_maps(
+    int_sf = interpolation_child_indicators |>
+      format_interpolation_results(child_indicators_list),
+    base_map = sofala_province,
+    n = 101,
+    pal = viridis::viridis(n = 101, alpha = 0.6),
+    breaks = "equal",
+    indicator_list = child_indicators_list
+  ),
+  child_choropleth_maps = plot_choropleth_maps(
+    var = child_indicators_list$indicator_variable,
+    results_map = merge(
+      sofala_district, child_indicators_map_table,
+      by.x = "ADM2_PT", by.y = "district"
+    ),
+    n = 5, pal = viridis::viridis(n = 5), breaks = "equal",
+    indicator_list = child_indicators_list
   )
 )
 
@@ -1000,6 +1348,7 @@ reports <- tar_plan(
     knit_root_dir = here::here()
   )
 )
+
 
 ## Deploy targets --------------------------------------------------------------
 deploy <- tar_plan(

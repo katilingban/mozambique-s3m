@@ -24,9 +24,9 @@ vita_recode <- function(.data) {
     (\(x) 
      {
        ifelse(x %in% 4:5, NA,
-              ifelse(
-                x == 3, 0, 1
-              )
+         ifelse(
+           x == 3, 0, x
+         )
        )
     }
     )() |>
@@ -42,7 +42,7 @@ vita_recode <- function(.data) {
 
 worm_recode <- function(.data) {
   ifelse(
-    .data[["vas3"]] == 8, NA,
+    .data[["vas3"]] == 8 | .data[["age_months"]] < 12, NA,
     ifelse(
       .data[["vas3"]] == 2, 0, 1
     )

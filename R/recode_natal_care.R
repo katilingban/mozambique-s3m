@@ -190,9 +190,9 @@ nc_recode <- function(vars, .data) {
     nc_recode_assist(vars = vars[5], .data = nc_df),
     delivery_return = nc_df[[vars[6]]],
     nc_recode_difficulties(vars = vars[8], .data = nc_df),
-    nc_recode_pnc(vars = vars[9:11], .data = nc_df, prefix = "pnc_mother") |>
+    nc_recode_pnc(vars = vars[12:14], .data = nc_df, prefix = "pnc_mother") |>
       (\(x) { names(x)[1:2] <- paste0("mother_", names(x)[1:2]); x } )(),
-    nc_recode_pnc(vars = vars[12:14], .data = nc_df, prefix = "pnc_child") |>
+    nc_recode_pnc(vars = vars[9:11], .data = nc_df, prefix = "pnc_child") |>
       (\(x) { names(x)[1:2] <- paste0("child_", names(x)[1:2]); x } )(),
     nc_protect = nc_df[[vars[15]]]
   )

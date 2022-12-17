@@ -212,7 +212,7 @@ dia_recode <- function(vars, .data) {
     diarrhoea_episode = dia_recode_diagnosis(.data = dia_df),
     diarrhoea_treatment = dia_df[[vars[6]]],
     dia_recode_poc(.data = dia_df),
-    diarroea_treatment_ors = dia_recode_ors(.data = dia_df),
+    diarrhoea_treatment_ors = dia_recode_ors(.data = dia_df),
     dia_recode_treatment(.data = dia_df),
     dia_recode_liquids(.data = dia_df),
     dia_recode_foods(.data = dia_df)

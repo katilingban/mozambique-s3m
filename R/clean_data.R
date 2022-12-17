@@ -26,6 +26,7 @@ clean_raw_data <- function(raw_data, survey_codebook, survey_questions) {
       cweight1 = ifelse(flag == 1, cpeso1, cpeso),
       cheight1 = ifelse(flag == 1, caltura1, caltura),
       cmuac1 = ifelse(flag == 1, cbraco1, cbraco),
+      oedema = as.integer(oedema),
       age_years = ((as.Date(today) - as.Date(child_dob)) / 365.25) |>
         as.numeric(),
       age_months = ((as.Date(today) - as.Date(child_dob)) / (365.25 / 12)) |>

@@ -16,6 +16,8 @@ outputs
 !outputs/.gitkeep
 !outputs/data_processing_report.html
 !outputs/s3m_recoded_data.csv
-!outputs.s3m_recoded_data.xlsx
+!outputs/s3m_recoded_data.xlsx
+!outputs/choropleth/.gitkeep
+!outputs/interpolation/.gitkeep
 _targets
 Rplots.pdf
