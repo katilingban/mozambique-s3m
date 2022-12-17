@@ -27,17 +27,28 @@ create_sofala_district_population <- function(pdf_data) {
     matrix(ncol = 2) |>
     data.frame() |>
     (\(x) { names(x) <- c("district", "population"); x })() |>
-    (\(x)
-      {
-        x$district <- ifelse(
-          x$district == "Beira", "Cidade de Beira",
-          ifelse(
-            x$district == "Chirogoma", "Cheringoma", x$district
-          )
+    dplyr::mutate(
+      district = ifelse(
+        district == "Beira", "Cidade de Beira",
+        ifelse(
+          district == "Chirogoma", "Cheringoma", district
         )
-        x
-      }
-    )()
+      ),
+      population = as.integer(population)
+    )
+    # 
+    # 
+    # (\(x)
+    #   {
+    #     x$district <- ifelse(
+    #       x$district == "Beira", "Cidade de Beira",
+    #       ifelse(
+    #         x$district == "Chirogoma", "Cheringoma", x$district
+    #       )
+    #     )
+    #     x
+    #   }
+    # )()
   
 }
 

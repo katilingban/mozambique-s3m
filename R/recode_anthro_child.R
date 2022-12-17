@@ -18,7 +18,11 @@ recode_anthro_child <- function(.data) {
         ifelse(
           cmuac == 159, 15.9, cmuac
         )
-      )
+      ),
+      cmuac = ifelse(age_months < 6 | age_months > 59, NA, cmuac),
+      cweight = ifelse(age_months < 6 | age_months > 59, NA, cweight),
+      cheight = ifelse(age_months < 6 | age_months > 59, NA, cheight),
+      oedema = ifelse(age_months < 6 | age_months > 59, NA, oedema)
     )
   
   ## Calculate z-scores and flag records
@@ -85,7 +89,8 @@ recode_anthro_child <- function(.data) {
       severe_wasting_whz = ifelse(wfhz < -3, 1, 0),
       global_wasting_muac = ifelse(cmuac < 12.5, 1, 0),
       moderate_wasting_muac = ifelse(cmuac >= 11.5 & cmuac < 12.5, 1, 0),
-      severe_wasting_muac = ifelse(cmuac < 11.5, 1, 0)
+      severe_wasting_muac = ifelse(cmuac < 11.5, 1, 0),
+      oedema = ifelse(oedema == 1, 1, 0)
     )
   
   core_vars <- get_core_variables(raw_data_clean = .data)

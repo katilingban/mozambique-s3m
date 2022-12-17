@@ -82,8 +82,15 @@ phq_recode_symptoms <- function(vars, .data, na_values) {
 }
 
 
-phq_calculate_score <- function(phq_df, add = TRUE) {
-  phq <- rowSums(phq_df, na.rm = TRUE)
+phq_calculate_score <- function(phq_df, .data, add = TRUE) {
+  phq <- rowSums(phq_df, na.rm = TRUE) |>
+    (\(x) 
+      ifelse(
+        .data[["mother_carer_sex"]] == 1 | 
+          .data[["mother_age"]] < 15 | 
+          .data[["mother_age"]] > 49, NA, x
+      )
+    )()
   
   if (add) {
     data.frame(
@@ -101,23 +108,43 @@ phq_classify <- function(phq, add = FALSE, spread = FALSE) {
   #breaks <- c(1, 4, 9, 14, 19, 27)
   #labels <- c("minimal", "mild", "moderate", "moderate severe", "severe")
   breaks <- c(1, 10, 20, 24)
-  labels <- c("minimal to mild", "major", "severe")
+  labs <- c("minimal to mild", "major", "severe")
   
   phq_class <- cut(
     x = phq,
     breaks = breaks,
-    labels = labels,
+    labels = labs,
     include.lowest = TRUE, right = TRUE
   ) |>
     as.character() |>
     (\(x) ifelse(is.na(x), "no depression", x))() |>
     factor(levels = c("no depression", "minimal to mild", "major", "severe"))
   
+  phq_integer <- cut(
+    x = phq,
+    breaks = breaks,
+    labels = FALSE,
+    include.lowest = TRUE, right = TRUE
+  ) |>
+    (\(x) ifelse(is.na(x), 0, x))()
+  
   if (spread) {
     phq_class <- data.frame(
       phq_class = phq_class,
-      spread_vector_to_columns(x = phq_class, prefix = "phq")
+      spread_vector_to_columns(x = phq_integer, prefix = "phq")
     )
+    
+    names(phq_class) <- c(
+      "phq_class", 
+      paste0(
+        "phq_", 
+        stringr::str_replace_all(
+          string = c("no depression", labs), pattern = " ", replacement = "_"
+        )
+      )
+    )
+    
+    phq_class
   }
   
   if (add) {
@@ -131,10 +158,13 @@ phq_classify <- function(phq, add = FALSE, spread = FALSE) {
 
 ## Recode alcohol frequency
 
-alcohol_recode_frequency <- function(x, na_values,
+alcohol_recode_frequency <- function(x,
+                                     age,
+                                     sex,
+                                     na_values,
                                      fill = 1:5, 
                                      prefix = "alcohol_frequency") {
-  ifelse(x %in% na_values, NA, x) |>
+  ifelse(x %in% na_values | age < 15 | age > 49 | sex == 1, NA, x) |>
     spread_vector_to_columns(fill = 1:5, na_rm = FALSE, prefix = prefix)
 }
 
@@ -157,11 +187,15 @@ phq_recode <- function(vars,
   )
   
   alcohol_frequency <- alcohol_recode_frequency(
-    x = .data[["ment9"]], na_values = na_values
+    x = .data[["ment9"]], 
+    age = .data[["mother_age"]], 
+    sex = .data[["mother_carer_sex"]],
+    na_values = na_values
   )
+    
   
   recoded_vars |>
-    phq_calculate_score(add = FALSE) |>
+    phq_calculate_score(.data = .data, add = FALSE) |>
     phq_classify(add = TRUE, spread = TRUE) |>
     (\(x) data.frame(core_vars, recoded_vars, x, alcohol_frequency))()
 }

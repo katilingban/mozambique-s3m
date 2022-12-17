@@ -68,9 +68,10 @@ pica_recode <- function(vars, .data, na_values) {
   
   recoded_vars <- data.frame(
     pica_probable = pica_recode_diagnosis(x = pica_df[[vars[1]]]),
-    pica_recode_frequency(x = pica_df[[vars[2]]]),
+    pica_recode_frequency(x = pica_df[[vars[1]]]),
     pica_recode_response(x = pica_df[[vars[2]]]),
-    pica_perception = pica_df[[vars[3]]]
+    pica_perception = pica_df[[vars[3]]] |>
+      (\(x) ifelse(x == 1, 1, 0))()
   )
   
   data.frame(core_vars, recoded_vars)

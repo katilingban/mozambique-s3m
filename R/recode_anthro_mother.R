@@ -10,7 +10,14 @@ recode_anthro_mother <- function(.data,
                                  bmi_labs = FALSE, 
                                  muac_labs = FALSE) {
   x <- .data |>
-    subset(select = c(mother_age, mweight, mheight, mmuac, wh1))
+    subset(select = c(mother_age, mweight, mheight, mmuac, wh1)) |>
+    dplyr::mutate(
+      mweight = ifelse(mother_age < 15 | mother_age > 49, NA, mweight),
+      mweight = ifelse(wh1 == 1, NA, mweight),
+      mheight = ifelse(mother_age < 15 | mother_age > 49, NA, mheight),
+      mheight = ifelse(wh1 == 1, NA, mheight),
+      mmuac = ifelse(mother_age < 15 | mother_age > 49, NA, mmuac)
+    )
   
   ## Apply fixes form first round of BMI checks
   x$mheight[x$mheight == 1478.00] <- 147.80
@@ -56,6 +63,8 @@ recode_anthro_mother <- function(.data,
   x$mheight[x$mheight == 1.54]    <- 154.00
   x$mheight[x$mheight == 1.58]    <- 158.00
   x$mheight[x$mheight == 1.62]    <- 162.00
+  x$mheight[x$mheight == 1.51]    <- 151.00
+  x$mheight[x$mheight == 1.00]    <- 100.00
   x$mweight[x$mweight == 23.0]    <- 53.0
   x$mweight[x$mweight == 24.1]    <- 54.1
   x$mweight[x$mweight == 24.8]    <- 54.8

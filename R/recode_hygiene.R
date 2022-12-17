@@ -45,19 +45,40 @@ hygiene_recode_events <- function(vars, .data, fill, na_rm = FALSE, prefix) {
   )
 }
 
+hygiene_recode_diaper <- function(vars, .data, fill, na_rm = FALSE, prefix) {
+  x <- .data[[vars]]
+  
+  split_select_multiples(
+    x = x, 
+    fill = fill, 
+    na_rm = na_rm, 
+    prefix = prefix
+  )
+}
+
+
 ## Overall recode function -----------------------------------------------------
 
 hygiene_recode <- function(vars, .data, na_values) {
   core_vars <- get_core_variables(raw_data_clean = .data)
   
   hygiene_df <- hygiene_recode_responses(
-    vars = vars,
+    vars = vars[c(1, 3:4, 6)],
     .data = .data,
     na_values = na_values
-  )
+  ) |>
+    data.frame(
+      dplyr::mutate(
+        .data[vars[c(2, 5)]],
+        caha2 = ifelse(caha2 %in% c("88", "99"), NA, caha2),
+        lusd10 = ifelse(lusd10 %in% c("88", "99"), NA, lusd10)
+      )
+    ) |>
+    dplyr::relocate(caha2, .before = caha3) |>
+    dplyr::relocate(lusd10, .before = lusd11)
   
   recoded_vars <- data.frame(
-    hygiene_wash_recent = ifelse(hygiene_df[[vars[1]]] == 2, 0, 1),
+    hygiene_wash_recent = ifelse(hygiene_df[[vars[1]]] == 1, 1, 0),
     hygiene_recode_events(
       vars = vars[2],
       .data = hygiene_df,
@@ -65,9 +86,16 @@ hygiene_recode <- function(vars, .data, na_values) {
       na_rm = FALSE,
       prefix = "handwash_event"
     ),
-    hygiene_wash_appropriate = ifelse(hygiene_df[[vars[3]]] == 2, 0, 1),
+    hygiene_wash_appropriate = ifelse(hygiene_df[[vars[3]]] == 1, 1, 0),
     hygiene_child_defecation = ifelse(hygiene_df[[vars[4]]] %in% 1:2, 1, 0),
-    hygiene_child_disposal = ifelse(hygiene_df[[vars[5]]] %in% c(1, 7), 1, 0),
+    #hygiene_child_disposal = ifelse(hygiene_df[[vars[5]]] %in% c(1, 7), 1, 0),
+    hygiene_recode_diaper(
+      vars = vars[5],
+      .data = hygiene_df,
+      fill = 1:8,
+      na_rm = FALSE,
+      prefix = "diaper_disposal"
+    ),
     hygiene_child_diaper = ifelse(hygiene_df[[vars[6]]] == 1, 1, 0)
   )
   

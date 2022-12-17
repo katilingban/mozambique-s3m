@@ -105,25 +105,28 @@ san_recode_responses <- function(vars, .data, na_values) {
 san_recode_open <- function(vars, .data) {
   x <- .data[vars]
   
-  ifelse(x[[vars[1]]] == 0 | is.na(x[[vars[2]]]), 1, 0)
+  ifelse(x[[vars[1]]] == 0 | is.na(x[[vars[2]]]) | x[[vars[2]]] == 6, 1, 0)
 }
 
 san_recode_unimproved <- function(vars, .data) {
   x <- .data[[vars]]
   
-  ifelse(x == 5, 1, 0)
+  ifelse(x == 5, 1, 0) |>
+    (\(x) ifelse(is.na(x), 0, x))()
 }
 
 san_recode_limited <- function(vars, .data) {
   x <- .data[vars]
   
-  ifelse(x[[vars[1]]] != 5 & x[[vars[2]]] == 1, 1, 0)
+  ifelse(!x[[vars[2]]] %in% 5:6 & x[[vars[1]]] == 1, 1, 0) |>
+    (\(x) ifelse(is.na(x), 0, x))()
 }
 
 san_recode_basic <- function(vars, .data) {
   x <- .data[vars]
   
-  ifelse(x[[vars[1]]] == 5 & x[[vars[2]]] != 1, 1, 0)
+  ifelse(!x[[vars[2]]] %in% 5:6 & x[[vars[1]]] != 1, 1, 0) |>
+    (\(x) ifelse(is.na(x), 0, x))()
 }
 
 
