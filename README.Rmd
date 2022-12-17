@@ -21,20 +21,44 @@ knitr::opts_chunk$set(
 
 This repository is a [`docker`](https://www.docker.com/get-started)-containerised, [`{targets}`](https://docs.ropensci.org/targets/)-based, [`{renv}`](https://rstudio.github.io/renv/articles/renv.html)-enabled [`R`](https://cran.r-project.org/) workflow developed for the design, data management, data analysis, and reporting of the implementation of Simple Spatial Surveys Method (S3M) survey in Mozambique.
 
-## Spatial sample workfow
+## Repository Structure
 
-```{r spatial_sample_workflow, echo = FALSE, message = FALSE, results = 'asis'}
+* `data/` contains intermediate data outputs produced by the workflow including a survey codebook describing all variables;
+* `R/` contains functions created for use in this workflow;
+* `reports/` contains literate code for R Markdown reports generated in the workflow;
+* `outputs/` contains compiled reports and figures;
+* `auth/` contains credentials for Google service account (see below for more information);
+* `docs/` contains archived high frequency data checks reports produced during the implementation of the survey;
+* `_targets.R` file defines the steps in this workflow's data management and analysis pipeline.
+
+
+## Reproducibility
+
+### R package dependencies
+
+This project requires `R 4.2.2 Patched (2022-11-10 r83330)`. This project uses the `{renv}` framework to record R package dependencies and versions. Packages and versions used are recorded in renv.lock and code used to manage dependencies is in renv/ and other files in the root project directory. On starting an R session in the working directory, `run renv::restore()` to install R package dependencies.
+
+### Data management and analysis
+
+This project uses the targets package to create its data management and analysis pipeline as defined in the `_targets.R` file.
+
+* To execute the data management and processing workflow, run:
+
+```
+targets::tar_make(recoded_data)
+```
+
+The schematic figure below summarizes the steps in the data management and processing workflow:
+
+
+```{r data_management_workflow, echo = FALSE, message = FALSE, results = 'asis'}
 cat(
   "```mermaid",
   targets::tar_mermaid(
     targets_only = TRUE, 
     names = c(
-      cidade_da_beira_sp,
-      cidade_da_beira_grid,
-      sofala_sp_12,
-      sofala_grid_12,
-      sofala_sample_12,
-      selected_ea_complete
+      raw_data, raw_data_clean, raw_data_clean_translated,
+      sofala_district_population, sofala_ea_population, recoded_data
     )
   ),
   "```",
@@ -42,15 +66,26 @@ cat(
 )
 ```
 
-## Food security workflow
+* To execute the data analysis workflow, run:
 
-```{r food_security_workflow, echo = FALSE, message = FALSE, results = 'asis'}
+```
+targets::tar_make(indicator_results_districts_xlsx)
+targets::tar_make(indicator_results_overall_xlsx)
+targets::tar_make(dplyr::contains("interpolation_maps"))
+targets::tar_make(dplyr::contains("choropleth_maps"))
+```
+
+The schematic figure below summarizes the steps in the data management and processing workflow:
+
+
+```{r data_analysis_workflow, echo = FALSE, message = FALSE, results = 'asis'}
 cat(
   "```mermaid",
   targets::tar_mermaid(
     targets_only = TRUE, 
-    names = tidyselect::starts_with(
-      c("hdds", "fcs", "rcsi", "wdds", "mddw", "lcsi", "fies", "stock")
+    names = c(
+      indicator_results_districts_xlsx, indicator_results_overall_xlsx,
+      dplyr::contains("interpolation_maps"), dplyr::contains("choropleth_maps")
     )
   ),
   "```",
@@ -58,190 +93,42 @@ cat(
 )
 ```
 
-## Mother/carer mental health workflow
+## Encryption
 
-```{r mental_health_workflow, echo = FALSE, message = FALSE, results = 'asis'}
-cat(
-  "```mermaid",
-  targets::tar_mermaid(
-    targets_only = TRUE, 
-    names = tidyselect::starts_with("phq")
-  ),
-  "```",
-  sep = "\n"
-)
+This repository uses `git-crypt` to enable transparent encryption and decryption of the `.env` file.
+
+The `.env` file contains:
+
+* variables for accessing the survey data direct from ONA;
+
+* variables for authenticating with Google services account setup for this project;
+
+* variables for `SMTP_PASSWORD` and `EMAIL_RECIPIENTS` which are used for sending the email updates for the high frequency data checks.
+
+Those who would like to reproduce the results of this project will require ability to decrypt the `.env` file
+
+To be able to work on this repository, a potential user/collaborator on this project will need to:
+
+* Create their own PGP (Pretty Good Privacy) public and private keys; and,
+
+* Share their public key to the authors and request for it to be added to the repository.
+
+Once added, a collaborator can now decrypt the .env file after pulling/cloning the repository by running:
+
+```
+git-crypt unlock
 ```
 
-## Childcare practices workflow
-
-```{r childcare_workflow, echo = FALSE, message = FALSE, results = 'asis'}
-cat(
-  "```mermaid",
-  targets::tar_mermaid(
-    targets_only = TRUE, 
-    names = tidyselect::starts_with("ccare")
-  ),
-  "```",
-  sep = "\n"
-)
-```
-
-## Child immunisation coverage workflow
-
-```{r immunisation_workflow, echo = FALSE, message = FALSE, results = 'asis'}
-cat(
-  "```mermaid",
-  targets::tar_mermaid(
-    targets_only = TRUE, 
-    names = tidyselect::starts_with(c("imm", "vas"))
-  ),
-  "```",
-  sep = "\n"
-)
-```
-
-## Development milestones workflow
-
-```{r development_workflow, echo = FALSE, message = FALSE, results = 'asis'}
-cat(
-  "```mermaid",
-  targets::tar_mermaid(
-    targets_only = TRUE, 
-    names = tidyselect::starts_with("dev")
-  ),
-  "```",
-  sep = "\n"
-)
-```
-
-## Pica workflow
-
-```{r pica_workflow, echo = FALSE, message = FALSE, results = 'asis'}
-cat(
-  "```mermaid",
-  targets::tar_mermaid(
-    targets_only = TRUE, 
-    names = tidyselect::starts_with("pica")
-  ),
-  "```",
-  sep = "\n"
-)
-```
-
-
-## Carer characteristics workflow
-
-```{r carer_workflow, echo = FALSE, message = FALSE, results = 'asis'}
-cat(
-  "```mermaid",
-  targets::tar_mermaid(
-    targets_only = TRUE, 
-    names = tidyselect::starts_with("carer")
-  ),
-  "```",
-  sep = "\n"
-)
-```
-
-## Child's play workflow
-
-```{r play_workflow, echo = FALSE, message = FALSE, results = 'asis'}
-cat(
-  "```mermaid",
-  targets::tar_mermaid(
-    targets_only = TRUE, 
-    names = tidyselect::starts_with("play")
-  ),
-  "```",
-  sep = "\n"
-)
-```
-
-## Childhood illnesses workflow
-
-```{r illness_workflow, echo = FALSE, message = FALSE, results = 'asis'}
-cat(
-  "```mermaid",
-  targets::tar_mermaid(
-    targets_only = TRUE, 
-    names = tidyselect::starts_with(c("fever", "dia", "rti"))
-  ),
-  "```",
-  sep = "\n"
-)
-```
-
-## Women's diet workflow
-
-```{r women_diet_workflow, echo = FALSE, message = FALSE, results = 'asis'}
-cat(
-  "```mermaid",
-  targets::tar_mermaid(
-    targets_only = TRUE, 
-    names = tidyselect::starts_with(c("mddw", "wdds"))
-  ),
-  "```",
-  sep = "\n"
-)
-```
-
-## Income and occupation workflow
-
-```{r income_workflow, echo = FALSE, message = FALSE, results = 'asis'}
-cat(
-  "```mermaid",
-  targets::tar_mermaid(
-    targets_only = TRUE, 
-    names = tidyselect::starts_with("work")
-  ),
-  "```",
-  sep = "\n"
-)
-```
-
-## Women's empowerment and decision-making
-
-```{r wem_workflow, echo = FALSE, message = FALSE, results = 'asis'}
-cat(
-  "```mermaid",
-  targets::tar_mermaid(
-    targets_only = TRUE, 
-    names = tidyselect::starts_with("wem")
-  ),
-  "```",
-  sep = "\n"
-)
-```
-
-## Water, sanitation, and hygiene workflow
-
-```{r wash_workflow, echo = FALSE, message = FALSE, results = 'asis'}
-cat(
-  "```mermaid",
-  targets::tar_mermaid(
-    targets_only = TRUE, 
-    names = tidyselect::starts_with(c("water", "san", "hygiene"))
-  ),
-  "```",
-  sep = "\n"
-)
-```
-
-## Reproductive health workflow
-
-```{r rh_workflow, echo = FALSE, message = FALSE, results = 'asis'}
-cat(
-  "```mermaid",
-  targets::tar_mermaid(
-    targets_only = TRUE, 
-    names = tidyselect::starts_with(c("rh", "pmtct", "nc", "preg", "fp"))
-  ),
-  "```",
-  sep = "\n"
-)
-```
+on the terminal.
 
 ## Authors
 
 * Mark Myatt
 * Ernest Guevarra
+
+## License
+This work is licensed under a GNU General Public License 3 (GPL-3).
+
+## Feedback
+
+Feedback, bug reports and feature requests are welcome; file issues or seek support [here](https://github.com/katilingban/mozambique-s3m/issues).
